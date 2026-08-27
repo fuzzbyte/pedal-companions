@@ -851,74 +851,6 @@ footer.end{margin-top:var(--step);padding-top:22px;border-top:1px solid var(--li
   </div>
 </section>
 
-<!-- ============ hidden options ============ -->
-<section id="hidden">
-  <div class="shead"><h2>The layer under the knobs</h2><span class="rule"></span></div>
-  <p class="sdek">Hold both footswitches — both LEDs go green — and all six knobs take a second job. The knobs don't move when you enter; each one takes over as soon as you turn it. Release the switches to leave. Full detail is in the manual: <a href="https://cb2k22.squarespace.com/s/Lost-Found_Manual_Pedal_Chase-Bliss.pdf#page=8" target="_blank" rel="noopener">Hidden Options, pg. 12</a>.</p>
-  <div class="tw">
-    <table>
-      <thead><tr><th>Knob</th><th>Becomes</th><th>What it does</th></tr></thead>
-      <tbody>
-        <tr><td class="mono">Left / Right TIME</td><td><b>ALT</b></td><td>The mode's third parameter. Each mode names it differently — see the mode's own page.</td></tr>
-        <tr><td class="mono">Left / Right MODIFY</td><td><b>EQ</b></td><td>Two-sided. Counter-clockwise removes highs, clockwise removes lows, noon is flat.</td></tr>
-        <tr><td class="mono">MIX</td><td><b>SPILL</b></td><td>Sends dry signal into the second effect as well. Series routing only.</td></tr>
-        <tr><td class="mono">BLEND</td><td><b>GLUE</b></td><td>Compressor into saturator at the end of the chain. Off by default. <a href="https://cb2k22.squarespace.com/s/Lost-Found_Manual_Pedal_Chase-Bliss.pdf#page=21" target="_blank" rel="noopener">pg. 38</a></td></tr>
-        <tr><td class="mono">Routing toggle</td><td><b>SPREAD routing</b></td><td>Points stereo SPREAD at one channel or both. <a href="https://cb2k22.squarespace.com/s/Lost-Found_Manual_Pedal_Chase-Bliss.pdf#page=22" target="_blank" rel="noopener">pg. 40</a></td></tr>
-      </tbody>
-    </table>
-  </div>
-  <div class="grid g2" style="margin-top:14px">
-    <div class="note plain"><span><b>Reset the layer</b>
-      Flip the preset toggle left and back to centre three times, then press both footswitches when the lights blink.</span></div>
-    <div class="note plain"><span><b>Two that are not on the layer</b>
-      <b style="display:inline;font-family:inherit;letter-spacing:0;text-transform:none;font-size:1em;color:inherit">Wet volume:</b> hold the right footswitch and turn MIX. <b style="display:inline;font-family:inherit;letter-spacing:0;text-transform:none;font-size:1em;color:inherit">Dry kill:</b> hold the left footswitch while powering up.</span></div>
-  </div>
-</section>
-
-<!-- ============ dips ============ -->
-<section id="dips">
-  <div class="shead"><h2>Sixteen switches on the roof</h2><span class="rule"></span></div>
-  <p class="sdek">The eight yellow ones change how the pedal behaves. The eight below them are the automation lane: pick knobs, then decide whether they move by themselves (BOUNCE) or follow a pedal you plug in. All sixteen save with your presets.</p>
-  <div class="tw">
-    <table>
-      <thead><tr><th>Switch</th><th>What flipping it does</th></tr></thead>
-      <tbody id="dipTable"></tbody>
-    </table>
-  </div>
-  <div class="grid g2" style="margin-top:14px">
-    <div class="note"><span><b>Ramping, in four moves</b>
-      Flip BOUNCE on. Flip on whichever of the five knob switches you want moving. Set SWEEP for whether the knob's position is the top or the bottom of the travel. Then set the speed — because the moment any knob switch is up, <b style="display:inline;font-family:inherit;letter-spacing:0;text-transform:none;font-size:1em;color:inherit">MIX becomes the ramp speed control</b>. You can still reach the real MIX by holding the left footswitch while you turn it.</span></div>
-    <div class="note plain"><span><b>The same switches are the expression jack</b>
-      With BOUNCE off, plug in expression or CV and the pedal hands over the knobs you selected — no setup beyond the dips. Select nothing and you get MIX. CV wants 0–5V; more than that, or anything negative, damages the pedal.</span></div>
-  </div>
-</section>
-
-<!-- ============ gestures + setup ============ -->
-<section id="gestures">
-  <div class="shead"><h2>Everything you do with your feet</h2><span class="rule"></span></div>
-  <div class="tw">
-    <table>
-      <thead><tr><th>To do this</th><th>Do that</th></tr></thead>
-      <tbody>
-        <tr><td>Engage a channel</td><td class="mono">Tap its footswitch</td></tr>
-        <tr><td>The mode's secondary function</td><td class="mono">Hold its footswitch — freeze, infinite, pause, tape stop, depending on the mode</td></tr>
-        <tr><td>Make that hold a latch instead</td><td class="mono">LATCH dip up — press once to hold, press again to let go</td></tr>
-        <tr><td>Hidden options</td><td class="mono">Hold both footswitches — both LEDs green</td></tr>
-        <tr><td>Tap tempo menu</td><td class="mono">Tap both footswitches twice, quickly</td></tr>
-        <tr><td>Save to the right slot</td><td class="mono">Hold right 3s, then add left for another 3s — middle LED blinks</td></tr>
-        <tr><td>Save to the left slot</td><td class="mono">The same thing in the other order</td></tr>
-        <tr><td>Reset the hidden options</td><td class="mono">Preset toggle left→centre three times, then both footswitches</td></tr>
-        <tr><td>Wet volume</td><td class="mono">Hold right footswitch, turn MIX</td></tr>
-        <tr><td>Dry kill (for wet/dry rigs)</td><td class="mono">Hold left footswitch while powering up</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="grid g3" style="margin-top:16px">
-    <div class="card"><h3>Presets</h3><p>Two slots on the toggle, centre is live. BANK gives you two more. Knob positions <em>and</em> dip switches are stored, so recalling a preset can silently change the pedal's behaviour, not just its sound.</p></div>
-  </div>
-</section>
-
 <!-- follows you down the page once the pedal scrolls away -->
 <div id="dock" data-on="false" aria-live="polite">
   <span class="dl">In the pedal</span>
@@ -1262,8 +1194,6 @@ $("#dipsB").innerHTML = DIPS.slice(8).map(d =>
   $("#face").innerHTML = h;
 })();
 
-$("#dipTable").innerHTML = DIPS.map(d =>
-  '<tr><td><b>'+d[1]+'</b><br><span class="lbl">'+(d[2]==="yellow"?"behaviour":"automation")+'</span></td><td>'+d[3]+'</td></tr>').join("");
 
 
 /* ---------------- render ---------------- */

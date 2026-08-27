@@ -286,7 +286,7 @@ h1 .thin{display:block;font-weight:500;font-size:.24em;letter-spacing:.22em;colo
 
 /* three-position toggles, drawn the way they sit on the pedal */
 /* chrome hex nut, dark bushing, and a bat handle that leans left / up / right */
-.tog{position:absolute;transform:translate(-50%,-50%);border:0;padding:0;cursor:pointer;
+.tog{position:absolute;transform:translate(-50%,-50%);border:0;padding:0;cursor:pointer;touch-action:none;
   width:13cqw;aspect-ratio:1;border-radius:22%;
   background:radial-gradient(58% 58% at 38% 30%, #E8EAE9, #9AA2A0 58%, #626968 100%);
   clip-path:polygon(25% 2%,75% 2%,100% 30%,100% 70%,75% 98%,25% 98%,0% 70%,0% 30%);
@@ -1718,11 +1718,53 @@ KNOBS.forEach(k => {
 });
 
 /* ---------------- toggles ---------------- */
-pedal.addEventListener("click", e => {
-  const t = e.target.closest(".tog"); if (!t) return;
+/* A toggle is thrown, not tapped, so the lever follows the pointer: press
+   anywhere on one and drag across it to slide through the three positions.
+   Pressing without dragging still lands on whichever third was pressed. */
+function togIndex(t, clientX){
   const box = t.getBoundingClientRect();
-  const i = clamp(Math.floor((e.clientX - box.left) / box.width * 3), 0, 2);
-  setTog(t.dataset.t, i);
+  return clamp(Math.floor((clientX - box.left) / box.width * 3), 0, 2);
+}
+
+/* where the switch is now, which is not one place: route is the SPREAD
+   selector while both footswitches are held */
+function togPos(t){
+  if (t === "Lsw" || t === "Rsw") return S[t[0]].sw;
+  if (t === "route") return S.layer === "hidden" ? S.spread : S.route;
+  return S.preset;
+}
+
+let togDrag = null;
+pedal.addEventListener("pointerdown", e => {
+  const t = e.target.closest(".tog"); if (!t) return;
+  e.preventDefault(); t.focus();
+  togDrag = t;
+  try { t.setPointerCapture(e.pointerId); } catch (err) {}
+  setTog(t.dataset.t, togIndex(t, e.clientX));
+});
+pedal.addEventListener("pointermove", e => {
+  if (!togDrag) return;
+  const t = togDrag.dataset.t, i = togIndex(togDrag, e.clientX);
+  if (i !== togPos(t)) setTog(t, i);
+});
+["pointerup", "pointercancel"].forEach(ev => pedal.addEventListener(ev, e => {
+  if (!togDrag) return;
+  try { togDrag.releasePointerCapture(e.pointerId); } catch (err) {}
+  togDrag = null;
+}));
+
+/* The pointer handler takes the click away from the keyboard, so give it
+   back: arrows step, enter and space cycle. */
+pedal.addEventListener("keydown", e => {
+  const t = e.target.closest(".tog"); if (!t) return;
+  const at = togPos(t.dataset.t);
+  let to;
+  if (e.key === "ArrowLeft" || e.key === "ArrowDown") to = Math.max(0, at - 1);
+  else if (e.key === "ArrowRight" || e.key === "ArrowUp") to = Math.min(2, at + 1);
+  else if (e.key === "Enter" || e.key === " ") to = (at + 1) % 3;
+  else return;
+  e.preventDefault();
+  if (to !== at) setTog(t.dataset.t, to);
 });
 function setTog(t, i){
   if (t === "Lsw" || t === "Rsw"){

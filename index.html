@@ -150,7 +150,7 @@ h1 .thin{display:block;font-weight:500;font-size:.24em;letter-spacing:.22em;colo
   display:grid;grid-template-columns:1fr auto;gap:12px 22px;align-items:center;box-shadow:var(--shadow);
 }
 .rollbar h3{font-size:1.05rem;font-weight:700;letter-spacing:-.02em}
-.rollbar p{margin:3px 0 0;font-size:.9rem;color:var(--ink-2);max-width:62ch}
+.rollbar p{margin:3px 0 0;font-size:.9rem;color:var(--ink-2)}
 .rollbar .btn.big{font-size:13px;padding:11px 18px;background:var(--accBoth);border-color:var(--accBoth);color:var(--chip-ink)}
 .rollbar .btn.big:hover{filter:brightness(1.08);color:var(--chip-ink)}
 @media (max-width:720px){ .rollbar{grid-template-columns:1fr} }
@@ -164,10 +164,12 @@ h1 .thin{display:block;font-weight:500;font-size:.24em;letter-spacing:.22em;colo
 /* The three columns get their own container. A sticky grid item is constrained by the
    grid container, not by its own row, so while the columns and the globals shared one
    grid the pedal would slide on down over the globals as you scrolled. */
-.band{display:grid;grid-template-columns:1fr minmax(268px,336px) 1fr;
+.band{display:grid;grid-template-columns:minmax(0,1fr) minmax(268px,336px) minmax(0,1fr);
   gap:clamp(12px,1.5vw,22px);align-items:start}
-.side{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--r);
-  background:var(--surface);overflow:hidden;box-shadow:var(--shadow)}
+/* stacked, these become flex items, whose automatic minimum is their content -- and the
+   two-column card grid inside is wider than a phone. Let them shrink. */
+.band > *{min-width:0}
+.side{display:flex;flex-direction:column;gap:clamp(10px,1.2vw,16px)}
 .pedal-col{position:sticky;top:20px;display:flex;flex-direction:column;gap:12px}
 @media (max-width:1100px){
   /* stacked: the pedal first, then each channel at full width */
@@ -366,6 +368,7 @@ h1 .thin{display:block;font-weight:500;font-size:.24em;letter-spacing:.22em;colo
 }
 
 /* hint strip */
+.hint[hidden]{display:none}
 .hint{min-height:50px;display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px dashed var(--line);
   border-radius:10px;background:var(--surface);font-size:.86rem;color:var(--ink-2);line-height:1.45}
 .hint[data-live="true"]{border-style:solid;border-color:var(--acc);color:var(--ink)}
@@ -415,7 +418,8 @@ button.btn[aria-pressed="true"],button.btn.on{background:var(--acc);border-color
 
 /* One row per thing, shared by both channels: the subgrid keeps the Left and Right
    TIME rows on the same line however long their descriptions run. */
-.chan{padding:15px 17px 17px}
+.chan{padding:15px 17px 17px;border:1px solid var(--line);border-radius:var(--r);
+  background:var(--surface);box-shadow:var(--shadow)}
 .chan .ch-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:2px}
 .chan .chpg{margin-left:auto;font-family:"DM Mono",monospace;font-size:.74rem;white-space:nowrap}
 .chan .code{font-family:"DM Mono",monospace;font-size:.8rem;padding:2px 6px;border-radius:5px;color:var(--chip-ink)}
@@ -428,18 +432,18 @@ button.btn[aria-pressed="true"],button.btn.on{background:var(--acc);border-color
 /* One column, not two: the knob's name and what it does on this mode belong on the
    same line. The old 74px rail held a clock reading that the drawn knob now shows. */
 .prow{padding:9px 0 8px;border-top:1px solid var(--line-soft)}
-.prow .pn{display:flex;align-items:baseline;gap:9px;font-family:"Archivo",sans-serif;
+.pn{display:flex;align-items:baseline;gap:9px;font-family:"Archivo",sans-serif;
   font-weight:600;font-size:.92rem}
 /* The knob's own name leads and is coloured like its silkscreen, because that is what
    the reader is hunting for on the pedal. The mode's parameter is the subordinate half:
    "Size" is printed nowhere on the enclosure, "TIME" is. */
-.prow .pkin{flex:none;font-size:.94rem;font-weight:700;letter-spacing:.04em;
+.pkin{flex:none;font-size:.94rem;font-weight:700;letter-spacing:.04em;
   text-transform:uppercase;color:var(--ink)}
-.chan[data-ch="L"] .prow .pkin{color:var(--accL)}
-.chan[data-ch="R"] .prow .pkin{color:var(--accR)}
-.prow.hidden-p .pkin{color:var(--accBoth)}
-.prow .pnsep{flex:none;color:var(--line);font-weight:400}
-.prow .pnm{font-weight:500;font-size:.88rem;color:var(--ink-2)}
+.chan[data-ch="L"] .pkin{color:var(--accL)}
+.chan[data-ch="R"] .pkin{color:var(--accR)}
+.prow.hidden-p .pkin, .chan .kc.hid .pkin{color:var(--accBoth)}
+.pnsep{flex:none;color:var(--line);font-weight:400}
+.pnm{font-weight:500;font-size:.88rem;color:var(--ink-2)}
 .prow .pval{flex:none;font-family:"DM Mono",monospace;font-size:.74rem;font-weight:400;
   letter-spacing:0;color:var(--ink-3)}
 .prow .pv{font-size:.88rem;color:var(--ink-2);margin-top:1px}
@@ -457,30 +461,48 @@ button.btn[aria-pressed="true"],button.btn.on{background:var(--acc);border-color
 .pgrpnote{font-size:.82rem;color:var(--ink-2);padding-bottom:6px}
 .pgrpnote + .prow{border-top:0}
 .pgrpnote b{font-weight:600;color:var(--ink)}
-.hidband{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);
-  padding:10px 12px 11px;box-shadow:var(--shadow)}
-.hidband .hb-h{display:flex;align-items:baseline;gap:8px;margin-bottom:8px;
-  font-family:"Archivo",sans-serif;font-size:9.5px;font-weight:700;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--accBoth)}
-.hidband .hidviz{margin:0;border:0;padding:0;background:none;gap:10px}
-.hidband .tiny{margin:9px 0 0}
-/* Page chrome, not pedal knowledge: folded away so the centre column stays the object. */
-.howto{border:1px solid var(--line);border-radius:9px;background:var(--surface);padding:0 11px}
-.howto summary{cursor:pointer;padding:9px 0;list-style:none;font-family:"Archivo",sans-serif;
-  font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
-  display:flex;justify-content:space-between;gap:8px}
-.howto summary::-webkit-details-marker{display:none}
-.howto summary::after{content:"+";font-size:12px;line-height:1}
-.howto[open] summary::after{content:"\2013"}
-.howto summary:hover{color:var(--ink)}
-.howto .tiny:last-of-type{padding-bottom:11px}
 /* The readout draws the knob instead of describing it: the two end words flank a cap
    pointed where that knob actually sits. Same widget for ALT and EQ, since those are
    the very same knobs held in the hidden layer. */
 /* Capped so the knob lands at the same x on every row instead of floating in the
    middle of the much wider globals column. */
 .kv{display:flex;align-items:center;gap:10px;margin:7px 0 6px;max-width:330px}
-.kvmod{max-width:520px;padding-top:13px}
+.kvmod{max-width:none;justify-content:center}
+/* Two knobs, two jobs each. Rows are the physical knob, columns are the layer, so ALT
+   lands beside TIME because it IS TIME -- the relationship is shown, not explained. */
+.kgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px 12px;margin-top:6px}
+.kg-h{display:flex;align-items:baseline;gap:6px;font-family:"Archivo",sans-serif;font-size:8.5px;
+  font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);
+  padding-bottom:1px;border-bottom:1px solid var(--line-soft)}
+.kg-h.hid{color:var(--accBoth)}
+.kc{display:flex;flex-direction:column;gap:2px;padding:11px 13px 12px;border-radius:9px;
+  background:var(--surface-2);border:1px solid transparent}
+.kc.hid{background:none;border-color:var(--line-soft)}
+.kc.active{border-color:var(--acc)}
+/* Crossing noon swaps the mode, and every description with it. Reserve the tallest
+   one measured across all twelve modes (five lines) so the row holds still while you
+   are dragging -- otherwise the knob moves out from under the pointer. */
+.kc .pv{font-size:.8rem;line-height:1.4;min-height:calc(1.4em * 5)}
+.kc .pn{gap:6px}
+.kc .kv{max-width:none;margin:5px 0 4px}
+.kc .e{font-size:8.5px;letter-spacing:.08em}
+/* Every card is the same three bands -- title, knob, copy -- so the four line up
+   across the grid and nothing shifts when the mode underneath them changes. */
+.kc .pn{min-height:1.35em}
+.kc .kv{margin:14px 0 13px;padding-top:13px;justify-content:center;gap:14px}
+.kv .e.on{color:var(--ink)}
+.kvmod .e{font-family:"DM Mono",monospace;letter-spacing:0;font-size:9.5px}
+.inmode{display:block;margin-top:3px;font-family:"Archivo",sans-serif;font-size:.72rem;
+  font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--acc)}
+@media (max-width:620px){
+  /* a phone cannot hold two cards side by side without crushing the knob row, so the
+     pairs stack instead -- each knob still lands directly above its held-down job. */
+  .kgrid{grid-template-columns:minmax(0,1fr)}
+  .kg-h{display:none}
+  .kc.hid::before{content:"Hold both footswitches";font-family:"Archivo",sans-serif;
+    font-size:8.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;
+    color:var(--accBoth)}
+}
 .mk .noonlbl{position:absolute;left:50%;top:-15px;transform:translateX(-50%);
   font-family:"Archivo",sans-serif;font-size:8.5px;font-weight:700;letter-spacing:.1em;
   text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
@@ -488,7 +510,12 @@ button.btn[aria-pressed="true"],button.btn.on{background:var(--acc);border-color
 .kv .e{flex:1 1 0;min-width:0;font-size:9.5px;font-weight:600;letter-spacing:.09em;
   text-transform:uppercase;color:var(--ink-3);line-height:1.25}
 .kv .e.lo{text-align:right}
-.mk{position:relative;width:38px;height:38px;flex:none;--ptr:var(--ink-2)}
+.mk{position:relative;width:38px;height:38px;flex:none;--ptr:var(--ink-2);
+  border:0;padding:0;background:none;cursor:ns-resize;touch-action:none}
+.mk.static{cursor:default}
+.mk:hover .cap{box-shadow:inset 0 1.5px 2px rgba(255,255,255,.24), 0 0 0 2px var(--ptr)}
+.mk:focus-visible{outline:none}
+.mk:focus-visible .cap{outline:2px solid var(--ptr);outline-offset:3px}
 .mk .cap{position:absolute;inset:0;border-radius:50%;
   background:radial-gradient(70% 70% at 40% 28%, #3B3A38, #17181A 72%);
   border:1px solid #0D0E10;
@@ -505,38 +532,12 @@ button.btn[aria-pressed="true"],button.btn.on{background:var(--acc);border-color
 /* MODIFY is not one axis. Noon is off; counter-clockwise is the A mode, clockwise the
    B mode, and each side runs its own parameter. So it gets two arcs with a gap at
    noon and a named mode at each end, not a single lo-to-hi sweep. */
-.kvmod{align-items:center;gap:12px}
-.kv .side{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:1px;opacity:.42}
-.kv .side.on{opacity:1}
-.kv .side.a{text-align:right;align-items:flex-end}
-.kv .side b{font-family:"Archivo",sans-serif;font-size:.79rem;font-weight:600;color:var(--ink);
-  line-height:1.25}
-.kv .side i{font-style:normal;font-size:9px;font-weight:600;letter-spacing:.09em;
-  text-transform:uppercase;color:var(--ink-3);line-height:1.3}
+.kvmod{align-items:center}
 .mk .half{opacity:.15}
 .mk .half.on{opacity:.4}
 .modnote{font-size:.78rem;color:var(--ink-3);margin:1px 0 3px}
 .modnote b{font-weight:600;color:var(--ink-2)}
 
-/* How you reach ALT and EQ, drawn: hold both switches, both LEDs go green, and the
-   two knobs take their second job. */
-.hidviz{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:9px 11px;margin:2px 0 8px;
-  border:1px solid var(--line);border-radius:9px;background:var(--surface-2, var(--surface))}
-.hidviz .fsw2{display:flex;gap:7px;flex:none}
-.hidviz .sw{width:26px;height:26px;border-radius:50%;position:relative;
-  background:radial-gradient(circle at 38% 30%, #E8EAE9, #97A09E 60%, #5E6664 100%);
-  box-shadow:0 2px 4px -2px rgba(0,0,0,.7)}
-.hidviz .sw::after{content:"";position:absolute;left:50%;top:-6px;transform:translateX(-50%);
-  width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
-.hidviz .cue{flex:none;font-family:"Archivo",sans-serif;font-size:9.5px;font-weight:700;
-  letter-spacing:.09em;text-transform:uppercase;color:var(--accBoth);line-height:1.3}
-.hidviz .arw2{flex:none;color:var(--ink-3);font-size:13px}
-.hidviz .pair{display:flex;gap:14px;flex:none}
-.hidviz .one{display:flex;flex-direction:column;align-items:center;gap:3px}
-.hidviz .one .mk{width:30px;height:30px;--ptr:var(--accBoth)}
-.hidviz .one em{font-family:"Archivo",sans-serif;font-style:normal;font-size:8.5px;font-weight:700;
-  letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
-.hidviz .one em b{color:var(--accBoth)}
 .chan .hold{margin-top:12px;padding:10px 12px;border-radius:9px;background:var(--surface-2);border:1px solid var(--line-soft);font-size:.87rem;color:var(--ink-2)}
 .chan .hold b{font-family:"Archivo",sans-serif;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--acc-text);display:block}
 .chan[data-ch="L"] .hold b{color:var(--accL)}
@@ -622,7 +623,8 @@ section{padding-top:var(--step)}
 /* presets */
 /* What is actually under each switch right now. The pedal's silkscreen never changes,
    so after a SWAP the numbers on the enclosure are lying to you; this board is the truth. */
-.bslot{border-bottom:1px solid var(--line-soft);background:var(--surface-2)}
+.bslot{border:1px solid var(--line);border-radius:var(--r);background:var(--surface-2);
+  box-shadow:var(--shadow);overflow:hidden}
 .bch{padding:13px 15px 14px}
 .bch.dim{opacity:.5}
 .bh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
@@ -656,7 +658,7 @@ section{padding-top:var(--step)}
 /* Column headers on the same tracks as the rows below, so the box reads as a grid:
    position down the side, the A/B pair across. The live side is lit, because which
    column you are in is exactly what MODIFY decides. */
-.bcols{display:grid;grid-template-columns:26px 1fr 1fr;gap:5px;margin-bottom:5px}
+.bcols{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(0,1fr);gap:5px;margin-bottom:5px}
 .bcols span{font-family:"Archivo",sans-serif;font-size:9.5px;font-weight:700;letter-spacing:.13em;
   text-transform:uppercase;color:var(--ink-3);padding-left:9px}
 .bcols span:first-child{padding:0}
@@ -668,7 +670,7 @@ section{padding-top:var(--step)}
 .bch[data-ch="L"], .chan[data-ch="L"]{--acc:var(--accL)}
 .bch[data-ch="R"], .chan[data-ch="R"]{--acc:var(--accR)}
 #app[data-layer="hidden"] .bch, #app[data-layer="hidden"] .chan{--acc:var(--accBoth)}
-.bpos{display:grid;grid-template-columns:26px 1fr 1fr;gap:5px;align-items:stretch;margin-bottom:5px}
+.bpos{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(0,1fr);gap:5px;align-items:stretch;margin-bottom:5px}
 .bpos .pnum{
   display:grid;place-items:center;border-radius:7px;border:1px solid var(--line);
   font-family:"DM Mono",monospace;font-size:13px;color:var(--ink-3);cursor:pointer;background:none;padding:0;
@@ -804,22 +806,14 @@ footer.end{margin-top:var(--step);padding-top:22px;border-top:1px solid var(--li
       </svg>
     </div>
 
-    <div class="hidband" id="hidband"></div>
-
     <div class="hint" id="hint" data-live="false"></div>
 
     <div class="pedal-actions">
       <button class="btn" id="btnHidden" aria-pressed="false">Hold both footswitches</button>
-      <button class="btn" id="btnBoth">Engage both channels</button>
       <button class="btn" id="btnReset">Reset the pedal</button>
       <button class="btn" id="btnResetHidden">Reset hidden options</button>
     </div>
-    <details class="howto">
-      <summary>How to drive this page</summary>
-      <p class="tiny">Reset puts every dip switch <b>off</b>, hidden options at <b>default</b> and both channels engaged. The dip switches save <em>with your presets</em>, so a sound you can't explain is usually a switch someone left up.</p>
-    <p class="tiny">Drag a knob up/down, or focus it and use the arrow keys. Tap a footswitch to engage that channel; click the left, middle or right third of a toggle to throw it. The dip switches sit on the top edge of the real pedal as two red banks of eight side by side — stacked here so the labels fit. The small second line under each knob is the pedal's own silkscreen: it names what that knob becomes in the hidden layer.</p>
-    </details>
-  </div>
+      </div>
 
   <div class="side" id="sideR">
     <div class="bslot" id="boardR"></div>
@@ -836,7 +830,6 @@ footer.end{margin-top:var(--step);padding-top:22px;border-top:1px solid var(--li
 <!-- ============ the matrix ============ -->
 <section id="matrix">
   <div class="shead"><h2>All 144 combinations</h2><span class="rule"></span></div>
-  <p class="sdek">Rows are the Left Channel, columns the Right. The grid falls into four blocks, and the block tells you which dip switch you need — because L SWAP hands the Left Channel the Right Channel's six modes, and R SWAP does the reverse. Every pairing is reachable; a quarter of them need nothing, half need one switch, and the last quarter need both. Click a cell to load it.</p>
   <div class="rollbar">
     <div>
       <h3 id="rollName">Or roll one at random</h3>
@@ -1069,6 +1062,27 @@ function val(k){
     case "blend":   return h ? S.glue  : S.blend;
   }
 }
+/* The pedal's knobs are layer-aware -- Ltime is ALT while both switches are held. The
+   readout's rows are not: the ALT row means ALT whichever layer you are in. So the
+   readout addresses state directly, and maps back to the physical knob only to light
+   it up, which is the point: ALT and TIME are the same piece of hardware. */
+const PATHS = {
+  "L.time":  ["Ltime",   () => S.L.time,  v => S.L.time  = v],
+  "L.modify":["Lmodify", () => S.L.modify,v => S.L.modify = v],
+  "L.alt":   ["Ltime",   () => S.L.alt,   v => S.L.alt   = v],
+  "L.eq":    ["Lmodify", () => S.L.eq,    v => S.L.eq    = v],
+  "R.time":  ["Rtime",   () => S.R.time,  v => S.R.time  = v],
+  "R.modify":["Rmodify", () => S.R.modify,v => S.R.modify = v],
+  "R.alt":   ["Rtime",   () => S.R.alt,   v => S.R.alt   = v],
+  "R.eq":    ["Rmodify", () => S.R.eq,    v => S.R.eq    = v],
+  "mix":     ["mix",     () => S.mix,     v => S.mix     = v],
+  "spill":   ["mix",     () => S.spill,   v => S.spill   = v],
+  "blend":   ["blend",   () => S.blend,   v => S.blend   = v],
+  "glue":    ["blend",   () => S.glue,    v => S.glue    = v]
+};
+const setPath = (path, v) => { const e = PATHS[path]; if (e) e[2](clamp(v)); };
+const valPath = path => { const e = PATHS[path]; return e ? e[1]() : 0; };
+
 function setVal(k,v){
   v = clamp(v); const h = S.layer === "hidden";
   switch(k){
@@ -1198,7 +1212,13 @@ $("#dipsB").innerHTML = DIPS.slice(8).map(d =>
 
 /* ---------------- render ---------------- */
 const hintEl = $("#hint");
-function setHint(t, live){ hintEl.innerHTML = (live ? "<b>Live</b> " : "") + t; hintEl.dataset.live = String(!!live); }
+/* The hint reports what you just did, so it starts with nothing to say and stays out
+   of the way until it does. */
+function setHint(t, live){
+  hintEl.innerHTML = (live ? "<b>Live</b> " : "") + (t || "");
+  hintEl.dataset.live = String(!!live);
+  hintEl.hidden = !t;
+}
 
 function render(){
   $("#app").dataset.layer = S.layer;
@@ -1249,7 +1269,12 @@ function render(){
       " \u00b7 " + ROUTE_NAME[S.route];
 
   renderBoard(); renderChain(); renderChan("L"); renderChan("R"); renderGlobals(); markMatrix(); renderDock();
-  renderHidBand();
+
+  if (refocusPath){
+    const el = document.querySelector('.mk[data-p="'+refocusPath+'"]');
+    if (el && document.activeElement !== el) el.focus({preventScroll:true});
+    refocusPath = null;
+  }
 }
 
 function presetName(p){
@@ -1301,8 +1326,6 @@ function renderBoard(){
     }
     if (swapped) h += '<p class="bnote"><b>'+ch+' SWAP is up.</b> The enclosure still reads ' +
       silk.join(" ") + ' — it always does — but this switch is reaching the other six.</p>';
-    if (nul) h += '<p class="bnote" style="color:var(--ink-3)">MODIFY is at noon, so neither mode in position ' +
-      silk[c.sw] + ' is sounding.</p>';
     return h + '</div>';
   })(ch); });
 }
@@ -1365,93 +1388,104 @@ function sweepPath(a0, a1, r){
 /* A knob drawn where the real one is pointing. `centre` starts the filled arc at noon
    rather than at the far left \u2014 that is MODIFY, which is zero at noon and grows
    both ways, and EQ, which cuts highs one way and lows the other. */
-function miniknob(v, centre){
+function pathLabel(path){
+  if (!path || !path.includes(".")) return (path || "").toUpperCase();
+  const [ch, prm] = path.split(".");
+  return (ch === "L" ? "Left" : "Right") + " channel " + prm.toUpperCase();
+}
+/* Turnable, and wired to the same state the pedal's knobs write, so the two stay in
+   step in both directions. */
+function knobShell(path, a, inner){
+  return path
+    ? '<button type="button" class="mk" data-p="'+path+'" role="slider" aria-label="'+pathLabel(path)+
+      '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+Math.round(valPath(path)*100)+'">' +
+      inner + '</button>'
+    : '<span class="mk static">' + inner + '</span>';
+}
+function miniknob(v, centre, path){
   const a = ang(v), live = centre ? sweepPath(0, a) : sweepPath(-150, a);
-  return '<span class="mk"><span class="arc"><svg viewBox="0 0 100 100" aria-hidden="true">' +
+  return knobShell(path, a,
+    '<span class="arc"><svg viewBox="0 0 100 100" aria-hidden="true">' +
     '<path d="'+sweepPath(-150,150)+'"/>' + (live ? '<path class="live" d="'+live+'"/>' : '') +
-    '</svg></span><span class="cap" style="transform:rotate('+a.toFixed(1)+'deg)"></span></span>';
+    '</svg></span><span class="cap" style="transform:rotate('+a.toFixed(1)+'deg)"></span>');
 }
 /* Two faint half-arcs with a gap at noon, the live side filled out from noon. */
-function modKnob(v, nul){
+function modKnob(v, nul, path){
   const a = ang(v), live = sweepPath(0, a);
-  return '<span class="mk"><span class="noonlbl'+(nul ? " on" : "")+'">off</span>' +
+  return knobShell(path, a,
+    '<span class="noonlbl'+(nul ? " on" : "")+'">off</span>' +
     '<span class="arc"><svg viewBox="0 0 100 100" aria-hidden="true">' +
     '<path class="half'+(v < .5 ? " on" : "")+'" d="'+sweepPath(-150,-5)+'"/>' +
     '<path class="half'+(v > .5 ? " on" : "")+'" d="'+sweepPath(5,150)+'"/>' +
     (live ? '<path class="live" d="'+live+'"/>' : '') +
-    '</svg></span><span class="cap" style="transform:rotate('+a.toFixed(1)+'deg)"></span></span>';
-}
-/* The A mode, the knob, the B mode. Picking a side here is the first move on the real
-   pedal \u2014 it is what chooses the effect \u2014 so the row names both modes rather than
-   describing whichever one happens to be selected. */
-function modRow(ch){
-  const c = S[ch], set = setOf(ch), A = set[c.sw*2], B = set[c.sw*2+1], nul = isNull(ch);
-  const side = (m, on, cls) => '<span class="side '+cls+(on?" on":"")+'">' +
-    '<b>'+m.code+' '+m.name+'</b><i>'+m.fam+'</i></span>';
-  return '<div class="kv kvmod">' + side(A, !nul && c.modify < .5, "a") +
-    modKnob(c.modify, nul) + side(B, !nul && c.modify > .5, "b") + '</div>';
+    '</svg></span><span class="cap" style="transform:rotate('+a.toFixed(1)+'deg)"></span>');
 }
 /* lo word, knob, hi word \u2014 the end labels get their own line, so a long pair like
    PLUCKY / SMOOTH no longer crowds the parameter name. */
-function knobRow(lo, hi, v, centre){
-  return '<div class="kv"><span class="e lo">'+lo+'</span>' + miniknob(v, centre) +
+/* A cell is one knob: what it is called, what it does here, and the knob itself. */
+function kcell(kind, name, desc, knobHtml, hidden, activeKey){
+  return '<div class="kc'+(hidden ? " hid" : "")+(S.active === activeKey ? " active" : "")+'">' +
+    '<div class="pn"><span class="pkin">'+kind+'</span>' +
+    (name ? '<span class="pnsep">/</span><span class="pnm">'+name+'</span>' : '') + '</div>' +
+    knobHtml + '<div class="pv">'+desc+'</div></div>';
+}
+function knobCell(lo, hi, v, centre, path){
+  return '<div class="kv"><span class="e lo">'+lo+'</span>' + miniknob(v, centre, path) +
     '<span class="e">'+hi+'</span></div>';
 }
-/* The gesture belongs to neither channel, so it is drawn once, between the pedal and
-   the resets. Schematic knobs: the live ALT and EQ values are in the rows themselves. */
-function iconKnob(){
-  return '<span class="mk"><span class="arc"><svg viewBox="0 0 100 100" aria-hidden="true">' +
-    '<path d="'+sweepPath(-150,150)+'"/></svg></span><span class="cap"></span></span>';
+/* Same band as every other card -- one word either side of the knob. The codes fit
+   where the full mode names never could, and the card's own copy names the mode. */
+function modCell(ch){
+  const c = S[ch], set = setOf(ch), A = set[c.sw*2], B = set[c.sw*2+1], nul = isNull(ch);
+  const onA = !nul && c.modify < .5, onB = !nul && c.modify > .5;
+  return '<div class="kv kvmod">' +
+    '<span class="e lo'+(onA ? " on" : "")+'">\u25c0 '+A.code+'</span>' +
+    modKnob(c.modify, nul, ch+".modify") +
+    '<span class="e'+(onB ? " on" : "")+'">'+B.code+' \u25b6</span></div>';
 }
-function renderHidBand(){
-  $("#hidband").innerHTML =
-    '<div class="hb-h">Hidden layer' +
-    '<a class="ppg" href="'+MANUAL+'#page='+pdfPage(12)+'" target="_blank" rel="noopener">pg. 12</a></div>' +
-    '<div class="hidviz">' +
-      '<span class="fsw2"><span class="sw"></span><span class="sw"></span></span>' +
-      '<span class="cue">Hold both<br>footswitches</span>' +
-      '<span class="arw2">\u2192</span>' +
-      '<span class="pair">' +
-        '<span class="one">'+iconKnob()+'<em>Time \u2192 <b>Alt</b></em></span>' +
-        '<span class="one">'+iconKnob()+'<em>Modify \u2192 <b>EQ</b></em></span>' +
-      '</span>' +
-    '</div>' +
-    '<p class="tiny">Both LEDs go green and every knob takes its second job. Neither jumps ' +
-    'to its stored value \u2014 each takes over as soon as you turn it. Release to leave.</p>';
+function knobRow(lo, hi, v, centre, path){
+  return '<div class="kv"><span class="e lo">'+lo+'</span>' + miniknob(v, centre, path) +
+    '<span class="e">'+hi+'</span></div>';
 }
 function renderChan(ch){
   const c = S[ch], m = modeOf(ch), el = $("#chan"+ch), h = S.layer === "hidden";
   const nul = isNull(ch);
   const swapped = ch === "L" ? S.dips.lswap : S.dips.rswap;
 
-  /* Thirteen blocks, always, in this order — the subgrid pairs them up across the two
-     channels, so an empty note on one side still holds the other side's row. Add or
-     drop a block here and .chans grid-template-rows has to match it, or the overflow
-     stacks into the last row and the blocks draw on top of each other. */
+  /* Identity, then the controls, then the prose. The blurb changes length with the mode,
+     so it sits below the grid -- above it, it shoved the knobs around as you turned. */
   let html = '<div class="ch-h"><span class="code">'+(nul ? m.num : m.code)+'</span><h3>'+(nul ? "No effect" : m.name)+'</h3>' +
     (nul ? '' : '<a class="chpg" href="'+MANUAL+'#page='+pdfPage(m.pg)+'" target="_blank" rel="noopener">manual pg. '+m.pg+'</a>') + '</div>' +
-    '<div class="blurb">'+(nul
+    '';
+  const blurb = '<div class="blurb">'+(nul
       ? "MODIFY is at noon, so this channel makes no sound of its own. Engage it anyway and you have GLUE as a standalone compressor and saturator."
-      : m.blurb)+'</div>';
-
-  html += '<div class="chnote">' + (swapped
+      : m.blurb)+'</div>' +
+    '<div class="chnote">' + (swapped
     ? '<div class="hold" style="margin:0"><b>'+ch+' SWAP is up</b>The silkscreen still reads '+(ch==="L"?"1 2 3":"4 5 6")+' \u2014 it always does \u2014 but this toggle is selecting '+(ch==="L"?"4, 5 and 6":"1, 2 and 3")+'. Right now it is on '+m.num+'.</div>'
     : '') + '</div>';
 
-  /* MODIFY leads: on the pedal it is the knob that picks the effect, and only then how
-     much of it you get. TIME and the hidden layer are adjustments to that choice. */
-  html += prow("Modify", "", nul ? "Picks the mode" : m.mod.n,
-    nul ? "At noon neither mode sounds. Turn either way to drop into one."
-        : m.mod.d,
-    !h, ch+"modify", null, modRow(ch));
-  html += prow("Time", "", m.time.n,
-    nul ? "Waiting on MODIFY." : m.time.d, !h, ch+"time", null, knobRow(m.time.lo, m.time.hi, c.time));
-  /* Just a heading here. How you actually reach ALT and EQ is drawn once, in the centre
-     column, because it is the same gesture for both channels. */
-  html += '<div class="pgrp">Hidden layer<span class="g2">hold both footswitches</span></div>';
-  html += prow("Alt", "", m.alt.n, m.alt.d, h, ch+"alt", null, knobRow(m.alt.lo, m.alt.hi, c.alt));
-  html += prow("EQ", "", 'Two-sided EQ', EQ_D, h, ch+"eq", null, knobRow("dark", "thin", c.eq, true));
+  /* Two knobs, two jobs each -- that is the hardware, so that is the grid. A row is one
+     physical knob; the right-hand column is what it becomes with both switches held.
+     ALT sitting beside TIME is the whole point: they are the same knob. MODIFY leads,
+     because on the pedal it is the knob that picks the effect in the first place. */
+  html += '<div class="kgrid">' +
+    '<div class="kg-h">On the pedal</div>' +
+    '<div class="kg-h hid">Hold both footswitches' +
+      '<a class="ppg" href="'+MANUAL+'#page='+pdfPage(12)+'" target="_blank" rel="noopener">pg. 12</a></div>' +
+    kcell("Time", m.time.n, nul ? "Waiting on MODIFY." : m.time.d,
+      knobCell(m.time.lo, m.time.hi, c.time, false, ch+".time"), false, ch+"time") +
+    kcell("Alt", m.alt.n, m.alt.d,
+      knobCell(m.alt.lo, m.alt.hi, c.alt, false, ch+".alt"), true, ch+"alt") +
+    kcell("Modify", nul ? "Picks the mode" : m.mod.n,
+      nul ? "At noon neither mode sounds. Turn left into " + setOf(ch)[c.sw*2].name +
+            ", right into " + setOf(ch)[c.sw*2+1].name + "."
+          : m.mod.d + ' <span class="inmode">' + m.code + " " + m.name + '</span>',
+      modCell(ch), false, ch+"modify") +
+    kcell("EQ", "Two-sided EQ", EQ_D,
+      knobCell("dark", "thin", c.eq, true, ch+".eq"), true, ch+"eq") +
+    '</div>';
 
+  html += blurb;
   html += '<div class="hold"><b>Hold the '+ch.toLowerCase()+' footswitch \u2014 '+m.hold.n+'</b>'+m.hold.d+'</div>';
   html += '<div class="tip">Manual&rsquo;s tip: '+m.tip+'</div>';
   el.innerHTML = html;
@@ -1461,12 +1495,12 @@ function renderChan(ch){
 function renderGlobals(){
   const h = S.layer === "hidden";
   let html = "";
-  html += prow("Mix", "", "Dry vs. Lost + Found", MIX_D + (Object.keys(S.dips).some(k=>k.startsWith("r")&&k!=="rswap"&&S.dips[k]) ? " <b style='color:var(--warn)'>A ramp switch is up, so this knob is currently the ramp speed — hold the left footswitch to reach the real MIX.</b>" : ""), !h, "mix", 8, knobRow("dry", "wet", S.mix));
+  html += prow("Mix", "", "Dry vs. Lost + Found", MIX_D + (Object.keys(S.dips).some(k=>k.startsWith("r")&&k!=="rswap"&&S.dips[k]) ? " <b style='color:var(--warn)'>A ramp switch is up, so this knob is currently the ramp speed — hold the left footswitch to reach the real MIX.</b>" : ""), !h, "mix", 8, knobRow("dry", "wet", S.mix, false, "mix"));
   html += prow("Blend", "", "Balance of the two channels", BLEND_D, !h, "blend", 32,
-    knobRow.apply(null, (S.route === 1 ? ["left","right"] : ["less","more"]).concat([S.blend])));
+    knobRow.apply(null, (S.route === 1 ? ["left","right"] : ["less","more"]).concat([S.blend, false, "blend"])));
   html += prow("Routing", "toggle "+["left","centre","right"][S.route], ROUTE_NAME[S.route], ROUTE_D[S.route], !h, null, 32);
-  html += prow("Spill", "", "Dry into the second effect", SPILL_D + (S.route === 1 ? " <span style='color:var(--ink-3)'>Parallel routing — nothing for SPILL to do here.</span>" : ""), h, "mix", null, knobRow("none", "full", S.spill));
-  html += prow("Glue", "", "Compressor into saturator", GLUE_D + " <span style='color:var(--ink-3)'>Chase Bliss: “" + GLUE_TIP + "”</span>", h, "blend", 38, knobRow("none", "overload", S.glue));
+  html += prow("Spill", "", "Dry into the second effect", SPILL_D + (S.route === 1 ? " <span style='color:var(--ink-3)'>Parallel routing — nothing for SPILL to do here.</span>" : ""), h, "mix", null, knobRow("none", "full", S.spill, false, "spill"));
+  html += prow("Glue", "", "Compressor into saturator", GLUE_D + " <span style='color:var(--ink-3)'>Chase Bliss: “" + GLUE_TIP + "”</span>", h, "blend", 38, knobRow("none", "overload", S.glue, false, "glue"));
   html += prow("Spread", "toggle "+["left","both","right"][S.spread], "Which channel gets stereo SPREAD", S.dips.spread
       ? (S.spread === 1 ? "Both channels are spread." : "Only the "+(S.spread===0?"Left":"Right")+" Channel moves in stereo; the other one stays up the middle.")
       : "SPREAD is off on the top panel, so this does nothing yet.", h, null, 40);
@@ -1620,6 +1654,42 @@ $("#dockGo").addEventListener("click", () =>
 
 
 /* ---------------- knobs ---------------- */
+/* The readout is rebuilt on every render, so a knob element cannot own its own drag --
+   it is destroyed mid-gesture. Delegate to the columns, which persist, and capture the
+   pointer there so the move events keep arriving as the rows are replaced underneath. */
+let refocusPath = null;
+[$("#sideL"), $("#sideR"), $("#globals")].forEach(box => {
+  let drag = null;
+  box.addEventListener("pointerdown", e => {
+    const el = e.target.closest(".mk[data-p]"); if (!el) return;
+    const path = el.dataset.p;
+    drag = {path, y0: e.clientY, x0: e.clientX, v0: valPath(path)};
+    try { box.setPointerCapture(e.pointerId); } catch (err) { /* drag still tracks */ }
+    S.active = PATHS[path][0]; refocusPath = path;
+    e.preventDefault(); render();
+  });
+  box.addEventListener("pointermove", e => {
+    if (!drag) return;
+    setPath(drag.path, drag.v0 + ((drag.y0 - e.clientY) + (e.clientX - drag.x0)) / 220);
+    S.active = PATHS[drag.path][0]; refocusPath = drag.path;
+    render();
+  });
+  const stop = () => { drag = null; };
+  box.addEventListener("pointerup", stop);
+  box.addEventListener("pointercancel", stop);
+  box.addEventListener("keydown", e => {
+    const el = e.target.closest(".mk[data-p]"); if (!el) return;
+    const path = el.dataset.p, step = e.shiftKey ? .01 : .05;
+    if (e.key === "ArrowUp" || e.key === "ArrowRight") setPath(path, valPath(path) + step);
+    else if (e.key === "ArrowDown" || e.key === "ArrowLeft") setPath(path, valPath(path) - step);
+    else if (e.key === "Home") setPath(path, 0);
+    else if (e.key === "End") setPath(path, 1);
+    else return;
+    S.active = PATHS[path][0]; refocusPath = path;
+    e.preventDefault(); render();
+  });
+});
+
 KNOBS.forEach(k => {
   const el = pedal.querySelector('.knob[data-k="'+k+'"]');
   let dragging = false, y0 = 0, x0 = 0, v0 = 0;
@@ -1725,11 +1795,6 @@ function enterHidden(on){
     : "Back on the surface. Whatever you set down there stays set.", true);
 }
 $("#btnHidden").addEventListener("click", () => enterHidden(S.layer !== "hidden"));
-$("#btnBoth").addEventListener("click", () => {
-  const on = !(S.L.on && S.R.on);
-  S.L.on = on; S.R.on = on; render();
-  setHint(on ? "Both channels engaged." : "Both channels bypassed." + (S.dips.trails ? " TRAILS is up, so the tails keep going." : ""), true);
-});
 
 /* ---------------- dips ---------------- */
 document.querySelectorAll(".dip").forEach(b => b.addEventListener("click", () => {
@@ -1803,6 +1868,6 @@ window.addEventListener("keydown", e => {
 
 /* ---------------- go ---------------- */
 render();
-setHint("Tap a footswitch to engage a channel. The two MODIFY knobs start either side of noon, which is why the two channels are already showing different modes.", false);
+setHint("", false);
 })();
 </script>

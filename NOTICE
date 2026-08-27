@@ -1,0 +1,39 @@
+pedal-companions — third-party material
+=======================================
+
+The MIT licence in LICENSE covers the code and the original work here: the
+HTML, CSS and JavaScript, the SVG drawing of the pedal, the layout and the
+interaction design.
+
+It does not cover the material below, which belongs to Chase Bliss Audio and is
+not ours to sublicense. The MIT grant should not be read as doing so.
+
+
+Descriptions taken from the manual
+----------------------------------
+
+Much of the writing describing what each mode and knob does is Chase Bliss's
+own, quoted or closely adapted from the Lost + Found manual rather than written
+for this site. That covers the twenty-four mode descriptions, the per-mode tips
+and the knob descriptions — roughly 1,400 words in all.
+
+Copyright in that text remains with Chase Bliss Audio.
+
+The rest — the drawing of the enclosure, the mode-picker, the printed-page
+index, and the notes marked as inferred rather than documented — was written
+for this site and is covered by the MIT licence.
+
+
+Trademarks
+----------
+
+Chase Bliss Audio and Lost + Found are trademarks of Chase Bliss Audio, used
+here only to identify the pedal this page is about. This project is not
+affiliated with, endorsed by, or connected to Chase Bliss Audio.
+
+
+Removal
+-------
+
+If you are a rights holder and want something here taken down, open an issue at
+https://github.com/fuzzbyte/pedal-companions/issues and it will be removed.

@@ -138,7 +138,13 @@ a{color:var(--acc-text)}
 
 /* ---------- masthead ---------- */
 header.top{padding:clamp(22px,3.5vw,40px) 0 clamp(16px,2.4vw,24px)}
-.brandline{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.brandline{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.brandline .unoff{color:var(--ink-2)}
+/* narrow: the brand label and the rule are the parts worth losing, since the
+   line that replaces them names Chase Bliss anyway */
+@media (max-width:560px){
+  .brandline > .lbl:first-child, .brandline .rule{display:none}
+}
 .brandline .rule{flex:1;height:1px;background:var(--line)}
 h1{font-size:clamp(2.4rem,7.2vw,4.4rem);font-weight:700;letter-spacing:-.045em;line-height:.88;text-transform:uppercase}
 h1 .thin{display:block;font-weight:500;font-size:.24em;letter-spacing:.22em;color:var(--ink-3);margin-top:.9em}
@@ -733,7 +739,7 @@ footer.end{margin-top:var(--step);padding-top:22px;border-top:1px solid var(--li
   <div class="brandline">
     <span class="lbl">Chase Bliss Audio</span>
     <span class="rule"></span>
-    <span class="lbl">Interactive companion to the manual</span>
+    <span class="lbl unoff">Unofficial companion to the manual · not affiliated with Chase Bliss Audio</span>
   </div>
   <h1>Lost + Found<span class="thin">A collection of curiosities · 12 modes · 144 combinations</span></h1>
 
@@ -993,12 +999,12 @@ const DIPS = [
   ["trails","TRAILS","yellow","Effects fade out naturally after you bypass instead of being cut off."],
   ["bank","BANK","yellow","Swaps to the second bank of internal presets — slots 3 and 4 on the same toggle."],
   ["rLtime","L TIME","ramp","Hands the Left TIME knob to ramping, or to whatever you plug into the expression jack."],
-  ["rLmodify","L MODIFY","ramp","Same for Left MODIFY — which means the automation can walk a channel across the noon gap into the other mode."],
-  ["rblend","BLEND","ramp","Same for BLEND. In parallel this pans between the two channels; in series it rides the mix of the second effect."],
-  ["rRmodify","R MODIFY","ramp","Same for Right MODIFY."],
-  ["rRtime","R TIME","ramp","Same for Right TIME."],
+  ["rLmodify","L MODIFY","ramp","Hands the Left MODIFY knob to ramping, or to whatever you plug into the expression jack. Because MODIFY picks the mode either side of noon, automation can walk the channel across that gap into the other mode."],
+  ["rblend","BLEND","ramp","Hands the BLEND knob to ramping, or to whatever you plug into the expression jack. In parallel this pans between the two channels; in series it rides the mix of the second effect."],
+  ["rRmodify","R MODIFY","ramp","Hands the Right MODIFY knob to ramping, or to whatever you plug into the expression jack. Because MODIFY picks the mode either side of noon, automation can walk the channel across that gap into the other mode."],
+  ["rRtime","R TIME","ramp","Hands the Right TIME knob to ramping, or to whatever you plug into the expression jack."],
   ["bounce","BOUNCE","ramp","Continuous motion rather than a one-shot. Off, the selected knobs move once at power-up and stay put."],
-  ["sweep","SWEEP","ramp","Whether the knob's actual position is the top of the travel or the bottom."],
+  ["sweep","SWEEP","ramp","Whether a selected knob's own position is the top of its travel or the bottom."],
   ["polarity","POLARITY","ramp","Which end of the expression or CV range corresponds to which end of the sweep."]
 ];
 

@@ -2,34 +2,66 @@ pedal-companions — third-party material
 =======================================
 
 The MIT licence in LICENSE covers the code and the original work here: the
-HTML, CSS and JavaScript, the SVG drawing of the pedal, the layout and the
-interaction design.
+HTML, CSS and JavaScript, the drawings of the enclosures, the shelf on the
+homepage, the layout and the interaction design.
 
-It does not cover the material below, which belongs to Chase Bliss Audio and is
-not ours to sublicense. The MIT grant should not be read as doing so.
+It does not cover the material below, which belongs to the makers of the pedals
+and is not ours to sublicense. The MIT grant should not be read as doing so.
 
 
-Descriptions taken from the manual
-----------------------------------
+Descriptions taken from the manuals
+-----------------------------------
 
-Much of the writing describing what each mode and knob does is Chase Bliss's
-own, quoted or closely adapted from the Lost + Found manual rather than written
-for this site. That covers the twenty-four mode descriptions, the per-mode tips
-and the knob descriptions — roughly 1,400 words in all.
+Each companion says what a control does in the manual's own words, quoted and
+attributed to the printed page it came from rather than rewritten. That text is
+its maker's, not ours:
 
-Copyright in that text remains with Chase Bliss Audio.
+  Chase Bliss Lost + Found   the twenty-four mode descriptions, the per-mode
+                             tips and the knob descriptions — roughly 1,400
+                             words. Copyright Chase Bliss Audio.
 
-The rest — the drawing of the enclosure, the mode-picker, the printed-page
-index, and the notes marked as inferred rather than documented — was written
-for this site and is covered by the MIT licence.
+  Strymon Volante            the knob and switch descriptions, quoted by
+                             printed page — roughly 550 words. Copyright
+                             Strymon.
+
+  Fulltone OCD-Germanium     the knob and HP/LP descriptions, and passages from
+                             Michael Fuller's letter on page 1 — roughly 700
+                             words. Copyright Fulltone.
+
+The rest of each page — the drawing of the enclosure, the working model of what
+the controls do to timing or gain, the index of the printed manual, and the
+notes marked as inferred rather than documented — was written for this site and
+is covered by the MIT licence.
+
+No manual is reproduced here in full, and there is no PDF in this repository.
+Every link at a manual opens the maker's own copy of it.
+
+
+Product photographs
+-------------------
+
+The homepage carries one photograph of each pedal, downloaded from that maker's
+own site and normalized for the shelf: background removed, trimmed to the
+pedal, centred on a common canvas at a common scale.
+
+  images/chase-bliss-lost-and-found.webp   Chase Bliss Audio
+  images/strymon-volante.webp              Strymon
+  images/fulltone-ocd-germanium.webp       Fulltone
+
+Each remains the property of its maker, and is used here only to identify the
+pedal whose companion sits behind it.
 
 
 Trademarks
 ----------
 
-Chase Bliss Audio and Lost + Found are trademarks of Chase Bliss Audio, used
-here only to identify the pedal this page is about. This project is not
-affiliated with, endorsed by, or connected to Chase Bliss Audio.
+Chase Bliss Audio and Lost + Found are trademarks of Chase Bliss Audio.
+Strymon and Volante are trademarks of Strymon.
+Fulltone, OCD and Obsessive Compulsive Drive are trademarks of Fulltone.
+
+All are used here only to identify the pedals these pages are about. This
+project is not affiliated with, endorsed by, or connected to any of these
+companies.
 
 
 Removal

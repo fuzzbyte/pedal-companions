@@ -1,0 +1,2020 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Volante Head by Head</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%236E7A18'/><circle cx='16' cy='16' r='8.6' fill='none' stroke='%23F1EDE0' stroke-width='2.6'/><circle cx='16' cy='16' r='2.7' fill='%23F1EDE0'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=DM+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=swap">
+
+<style>
+/* ---------- tokens: light is the bare :root, dark redefines ---------- */
+:root{
+  --bg:#F1EDE0;
+  --surface:#FAF7EE;
+  --surface-2:#E9E3D2;
+  --line:#D6CEB6;
+  --line-soft:#E3DCC8;
+  --ink:#1B1A12;
+  --ink-2:#57533F;
+  --ink-3:#8A8470;
+  --tint:#0E0D07;
+  --shadow:0 1px 0 rgba(27,26,18,.04), 0 12px 32px -20px rgba(27,26,18,.45);
+
+  --accent:#8E9A2E;
+  --accent-text:#6E7A18;
+  --warn:#B4561B;
+
+  --r:14px;
+  --step:clamp(2.6rem, 5vw, 4.4rem);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111108;
+    --surface:#1A1911;
+    --surface-2:#232116;
+    --line:#33301F;
+    --line-soft:#28261A;
+    --ink:#EDE7D3;
+    --ink-2:#A9A38A;
+    --ink-3:#726D58;
+    --tint:#FFF9E8;
+    --shadow:0 1px 0 rgba(255,255,255,.02), 0 16px 40px -24px rgba(0,0,0,.9);
+    --accent:#C6CE7B;
+    --accent-text:#CDD584;
+    --warn:#DB9455;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111108;
+  --surface:#1A1911;
+  --surface-2:#232116;
+  --line:#33301F;
+  --line-soft:#28261A;
+  --ink:#EDE7D3;
+  --ink-2:#A9A38A;
+  --ink-3:#726D58;
+  --tint:#FFF9E8;
+  --accent:#C6CE7B;
+  --accent-text:#CDD584;
+  --warn:#DB9455;
+}
+
+/* constants — sampled from Strymon's own top-down photograph */
+:root{
+  --case-hi:#D4DC8E;
+  --case:#BAC46B;
+  --case-lo:#9DA94F;
+  --plate:#0E0E12;
+  --plate-2:#1D1D21;
+  --plate-line:#33333A;
+  --silk:#ECEDE7;
+  --silk-2:#A9ABA3;
+
+  --h1c:#E2452F;
+  --h2c:#F2A73B;
+  --h3c:#2FC077;
+  --h4c:#4C93E6;
+  --led-green:#00C063;
+  --led-amber:#F2A73B;
+  --led-red:#E2452F;
+  --led-blue:#4C93E6;
+}
+
+/* ---------- base ---------- */
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Newsreader",Georgia,"Times New Roman",serif;
+  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased;
+}
+#app{max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 96px}
+h1,h2,h3,h4,.lbl,.mono,button,th{font-family:"Archivo",system-ui,-apple-system,"Helvetica Neue",sans-serif}
+h1,h2,h3{text-wrap:balance;margin:0}
+.mono,code{font-family:"DM Mono","SFMono-Regular",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+a{color:var(--accent-text)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+
+.lbl{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.lbl-a{color:var(--accent-text)}
+.brandline .unoff{color:var(--ink-2)}
+
+/* ---------- masthead ---------- */
+header.top{padding:clamp(40px,7vw,84px) 0 clamp(24px,4vw,40px)}
+.backlink{flex:none;display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);text-decoration:none;padding-right:12px;border-right:1px solid var(--line)}
+.backlink:hover{color:var(--ink)}
+.backlink .bk-arrow{font-size:13px;letter-spacing:0;transition:transform .14s ease}
+.backlink:hover .bk-arrow{transform:translateX(-3px)}
+@media (max-width:560px){.brandline{flex-wrap:wrap}.backlink{flex-basis:100%;border-right:0;padding-right:0;margin-bottom:2px}}
+.brandline{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.brandline .rule{flex:1;height:1px;background:var(--line)}
+h1{font-size:clamp(3.4rem,12vw,7.6rem);font-weight:700;letter-spacing:-.05em;line-height:.84;text-transform:uppercase}
+h1 .thin{display:block;font-weight:500;font-size:.2em;letter-spacing:.3em;color:var(--ink-3);margin-top:1.2em}
+.dek{max-width:62ch;margin-top:26px;font-size:1.18rem;color:var(--ink-2)}
+.dek strong{color:var(--ink);font-weight:500}
+
+/* ---------- the machine ---------- */
+.machine{
+  /* breaks out wider than the reading column - the pedal and the transport
+     both want room, and they are meant to be looked at side by side */
+  --mw:min(1560px, calc(100vw - 48px));
+  width:var(--mw);margin-left:calc((100% - var(--mw)) / 2);
+  border:1px solid var(--line);border-radius:var(--r);background:var(--surface);
+  box-shadow:var(--shadow);overflow:hidden;margin-top:10px;
+}
+.mhead{
+  display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;
+  padding:14px 18px;border-bottom:1px solid var(--line-soft);background:var(--surface-2);
+}
+.mhead .who{display:flex;align-items:center;gap:10px}
+.mhead .who b{font-family:"Archivo",sans-serif;font-size:.82rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.mtools{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.snote{font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-text);white-space:nowrap}
+.snote[hidden]{display:none}
+canvas{display:block;width:100%}
+#deck{background:#0B0A06}
+#tl{height:clamp(178px,20vw,228px);background:#0B0A06;border-top:1px solid var(--plate-line)}
+
+/* pedal on the left, transport on the right, both in view at once */
+.stage{display:grid;grid-template-columns:minmax(0,1.04fr) minmax(0,1fr);align-items:stretch}
+.viz{display:flex;flex-direction:column;min-width:0;border-left:1px solid var(--line-soft)}
+.viz #deck{flex:1 1 0;min-height:290px}
+.viz #tl{flex:0 0 auto;height:clamp(126px,10vw,166px)}
+/* stacked, so the captions cannot wrap into three lines and starve the deck */
+.viz .capline{flex-direction:column;align-items:flex-start;gap:2px;padding:7px 16px}
+@media (max-width:1023px){
+  .stage{grid-template-columns:1fr}
+  .viz{border-left:0;border-top:1px solid var(--line-soft)}
+  .viz #deck{flex:0 0 auto;height:clamp(300px,52vw,430px)}
+  .viz #tl{height:clamp(150px,26vw,190px)}
+  .viz .capline{flex-direction:row;align-items:center;gap:10px 18px;padding:10px 18px}
+}
+.capline{display:flex;flex-wrap:wrap;gap:10px 18px;justify-content:space-between;padding:10px 18px;border-top:1px solid var(--line-soft);background:var(--surface-2)}
+.disclaim{margin:0;padding:0 18px 16px;background:var(--surface-2);font-size:.8rem;line-height:1.5;color:var(--ink-3);max-width:88ch}
+.disclaim em{font-style:italic;color:var(--ink-2)}
+
+/* ---------- readout strip ---------- */
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0;border-top:1px solid var(--line-soft)}
+.cell{padding:12px 16px;border-right:1px solid var(--line-soft)}
+.cell:last-child{border-right:0}
+.cell .k{display:block;font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
+.cell .v{display:block;font-family:"DM Mono",monospace;font-size:1.12rem;font-variant-numeric:tabular-nums;color:var(--ink);line-height:1.5}
+.cell .s{display:block;font-size:.8rem;color:var(--ink-3);line-height:1.35}
+
+/* ---------- the pedal ---------- */
+.pedalwrap{display:flex;flex-direction:column;justify-content:center;
+  padding:clamp(14px,2.2vw,24px);background:
+  repeating-linear-gradient(135deg, transparent 0 9px, rgba(0,0,0,.014) 9px 18px), var(--surface)}
+.pedal{
+  position:relative;width:100%;max-width:880px;margin:0 auto;aspect-ratio:7/4.5;
+  border-radius:14px;container-type:inline-size;touch-action:none;user-select:none;
+  background:
+    radial-gradient(120% 70% at 50% -14%, #E2E8A6 0%, transparent 55%),
+    linear-gradient(176deg, var(--case-hi) 0%, var(--case) 42%, var(--case-lo) 100%);
+  border:1px solid rgba(70,76,20,.5);
+  box-shadow:0 34px 64px -36px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.5), inset 0 -3px 8px rgba(60,66,16,.3);
+  color:var(--silk);
+}
+.pedal::before{ /* cast-metal speckle */
+  content:"";position:absolute;inset:0;border-radius:14px;pointer-events:none;opacity:.22;
+  background-image:radial-gradient(rgba(255,255,255,.6) .5px, transparent .5px),radial-gradient(rgba(40,44,10,.4) .5px, transparent .5px);
+  background-size:7px 7px, 11px 11px;background-position:0 0, 3px 5px;
+}
+.screw{position:absolute;width:2.6cqw;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 36% 32%, #d9d2ae, #4b4728 72%);box-shadow:inset 0 0 0 .3cqw rgba(0,0,0,.28)}
+.screw::before{content:"";position:absolute;left:18%;right:18%;top:46%;height:.5cqw;background:rgba(0,0,0,.55);border-radius:1px}
+
+/* control plate */
+.plate{
+  position:absolute;left:2.9%;right:2.9%;top:5.8%;bottom:46.5%;border-radius:.7cqw;
+  background:linear-gradient(180deg,var(--plate-2) 0%,var(--plate) 34%,#131317 100%);
+  border:1px solid rgba(0,0,0,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.09), 0 2px 6px rgba(50,56,12,.45);
+}
+/* knobs */
+.kn{position:absolute;left:var(--x);top:var(--y);width:var(--d);transform:translate(-50%,-50%)}
+.kn .knob{
+  position:relative;display:block;width:100%;aspect-ratio:1;border-radius:50%;padding:0;border:0;
+  background:none;cursor:ns-resize;
+}
+.kn .cap{
+  position:absolute;inset:0;border-radius:50%;
+  background:
+    radial-gradient(circle at 50% 34%, #46464E 0%, #232329 30%, #0C0C10 68%, #000 100%);
+  box-shadow:
+    0 .6cqw 1.4cqw -.3cqw rgba(0,0,0,.95),
+    inset 0 .3cqw .5cqw rgba(255,255,255,.28),
+    inset 0 -.35cqw .7cqw rgba(0,0,0,.85);
+  transition:transform .05s linear;
+}
+.kn .cap::before{ /* gloss sweep on the skirt */
+  content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
+  background:linear-gradient(152deg, rgba(255,255,255,.30) 0%, rgba(255,255,255,.05) 26%,
+             transparent 46%, transparent 62%, rgba(255,255,255,.10) 86%, rgba(255,255,255,.02) 100%);
+}
+.kn .cap::after{ /* the white index line, printed on the skirt */
+  content:"";position:absolute;left:50%;top:2.5%;width:1.05cqw;height:17%;
+  transform:translateX(-50%);border-radius:.5cqw;
+  background:#F4F6F2;box-shadow:0 0 .35cqw rgba(255,255,255,.5);
+}
+.kn .dome{
+  position:absolute;inset:19%;border-radius:50%;
+  background:radial-gradient(circle at 38% 28%, #F4F6F4 0%, #D2D6D4 34%, #A2A8A6 66%, #6E7472 100%);
+  box-shadow:
+    inset 0 .3cqw .5cqw rgba(255,255,255,.75),
+    inset 0 -.3cqw .6cqw rgba(0,0,0,.35),
+    0 0 0 .14cqw rgba(0,0,0,.55);
+}
+.kn .dome::before{ /* brushed radial grain */
+  content:"";position:absolute;inset:0;border-radius:50%;opacity:.42;mix-blend-mode:overlay;
+  background:conic-gradient(from 0deg,
+    #fff,#5b5b5b 3%,#fff 6%,#6a6a6a 9%,#fff 13%,#555 17%,#fff 21%,#6e6e6e 25%,
+    #fff 29%,#5b5b5b 33%,#fff 37%,#666 41%,#fff 46%,#585858 50%,#fff 54%,#6c6c6c 58%,
+    #fff 62%,#5a5a5a 66%,#fff 70%,#676767 74%,#fff 79%,#565656 83%,#fff 87%,#6b6b6b 91%,#fff 96%,#5c5c5c 100%);
+}
+.kn .knob:focus-visible{outline:none}
+.kn .knob:focus-visible .cap{outline:2px solid var(--led-green);outline-offset:.4cqw}
+.kn.tweak .cap{box-shadow:0 0 0 .32cqw var(--led-green), 0 .5cqw 1.2cqw -.3cqw rgba(0,0,0,.9)}
+.kn.sim .klbl::after, .tog.sim .tlbl::after{
+  content:"";position:absolute;left:50%;top:calc(100% + .55cqw);
+  width:1cqw;height:1cqw;border-radius:50%;transform:translateX(-50%);
+  background:var(--led-green);box-shadow:0 0 1cqw rgba(0,192,99,.9);
+}
+.simkey{
+  display:flex;align-items:center;gap:8px;margin:10px auto 0;max-width:880px;width:100%;
+  font-size:.8rem;color:var(--ink-3);line-height:1.4;
+}
+.simkey i{
+  flex:none;width:8px;height:8px;border-radius:50%;background:var(--led-green);
+  box-shadow:0 0 6px rgba(0,192,99,.8);
+}
+.klbl{
+  position:absolute;left:50%;top:calc(100% + .8cqw);transform:translateX(-50%);
+  font-family:"Archivo",sans-serif;font-size:1.72cqw;font-weight:600;letter-spacing:.04em;line-height:1;
+  text-transform:uppercase;color:var(--silk);white-space:nowrap;pointer-events:none;
+}
+/* spacing markers */
+.smark{
+  position:absolute;font-family:"Archivo",sans-serif;font-size:1.38cqw;font-weight:500;line-height:1;
+  letter-spacing:.03em;color:var(--silk-2);white-space:nowrap;transform:translate(-50%,-50%);
+  pointer-events:none;transition:color .2s;
+}
+.smark.on{color:var(--led-green)}
+
+/* toggles */
+.tog{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);width:4cqw}
+.tog .slot{
+  position:relative;width:100%;height:5.4cqw;border-radius:1.4cqw;
+  background:linear-gradient(180deg,rgba(0,0,0,.5),rgba(255,255,255,.05) 50%,rgba(0,0,0,.5));
+  border:0;
+}
+.tog .slot::after{ /* hex nut */
+  content:"";position:absolute;left:50%;top:50%;width:3.6cqw;height:3.6cqw;transform:translate(-50%,-50%);
+  border-radius:.4cqw;
+  background:linear-gradient(150deg,#D8DBD6,#8B908D 62%,#5E625F);
+  clip-path:polygon(25% 4%,75% 4%,100% 50%,75% 96%,25% 96%,0 50%);
+  box-shadow:0 .2cqw .4cqw rgba(0,0,0,.6);
+}
+.tog .bat{
+  position:absolute;left:50%;z-index:2;width:2.5cqw;height:2.5cqw;border-radius:50%;transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 34% 28%,#FBFCFA,#B9BDBA 46%,#717673 100%);
+  box-shadow:0 .25cqw .5cqw rgba(0,0,0,.7), inset 0 -.15cqw .3cqw rgba(0,0,0,.35);
+  transition:top .14s cubic-bezier(.3,1.4,.5,1);
+  border:0;padding:0;cursor:grab;touch-action:none;
+}
+.tog .bat:active{cursor:grabbing;transition:none}
+.tog[data-i="0"] .bat{top:19%}
+.tog[data-i="1"] .bat{top:50%}
+.tog[data-i="2"] .bat{top:81%}
+.tog .tlbl{
+  position:absolute;left:50%;bottom:calc(100% + .9cqw);transform:translateX(-50%);
+  font-family:"Archivo",sans-serif;font-size:1.8cqw;font-weight:600;letter-spacing:.05em;line-height:1;
+  text-transform:uppercase;color:var(--silk);
+}
+.tog .names{position:absolute;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:.35cqw}
+.tog.left .names{right:calc(100% + .8cqw);align-items:flex-end}
+.tog.sim .names{left:calc(100% + .8cqw);align-items:flex-start}
+.tog .names button{
+  background:none;border:0;padding:0;cursor:pointer;color:var(--silk-2);
+  font-family:"Archivo",sans-serif;font-size:1.62cqw;font-weight:500;letter-spacing:.01em;line-height:1.18;
+  transition:color .15s;white-space:nowrap;
+}
+.tog .names button.on{color:var(--silk);font-weight:600}
+.tog .names button:hover{color:var(--led-green)}
+
+/* the head block */
+.headbox{
+  position:absolute;left:35.7%;top:29.8%;width:29.3%;height:17.6%;
+  border:1px solid rgba(236,237,231,.55);border-radius:1.6cqw;pointer-events:none;
+}
+.hbtn{
+  position:absolute;left:var(--x);top:var(--y);width:2.6cqw;aspect-ratio:1;border-radius:50%;
+  transform:translate(-50%,-50%);cursor:pointer;padding:0;
+  background:radial-gradient(circle at 40% 32%, #1B2C21, #05100A 76%);
+  border:1px solid rgba(255,255,255,.14);
+  transition:background .12s, box-shadow .12s;
+}
+.hbtn[data-lit="green"]{background:radial-gradient(circle at 40% 32%, #A6FFD0, var(--led-green) 55%);box-shadow:0 0 1.5cqw rgba(0,192,99,.85)}
+.hbtn[data-lit="amber"]{background:radial-gradient(circle at 40% 32%, #FFE2AE, var(--led-amber) 55%);box-shadow:0 0 1.5cqw rgba(242,167,59,.85)}
+.hbtn[data-lit="red"]{background:radial-gradient(circle at 40% 32%, #FFB6A8, var(--led-red) 55%);box-shadow:0 0 1.5cqw rgba(226,69,47,.85)}
+.hbtn.panning{animation:pulse .9s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 .18cqw rgba(255,255,255,.9)}50%{box-shadow:0 0 0 .8cqw rgba(255,255,255,.12)}}
+.hnum{
+  position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);
+  font-family:"Archivo",sans-serif;font-size:2.1cqw;font-weight:600;line-height:1;color:var(--silk);
+  pointer-events:none;
+}
+.rowlbl{
+  position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);
+  font-family:"Archivo",sans-serif;font-size:1.55cqw;font-weight:500;letter-spacing:.02em;
+  color:var(--silk);pointer-events:none;white-space:nowrap;line-height:1;
+  background:var(--plate);padding:.15cqw .7cqw;
+}
+/* spacing dial arc */
+.sarc{position:absolute;left:74.4%;top:38.8%;width:14%;transform:translate(-50%,-50%);pointer-events:none}
+.sarc svg{width:100%;display:block;overflow:visible}
+.sarc circle{fill:none;stroke:rgba(236,237,231,.42);stroke-width:1.6;stroke-dasharray:1.6 6;stroke-linecap:round}
+
+/* footswitches */
+.fsw{
+  position:absolute;left:var(--x);top:var(--y);width:8.9cqw;aspect-ratio:1;border-radius:50%;
+  transform:translate(-50%,-50%);cursor:pointer;padding:0;
+  background:radial-gradient(circle at 38% 28%, #EDEFEA, #9DA29E 58%, #5A5F5C 100%);
+  border:1px solid rgba(0,0,0,.4);
+  box-shadow:0 .8cqw 1.6cqw -.5cqw rgba(0,0,0,.6), inset 0 .3cqw .6cqw rgba(255,255,255,.65);
+}
+.fsw:active{transform:translate(-50%,-50%) scale(.95)}
+.fsw::after{content:"";position:absolute;inset:27%;border-radius:50%;background:radial-gradient(circle at 40% 32%,#C6CAC5,#636865 72%);box-shadow:inset 0 .25cqw .55cqw rgba(0,0,0,.45)}
+.fled{
+  position:absolute;left:var(--x);top:var(--y);width:2.2cqw;aspect-ratio:1;border-radius:50%;
+  transform:translate(-50%,-50%);background:#3A3F1C;border:1px solid rgba(255,255,255,.14);
+  pointer-events:none;
+}
+.fled[data-lit="green"]{background:var(--led-green);box-shadow:0 0 1.5cqw var(--led-green)}
+.fled[data-lit="amber"]{background:var(--led-amber);box-shadow:0 0 1.5cqw var(--led-amber)}
+.fled[data-lit="red"]{background:var(--led-red);box-shadow:0 0 1.5cqw var(--led-red)}
+.fled[data-lit="blue"]{background:var(--led-blue);box-shadow:0 0 1.5cqw var(--led-blue)}
+.fled.blink{animation:blink .42s steps(1,end) infinite}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:.14}}
+.fname{
+  position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);text-align:center;
+  font-family:"Archivo",sans-serif;font-size:2.25cqw;font-weight:600;letter-spacing:.08em;line-height:1;
+  text-transform:uppercase;color:#26290F;white-space:nowrap;pointer-events:none;
+  text-shadow:0 1px 1px rgba(60,66,16,.35);
+}
+.falt{
+  position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);
+  font-family:"Archivo",sans-serif;font-size:1.62cqw;font-weight:500;letter-spacing:.01em;line-height:1;
+  color:#31350F;white-space:nowrap;pointer-events:none;
+}
+.brand{
+  position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);text-align:center;
+  line-height:1.05;color:#1C1F08;white-space:nowrap;pointer-events:none;
+}
+.brand.sm{font-family:"Archivo",sans-serif;font-size:3.4cqw;font-weight:700;letter-spacing:-.05em}
+.brand.vm{font-family:"Archivo",sans-serif;font-size:3.6cqw;font-weight:700;letter-spacing:.01em;text-transform:uppercase;font-style:italic}
+@supports (-webkit-text-stroke: 1px #000){
+  .brand.vm{color:transparent;-webkit-text-stroke:.16cqw #1C1F08}
+}
+.brand.vm small{
+  display:block;font-size:.30em;font-weight:600;font-style:normal;letter-spacing:.02em;
+  text-transform:none;margin-top:.42em;color:#1C1F08;-webkit-text-stroke:0;
+  border-top:1px solid rgba(28,31,8,.75);padding-top:.35em;
+}
+.fhold{
+  position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);
+  font-family:"Archivo",sans-serif;font-size:1.62cqw;font-weight:500;line-height:1;
+  color:#31350F;white-space:nowrap;pointer-events:none;
+}
+
+/* hint bar */
+.hint{
+  display:flex;align-items:center;gap:10px;min-height:50px;margin:14px auto 0;max-width:880px;width:100%;
+  padding:9px 14px;border:1px dashed var(--line);border-radius:10px;background:var(--surface);
+  font-size:.88rem;color:var(--ink-2);line-height:1.45;
+}
+.hint[data-live="true"]{border-style:solid;border-color:var(--accent);color:var(--ink)}
+.hint b{font-family:"Archivo",sans-serif;font-size:.74rem;letter-spacing:.11em;text-transform:uppercase;color:var(--accent-text)}
+.hint q{quotes:"\201C" "\201D";font-style:italic;color:var(--ink)}
+.hint .src{
+  display:inline-block;margin-left:7px;font-family:"Archivo",sans-serif;font-size:.66rem;
+  font-weight:600;letter-spacing:.09em;text-transform:uppercase;white-space:nowrap;
+  color:var(--accent-text);text-decoration:none;border-bottom:1px solid currentColor;
+}
+.hint .pos{display:block;margin-top:5px;color:var(--ink-2);font-size:.84rem}
+.hint .pos b{font-family:inherit;font-size:inherit;letter-spacing:0;text-transform:none;color:var(--ink);font-weight:600}
+
+/* ---------- buttons ---------- */
+button.btn{
+  font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  padding:8px 13px;border-radius:8px;cursor:pointer;
+  background:var(--surface);color:var(--ink);border:1px solid var(--line);
+  transition:background .15s,border-color .15s,color .15s;
+}
+button.btn:hover{border-color:var(--accent);color:var(--accent-text)}
+button.btn[aria-pressed="true"],button.btn.on{background:var(--accent);border-color:var(--accent);color:#14130A}
+
+/* ---------- head table ---------- */
+.heads{width:100%;border-collapse:collapse;font-size:.9rem}
+.heads th,.heads td{padding:9px 16px;text-align:left;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+.heads th{font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);background:var(--surface-2)}
+.heads tr:last-child td{border-bottom:0}
+.nval{display:flex;align-items:center;gap:9px}
+.ntsvg{width:19px;height:22px;flex:none;fill:currentColor;color:var(--ink)}
+.ntsvg .trip path{stroke:currentColor;stroke-width:1.1;fill:none}
+.ntsvg .trip text{font:600 8px "Archivo",sans-serif;fill:currentColor;text-anchor:middle}
+.ntname{font-size:.86rem;color:var(--ink-2)}
+.ntratio{
+  font-family:"DM Mono",monospace;font-size:.86rem;color:var(--ink);
+  min-width:19px;flex:none;font-variant-numeric:tabular-nums;
+}
+.heads td.mono{font-family:"DM Mono",monospace;color:var(--ink-2);white-space:nowrap}
+.heads tr[data-off="true"] td{opacity:.42}
+.hdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;vertical-align:baseline}
+.pill{display:inline-block;font-family:"Archivo",sans-serif;font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:3px 7px;border-radius:5px;border:1px solid var(--line);color:var(--ink-3)}
+.pill.on{border-color:var(--accent);color:var(--accent-text)}
+
+/* ---------- sections ---------- */
+section{padding-top:var(--step)}
+.shead{display:flex;align-items:baseline;gap:14px;margin-bottom:18px}
+.shead h2{font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:700;letter-spacing:-.03em}
+.shead .rule{flex:1;height:1px;background:var(--line)}
+.sdek{max-width:64ch;color:var(--ink-2);margin:-4px 0 24px}
+
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(235px,1fr))}
+
+.card{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:18px 20px;box-shadow:var(--shadow)}
+.card h3{font-size:1.06rem;font-weight:600;letter-spacing:-.01em;margin-bottom:6px}
+.card h3 .swatch{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:8px}
+.card p{margin:0;color:var(--ink-2);font-size:.95rem}
+.card p + p{margin-top:9px}
+.card b{font-weight:500;color:var(--ink)}
+
+
+.headrow{
+  display:flex;gap:clamp(24px,5vw,64px);align-items:flex-end;justify-content:space-between;
+  flex-wrap:wrap;margin-top:26px;
+}
+.headrow .dek{margin-top:0;flex:1 1 30ch;max-width:52ch}
+.getmanual{
+  display:flex;align-items:center;gap:16px;flex:0 1 30ch;
+  padding:15px 19px;border:1px solid var(--accent);border-radius:var(--r);
+  background:color-mix(in oklab, var(--accent) 10%, var(--surface));
+  text-decoration:none;color:var(--ink);box-shadow:var(--shadow);
+  transition:background .15s,transform .15s;
+}
+.getmanual:hover{background:color-mix(in oklab, var(--accent) 20%, var(--surface));transform:translateY(-1px)}
+.getmanual .gm-txt{flex:1;min-width:0}
+.getmanual b{
+  display:block;font-family:"Archivo",sans-serif;font-size:1.02rem;font-weight:600;
+  letter-spacing:-.01em;color:var(--ink);
+}
+.getmanual small{display:block;margin-top:3px;font-size:.86rem;color:var(--ink-2)}
+.getmanual .gm-arrow{
+  flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+  background:var(--accent);color:#14130A;font-size:1.05rem;font-weight:700;
+}
+
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table.doc{border-collapse:collapse;width:100%;font-size:.9rem;min-width:540px}
+table.doc th,table.doc td{text-align:left;padding:11px 16px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+table.doc th{font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);background:var(--surface-2)}
+table.doc tr:last-child td{border-bottom:0}
+table.doc td.mono{font-family:"DM Mono",monospace;color:var(--ink-2);white-space:nowrap}
+table.doc td b{font-weight:500}
+
+
+
+footer.end{margin-top:var(--step);padding-top:22px;border-top:1px solid var(--line);color:var(--ink-3);font-size:.88rem;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+}
+</style>
+
+<div id="app">
+
+<header class="top">
+  <div class="brandline">
+    <a class="backlink" href="index.html"><span class="bk-arrow" aria-hidden="true">&#8592;</span>All manuals</a>
+    <span class="lbl">Strymon</span><span class="rule"></span>
+    <span class="lbl unoff">Unofficial companion to the manual · not affiliated with Strymon</span>
+  </div>
+  <h1>Volante<span class="thin">Magnetic Echo Machine</span></h1>
+  <div class="headrow">
+  <p class="dek">Visualise the Volante as a tape or drum echo, see and hear the delay
+  cadences and feedback patterns, and learn how to use the pedal functions. Note that
+  this is an approximation, and may not line up to the pedal completely.</p>
+  <a class="getmanual" href="https://www.strymon.net/manuals/Volante_UserManual_RevE.pdf" target="_blank" rel="noopener">
+    <span class="gm-txt">
+      <b>Read the official manual</b>
+      <small>Volante user manual, Rev E · PDF, 1.7&nbsp;MB</small>
+    </span>
+    <span class="gm-arrow" aria-hidden="true">&#8595;</span>
+  </a>
+  </div>
+</header>
+
+<div class="machine">
+  <div class="mhead">
+    <div class="who"><b id="deckName">Tape</b><span class="lbl" id="deckSub">magnetic tape loop · normal speed</span></div>
+    <div class="mtools">
+      <button class="btn" id="btnStrike">Pluck a note</button>
+      <button class="btn" id="btnAuto" aria-pressed="false">Auto-pluck off</button>
+      <button class="btn" id="btnSound" aria-pressed="true">Sound on</button>
+      <span class="snote" id="snote">simulates the delay cadences</span>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="pedalwrap">
+      <div class="pedal" id="pedal">
+        <div class="plate"></div>
+
+        <!-- top row: five knobs, TIME dead centre, the two toggles flanking it -->
+        <div class="kn" data-k="rec"     style="--x:9.3%;--y:15.1%;--d:10.9%"><button class="knob" aria-label="Rec Level"><span class="cap"><i class="dome"></i></span></button><span class="klbl">Rec Level</span></div>
+        <div class="kn" data-k="mech"    style="--x:25.6%;--y:15.1%;--d:10.9%"><button class="knob" aria-label="Mechanics"><span class="cap"><i class="dome"></i></span></button><span class="klbl">Mechanics</span></div>
+        <div class="kn sim" data-k="time"    style="--x:50%;--y:15.1%;--d:10.9%"><button class="knob" aria-label="Time"><span class="cap"><i class="dome"></i></span></button><span class="klbl">Time</span></div>
+        <div class="kn sim" data-k="repeats" style="--x:74.4%;--y:15.1%;--d:10.9%"><button class="knob" aria-label="Repeats"><span class="cap"><i class="dome"></i></span></button><span class="klbl">Repeats</span></div>
+        <div class="kn sim" data-k="echo"    style="--x:90.7%;--y:15.1%;--d:10.9%"><button class="knob" aria-label="Echo Level"><span class="cap"><i class="dome"></i></span></button><span class="klbl">Echo Level</span></div>
+
+        <div class="tog left" data-t="type" data-i="1" style="--x:39.6%;--y:15.1%">
+          <span class="tlbl">Type</span>
+          <div class="names">
+            <button data-v="drum">drum</button><button data-v="tape">tape</button><button data-v="studio">studio</button>
+          </div>
+          <div class="slot"></div><button class="bat" aria-label="Type: drum, tape or studio"></button>
+        </div>
+        <div class="tog sim" data-t="speed" data-i="1" style="--x:59%;--y:15.1%">
+          <span class="tlbl">Speed</span>
+          <div class="names">
+            <button data-v="half">half</button><button data-v="normal">normal</button><button data-v="double">double</button>
+          </div>
+          <div class="slot"></div><button class="bat" aria-label="Speed: half, normal or double"></button>
+        </div>
+
+        <!-- second row: four knobs, the head block between them -->
+        <div class="kn" data-k="lowcut"  style="--x:9.3%;--y:38.8%;--d:10.9%"><button class="knob" aria-label="Low Cut"><span class="cap"><i class="dome"></i></span></button><span class="klbl">Low Cut</span></div>
+        <div class="kn" data-k="wear"    style="--x:25.6%;--y:38.8%;--d:10.9%"><button class="knob" aria-label="Wear"><span class="cap"><i class="dome"></i></span></button><span class="klbl">Wear</span></div>
+        <div class="kn sim" data-k="spacing" style="--x:74.4%;--y:38.8%;--d:10.9%"><button class="knob" aria-label="Spacing"><span class="cap"><i class="dome"></i></span></button><span class="klbl">Spacing</span></div>
+        <div class="kn" data-k="spring"  style="--x:90.7%;--y:38.8%;--d:10.9%"><button class="knob" aria-label="Spring"><span class="cap"><i class="dome"></i></span></button><span class="klbl">Spring</span></div>
+
+        <div class="sarc"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" pathLength="100" style="stroke-dasharray:1.2 4.4"/></svg></div>
+        <span class="smark" data-s="triplet" style="left:67%;top:33.6%">triplet</span>
+        <span class="smark" data-s="golden"  style="left:82.2%;top:33.6%">golden</span>
+        <span class="smark" data-s="even"    style="left:68.2%;top:46.4%">even</span>
+        <span class="smark" data-s="silver"  style="left:81%;top:46.4%">silver</span>
+
+        <!-- the head block: playback over feedback, numbered between -->
+        <div class="headbox"></div>
+        <span class="rowlbl" style="--x:50%;--y:29.8%">playback</span>
+        <button class="hbtn" data-hb="pb" data-i="0" style="--x:38.3%;--y:34.3%"></button>
+        <button class="hbtn" data-hb="pb" data-i="1" style="--x:46.1%;--y:34.3%"></button>
+        <button class="hbtn" data-hb="pb" data-i="2" style="--x:53.9%;--y:34.3%"></button>
+        <button class="hbtn" data-hb="pb" data-i="3" style="--x:61.7%;--y:34.3%"></button>
+        <span class="hnum" style="--x:38.3%;--y:38.8%">1</span>
+        <span class="hnum" style="--x:46.1%;--y:38.8%">2</span>
+        <span class="hnum" style="--x:53.9%;--y:38.8%">3</span>
+        <span class="hnum" style="--x:61.7%;--y:38.8%">4</span>
+        <button class="hbtn" data-hb="fb" data-i="0" style="--x:38.3%;--y:42.8%"></button>
+        <button class="hbtn" data-hb="fb" data-i="1" style="--x:46.1%;--y:42.8%"></button>
+        <button class="hbtn" data-hb="fb" data-i="2" style="--x:53.9%;--y:42.8%"></button>
+        <button class="hbtn" data-hb="fb" data-i="3" style="--x:61.7%;--y:42.8%"></button>
+        <span class="rowlbl" style="--x:50%;--y:47.4%">feedback</span>
+
+        <!-- footswitches -->
+        <span class="fname" style="--x:10.8%;--y:59.2%">On</span>
+        <span class="fname" style="--x:50%;--y:59.2%">Favorite</span>
+        <span class="fname" style="--x:88.5%;--y:59.2%">Tap</span>
+        <span class="fled" data-f="on"  style="--x:10.8%;--y:64.9%"></span>
+        <span class="fled" data-f="fav" style="--x:50%;--y:64.9%"></span>
+        <span class="fled" data-f="tap" style="--x:88.5%;--y:64.9%"></span>
+        <span class="falt" style="--x:10.8%;--y:69.6%">reverse</span>
+        <span class="falt" style="--x:50%;--y:69.6%">pause</span>
+        <span class="falt" style="--x:88.5%;--y:69.6%">splice</span>
+
+        <span class="brand sm" style="--x:30.8%;--y:80.5%">strymon</span>
+        <span class="brand vm" style="--x:69.8%;--y:79.5%">Volante<small>Magnetic Echo Machine</small></span>
+
+        <button class="fsw" data-f="on"  style="--x:10.8%;--y:79.9%" aria-label="On footswitch"></button>
+        <button class="fsw" data-f="fav" style="--x:50%;--y:79.9%" aria-label="Favorite footswitch"></button>
+        <button class="fsw" data-f="tap" style="--x:88.5%;--y:79.9%" aria-label="Tap footswitch"></button>
+        <span class="fhold" style="--x:10.8%;--y:89.3%">hold (∞)</span>
+        <span class="fhold" style="--x:88.5%;--y:89.3%">hold (SOS)</span>
+      </div>
+
+      <p class="simkey"><i></i><span>A dot marks a control this page reproduces — TIME, SPEED, SPACING, REPEATS, ECHO LEVEL and the head buttons decide when every repeat lands and how loud. The rest are tone controls: what they do is Strymon's DSP, so nothing here fakes it.</span></p>
+    <div class="hint" id="hint" data-live="false"></div>
+    </div>
+
+    <div class="viz">
+      <canvas id="deck"></canvas>
+      <div class="capline">
+        <span class="lbl" id="deckKind">Tape echo</span>
+        <span class="lbl lbl-a" id="deckHint">Click any part of the machine to see what it does</span>
+      </div>
+
+      <canvas id="tl"></canvas>
+      <div class="capline">
+        <span class="lbl">Every repeat, in time — top lane is one note past the heads, bottom is what feedback adds</span>
+        <span class="lbl mono" id="tlMeta"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="strip">
+    <div class="cell"><span class="k">Head 4 · quarter</span><span class="v" id="cT4">—</span><span class="s" id="cT4s">TIME × SPEED</span></div>
+    <div class="cell"><span class="k">Spacing</span><span class="v" id="cSpace">—</span><span class="s" id="cSpaces">heads 1–3</span></div>
+    <div class="cell"><span class="k">Tempo</span><span class="v" id="cBpm">—</span><span class="s">if head 4 is a quarter note</span></div>
+    <div class="cell"><span class="k">Repeats</span><span class="v" id="cFb">—</span><span class="s" id="cFbs">feedback heads</span></div>
+  </div>
+
+  <div class="tw" style="border:0;border-radius:0;border-top:1px solid var(--line-soft)">
+    <table class="heads" id="headTable"><thead><tr>
+      <th>Head</th><th id="thNote">Note</th><th>Delay</th><th>Playback</th><th>Feedback</th><th>Pan</th>
+    </tr></thead><tbody></tbody></table>
+  </div>
+
+  <p class="disclaim">A diagram and a sketch of the sound, not a circuit model. The head distances, delay times, spacing ratios and feedback structure are computed from your settings and are the honest part — <em>drum</em>, <em>tape</em> and <em>studio</em> share one model of a magnetised medium looping past a record head and four playback heads, because that is what they are. Sound plays the same tap list the timeline draws, so the timing, levels, half-level heads and per-head panning are what is on screen. The note itself is a synthesised plucked string, and nothing else about the tone is modelled: <em>type</em>, <em>wear</em>, <em>low cut</em>, <em>mechanics</em>, <em>rec level</em> and <em>spring</em> are Strymon's DSP, so they are left alone here rather than guessed at. The look of each transport is illustration; <em>wear</em> and <em>mechanics</em> are not drawn at all, because their behaviour is Strymon's and a guess would only teach the guess. Golden and silver spacing are reconstructed from the manual's description (fastest density buildup; repeats bunched toward head 4), not from measured firmware values. What each control <em>does</em> is quoted from the manual and attributed to the page it is printed on; only the position readout after it is ours. The manual publishes only the ends of each TIME range, so the sweep between them comes from readings taken off the pedal at four knob positions and interpolated — 9 o'clock, noon, 3 o'clock and fully clockwise, the last of which lands on the 2&nbsp;s the manual publishes.</p>
+</div>
+
+<footer class="end">
+  <span>Volante user manual, Rev E</span>
+  <span><a href="https://www.strymon.net/product/volante/">strymon.net/product/volante</a></span>
+</footer>
+</div>
+
+<script>
+(() => {
+"use strict";
+
+/* ================= constants ================= */
+const PHI = (1 + Math.sqrt(5)) / 2;
+const DEL = 1 + Math.sqrt(2);
+
+function tailRatios(base){            // gaps shrink toward head 4 by `base`
+  const g = [1, 1/base, 1/(base*base), 1/(base*base*base)];
+  const sum = g.reduce((a,b)=>a+b,0);
+  const out = []; let acc = 0;
+  for (const x of g) { acc += x/sum; out.push(acc); }
+  return out;
+}
+const SPACINGS = [
+  { name:"even",    r:[.25, .5, .75, 1], notes:["16th","8th","dotted 8th","quarter"] },
+  { name:"triplet", r:[1/6, 1/3, 2/3, 1], notes:["16th trip.","8th trip.","quarter trip.","quarter"] },
+  { name:"golden",  r:tailRatios(PHI),   notes:null },
+  { name:"silver",  r:tailRatios(DEL),   notes:null }
+];
+const SPEEDS = {
+  half:   { min:.4, max:4, label:"half"   },
+  normal: { min:.2, max:2, label:"normal" },
+  double: { min:.1, max:1, label:"double" }
+};
+const TYPES = ["drum","tape","studio"];
+const SPEEDNAMES = ["half","normal","double"];
+const HEADC = ["#E2452F","#F2A73B","#4FD07A","#4C93E6"];
+
+/* What a control does is the manual's to say. Everything inside `manual` is
+   Strymon's own wording, transcribed from the printed page named in `pg`;
+   the readout that follows it is computed from the knob position and is
+   the only part of a control hint that is ours.                            */
+const KNOBS = {
+  rec: { name:"Rec Level", pg:3, manual:
+    "Controls the analog preamp gain of the signal fed into the processor. When turned up, fat and saturated signals are sent to the record head. Turn down for cleaner delay signals." },
+  mech: { name:"Mechanics", pg:3, manual:
+    "Controls the amount of mechanically related speed fluctuations and media irregularities, including: friction, creases, splices, and contaminants. Set to minimum for a fresh, clean recording medium. Set to maximum for a recording medium that is in need of service." },
+  wear: { name:"Wear", pg:3, manual:
+    "Controls the wear of the media and heads which affects the fidelity of the high frequencies. Set to minimum for a fresh, full bandwidth sound." },
+  lowcut: { name:"Low Cut", pg:3, manual:
+    "Controls the low frequency shaping of the echo repeats. Set to minimum for extended low frequency bandwidth. Set to maximum for extremely high-passed repeats." },
+  time: { name:"Time", pg:5, manual:
+    "Controls the delay time at head 4. Heads 1-3 subdivide proportionately according to the SPACING setting. Turn the knob to the left for shorter delays and to the right for longer delays. Delay time ranges vary by selected speed setting." },
+  repeats: { name:"Repeats", pg:4, manual:
+    "Controls the feedback amount for the heads that have their feedback enabled." },
+  echo: { name:"Echo Level", pg:5, manual:
+    "Sets the overall delay signal level sent to the output." },
+  spacing: { name:"Spacing", pg:4, manual:
+    "Adjusts the spacing between the heads. Turning the knob morphs the heads in between the marked settings." },
+  spring: { name:"Spring", pg:5, manual:
+    "Controls the output mix of the integrated spring reverb tank. The dry signal input and ECHO LEVEL knob control the signals feeding into the spring reverb effect. The reverb effect is located just before the output. To bypass, turn the knob all the way to the left." }
+};
+
+/* The manual's own sentences for the things that are not knobs. */
+const MANUAL_SAYS = {
+  type:     [3, "Selects between three available magnetic media types."],
+  drum:     [3, "drum: Steel wire spinning platter. Atmospheric echoes emphasize the low-mid frequencies and will saturate with hot signals or high feedback."],
+  tape:     [3, "tape: Magnetic tape used in vintage echo machines. Warm tape response with moderately clean and airy signal path."],
+  studio:   [3, "studio: Clean studio-grade tape used in reel-to-reel units."],
+  speed:    [5, "Selects the speed of the media."],
+  playback: [4, "Selects which of the individual playback heads are engaged (GREEN LED ON)."],
+  headvol:  [4, "Press and hold for one second to toggle between half and full volume. GREEN LED ON = full volume. AMBER LED ON = half volume."],
+  feedback: [4, "Enables or disables feedback of the corresponding playback head signal to the record head. NOTE: A head can be fed back to the input even if its playback is disengaged."],
+  panning:  [4, "Turn the TIME knob while pressing and holding the individual feedback buttons to adjust the panning for each playback head. Adjusting the knob to twelve o\u2019clock returns the head to the center position (the corresponding playback button will light up RED.) NOTE: When all heads are panned to center, a psychoacoustic stereo process is applied to the delay signal."],
+  on:       [8, "Activates audio processing. Press to engage (GREEN LED ON) or bypass (LED OFF) the effect. Press and hold to activate infinite repeats with oscillation (AMBER LED ON)."],
+  tapsw:    [8, "Sets quarter note delay time for Playback Head 4. The TAP LED will flash to indicate the delay time in quarter notes."],
+  even:     [4, "even: Sets the heads evenly to produce delays of sixteenth note, eighth note, dotted eighth, and quarter note."],
+  triplet:  [4, "triplet: Sets heads to sixteenth note triplet, eighth note triplet, quarter note triplet and quarter note."],
+  golden:   [4, "golden: Sets the distances between each of the heads according to the golden ratio, resulting in the fastest density buildup when multiple heads are repeating."],
+  silver:   [4, "silver: Sets the distances between heads according to the silver ratio, resulting in repeats that \u201cbunch up\u201d closer to the head 4 quarter note."]
+};
+
+/* quote + attribution + the page it came from */
+const quote = (pg, text) =>
+  '<q>' + text + '</q><span class="src">Strymon, pg. ' + pg + '</span>';
+const manualSays = key => quote(MANUAL_SAYS[key][0], MANUAL_SAYS[key][1]);
+
+const clamp = (v,a=0,b=1) => Math.min(b, Math.max(a,v));
+const lerp  = (a,b,t) => a + (b-a)*t;
+const pct   = v => Math.round(v*100) + "%";
+const ang   = v => -150 + v*300;
+const rnd   = i => { const x = Math.sin(i*127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const ms    = t => t < 1 ? Math.round(t*1000) + " ms" : (t).toFixed(2).replace(/0$/,"") + " s";
+
+function clockOf(v){
+  /* 0 here means twelve, so anything just past noon reads 12:xx, not 0:xx */
+  let r = Math.round(((ang(v)/30 + 12) % 12) * 2) / 2;
+  if (r >= 12) r -= 12;
+  if (r === 0) return "12 noon";
+  if (r < 1)   return "12:30";
+  const hh = Math.floor(r);
+  return hh + ":" + ((r - hh) >= .5 ? "30" : "00");
+}
+
+/* ================= state ================= */
+const S = {
+  type: "tape",
+  speed: "normal",
+  k: { rec:.55, mech:.28, wear:.34, lowcut:.18, time:.4, repeats:.46, echo:.6, spacing:0, spring:.22 },
+  heads: [0,1,2,3].map(i => ({ pb:true, half:false, fb:i===3, pan:0 })),
+  engaged: true,
+  infinite: false,
+  auto: false,
+  panArm: -1,
+  fav: 0
+};
+
+/* ================= derived ================= */
+function spacingBlend(){
+  const x = clamp(S.k.spacing) * 3;
+  const i = Math.min(2, Math.floor(x)), f = x - i;
+  const a = SPACINGS[i], b = SPACINGS[i+1];
+  const r = a.r.map((v,j) => lerp(v, b.r[j], f));
+  let label, sub;
+  if (f < .04)      { label = a.name; sub = a.notes ? a.notes.join(" · ") : "ratio spacing"; }
+  else if (f > .96) { label = b.name; sub = b.notes ? b.notes.join(" · ") : "ratio spacing"; }
+  else              { label = a.name + " → " + b.name; sub = Math.round(f*100) + "% of the way across"; }
+  return { r, label, sub, notes: f < .04 ? a.notes : (f > .96 ? b.notes : null) };
+}
+/* TIME is not a formula. The manual publishes only the ends of each range,
+   and no single curve fits the pedal between them - a straight exponential
+   is far too short past noon. So these are readings taken off the pedal at
+   four knob positions on normal speed, stored as log10(T / min) so they
+   carry to every speed: all three ranges are exactly ten to one. Fully
+   clockwise reads 30 bpm, which is the 2 s the manual publishes, so the
+   readings and the manual agree at the end they share.                    */
+const T_V = [0, .2,     .5,     .8,     1];   /* knob, 0 = full left       */
+const T_U = [0, .11729, .39794, .93305, 1];   /* log10(delay / minimum)    */
+/* Fritsch-Carlson slopes: smooth between the readings, and it cannot
+   double back, so turning right always lengthens the delay.              */
+const T_M = (() => {
+  const n = T_V.length, d = [], m = new Array(n);
+  for (let i = 0; i < n-1; i++) d[i] = (T_U[i+1]-T_U[i]) / (T_V[i+1]-T_V[i]);
+  m[0] = d[0]; m[n-1] = d[n-2];
+  for (let i = 1; i < n-1; i++) m[i] = d[i-1]*d[i] <= 0 ? 0 : (d[i-1]+d[i])/2;
+  for (let i = 0; i < n-1; i++){
+    if (d[i] === 0){ m[i] = m[i+1] = 0; continue; }
+    const a = m[i]/d[i], b = m[i+1]/d[i], q = a*a + b*b;
+    if (q > 9){ const t = 3/Math.sqrt(q); m[i] = t*a*d[i]; m[i+1] = t*b*d[i]; }
+  }
+  return m;
+})();
+function timeU(v){
+  v = clamp(v);
+  let i = T_V.length - 2;
+  while (i > 0 && v < T_V[i]) i--;
+  const hh = T_V[i+1] - T_V[i], t = (v - T_V[i])/hh, t2 = t*t, t3 = t2*t;
+  return (2*t3 - 3*t2 + 1)*T_U[i]   + (t3 - 2*t2 + t)*hh*T_M[i]
+       + (-2*t3 + 3*t2)*T_U[i+1]    + (t3 - t2)*hh*T_M[i+1];
+}
+function delay4(){
+  const s = SPEEDS[S.speed];
+  return s.min * Math.pow(s.max/s.min, timeU(S.k.time));
+}
+/* the same curve, inverted by bisection, for tap tempo */
+function timeKnobFor(T){
+  const s = SPEEDS[S.speed];
+  const target = clamp(Math.log(T/s.min) / Math.log(s.max/s.min));
+  let lo = 0, hi = 1;
+  for (let k = 0; k < 40; k++){ const mid = (lo+hi)/2; if (timeU(mid) < target) lo = mid; else hi = mid; }
+  return (lo + hi) / 2;
+}
+function cycle(){ return SPEEDS[S.speed].max; }
+function fbGain(){ return S.infinite ? 1.0 : .12 + clamp(S.k.repeats) * .86; }
+function headVol(h){ return h.pb ? (h.half ? .5 : 1) : 0; }
+
+/* Every repeat you would hear, out to a window. The timeline draws the default
+   window; the audio asks for a longer one so it can play the whole tail.     */
+function computeTaps(winOverride){
+  const sp = spacingBlend(), T4 = delay4();
+  const pb = S.heads.map((h,i)=>({...h,i,r:sp.r[i]})).filter(h => h.pb);
+  const fb = S.heads.map((h,i)=>({...h,i,r:sp.r[i]})).filter(h => h.fb);
+  const win = winOverride != null ? winOverride : clamp(T4 * 3.4, 1.1, 9);
+  const g = fbGain() / Math.max(1, Math.sqrt(fb.length));
+  const out = [];
+  let gen = [{ t:0, a:1 }];
+  for (let d = 0; d < 24 && gen.length && out.length < 500; d++){
+    const next = [];
+    for (const im of gen){
+      for (const h of pb){
+        const t = im.t + h.r * T4, a = im.a * headVol(h) * (.25 + S.k.echo*.75);
+        if (t <= win && a > .004) out.push({ t, a, pan:h.pan, i:h.i, gen:d });
+      }
+      for (const h of fb){
+        const t = im.t + h.r * T4, a = im.a * g;
+        if (t <= win && a > .006 && next.length < 260) next.push({ t, a });
+      }
+    }
+    gen = next;
+  }
+  out.sort((p,q) => p.t - q.t);
+  return { taps: out, win, T4, sp };
+}
+
+/* ================= sound =================
+   The taps below are the same list the timeline draws, so what you hear and
+   what you see are one model: head positions, spacing, feedback generations,
+   half-level heads and per-head panning are all exact. The plucked note is a
+   Karplus-Strong string, and the tone controls are approximations - LOW CUT
+   and WEAR are filters that compound with each pass round the medium, TYPE
+   sets how much bandwidth the medium has, MECHANICS detunes each repeat, REC
+   LEVEL drives a saturator and SPRING is a short synthetic reverb. None of
+   that is Strymon's DSP; the timing and levels are the honest part.         */
+const A = { ctx:null, on:true, pluck:null, voice:null };
+/* Browsers refuse an AudioContext before a gesture, so `on` is only the
+   intent - the context is built the first time the reader touches anything. */
+let gestured = false;
+
+const NOTE_HZ = 196.0;                       /* G3 - a plucked open-ish note */
+
+/* Karplus-Strong: a noise burst round a short delay line, lowpassed each lap */
+function makePluck(ctx){
+  const sr = ctx.sampleRate, N = Math.round(sr * 1.6);
+  const buf = ctx.createBuffer(1, N, sr), d = buf.getChannelData(0);
+  const P = Math.max(2, Math.round(sr / NOTE_HZ));
+  const ring = new Float32Array(P);
+  let lp = 0;
+  for (let i = 0; i < P; i++){ lp += ((Math.random()*2-1) - lp) * .26; ring[i] = lp; }
+  const decay = .9660;                       /* damps quickly, so repeats do not pile up */
+  let idx = 0;
+  for (let i = 0; i < N; i++){
+    const cur = ring[idx], nxt = ring[(idx+1) % P];
+    d[i] = cur;
+    ring[idx] = decay * (cur*.5 + nxt*.5);
+    idx = (idx+1) % P;
+  }
+  /* A soft pick, a short fade in so the transient cannot tick, and a taper
+     so the buffer cannot click at its end. The old pick was a raw noise
+     burst at half scale, which is what made a stack of repeats fizz.      */
+  const fade = Math.round(sr * .0035);
+  for (let i = 0; i < N; i++){
+    const t = i/sr;
+    if (t < .006) d[i] += (Math.random()*2-1) * (1 - t/.006) * .14;
+    if (i < fade) d[i] *= i/fade;
+    if (i > N - 2000) d[i] *= (N - i)/2000;
+  }
+  let pk = 0; for (let i = 0; i < N; i++) pk = Math.max(pk, Math.abs(d[i]));
+  if (pk > 0) for (let i = 0; i < N; i++) d[i] /= pk;
+  return buf;
+}
+
+/* Deliberately no tone model. The timing, level, panning and feedback
+   structure of the repeats are computed from the manual's head ratios and
+   delay ranges, so they are worth hearing. How a Volante actually sounds -
+   what TYPE does to the bandwidth, what WEAR takes off each pass, LOW CUT,
+   REC LEVEL's saturation, MECHANICS' wow and flutter, the spring - is
+   Strymon's DSP, and guessing at it would only teach the guess.           */
+
+function stopVoice(){
+  const v = A.voice; A.voice = null;
+  if (!v) return;
+  const t = A.ctx.currentTime;
+  v.master.gain.cancelScheduledValues(t);
+  v.master.gain.setValueAtTime(v.master.gain.value, t);
+  v.master.gain.linearRampToValueAtTime(0, t + .012);
+  for (const s of v.sources){ try { s.stop(t + .015); } catch(e){} }
+  setTimeout(() => { try { v.master.disconnect(); } catch(e){} }, 200);
+}
+
+function playNote(amp){
+  const ctx = A.ctx;
+  if (!ctx || !A.pluck) return;
+  stopVoice();
+  const t0 = ctx.currentTime + .02;
+
+  const master = ctx.createGain(); master.gain.value = .32;
+  /* takes the fizz off a stack of repeats without dulling the first hit */
+  const air = ctx.createBiquadFilter();
+  air.type = "lowpass"; air.frequency.value = 5200; air.Q.value = .5;
+  const limit = ctx.createDynamicsCompressor();
+  limit.threshold.value = -13; limit.knee.value = 10; limit.ratio.value = 4;
+  limit.attack.value = .006; limit.release.value = .26;
+  master.connect(air); air.connect(limit); limit.connect(ctx.destination);
+
+  const toOut = node => node.connect(master);
+
+  const voice = { master, sources:[] };
+  const play = (at, gain, pan, detune, dest) => {
+    const src = ctx.createBufferSource();
+    src.buffer = A.pluck; src.detune.value = detune;
+    const g = ctx.createGain(); g.gain.value = gain;
+    src.connect(g);
+    if (pan){ const p = ctx.createStereoPanner(); p.pan.value = clamp(pan,-1,1); g.connect(p); p.connect(dest); }
+    else g.connect(dest);
+    src.start(at);
+    voice.sources.push(src);
+  };
+
+  /* the dry note, straight through */
+  const dry = ctx.createGain(); dry.gain.value = .85;
+  toOut(dry);
+  play(t0, 1, 0, 0, dry);
+
+  if (!S.engaged){ A.voice = voice; return; }   /* bypassed: dry only */
+
+  /* the repeats: when each one lands, how loud, and where in the stereo
+     field. Nothing is done to their tone.                                  */
+  const wetOut = ctx.createGain();
+  wetOut.gain.value = .9 * (amp == null ? 1 : amp);
+  toOut(wetOut);
+
+  const T4 = delay4();
+  const model = computeTaps(clamp(T4 * 9, 2.5, 11));
+  const taps = model.taps.slice(0, 140);
+  for (const tp of taps) play(t0 + tp.t, tp.a, tp.pan, 0, wetOut);
+  A.voice = voice;
+  return taps.length;
+}
+
+function soundOn(){
+  if (!A.ctx){
+    if (!gestured) return false;               /* no context before a gesture */
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return false;
+    A.ctx = new AC();
+    A.pluck = makePluck(A.ctx);
+  }
+  if (A.ctx.state === "suspended") A.ctx.resume();
+  return true;
+}
+
+/* ================= canvas plumbing ================= */
+function fitCanvas(c){
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = c.clientWidth, h = c.clientHeight;
+  if (c.width !== Math.round(w*dpr) || c.height !== Math.round(h*dpr)){
+    c.width = Math.round(w*dpr); c.height = Math.round(h*dpr);
+  }
+  const g = c.getContext("2d");
+  g.setTransform(dpr,0,0,dpr,0,0);
+  return { g, w, h };
+}
+
+/* ================= the transport model ================= */
+/* One shared model: a looped medium. u = 0 at the record head, u = 1 back round
+   to the erase head. Head i sits at u = ratio_i * (T4 / cycle).                */
+let marks = [], mediaPhase = 0, mediaLaps = 0, lastT = performance.now()/1000, sinceStrike = 0;
+const flash = [0,0,0,0];
+/* Seconds since each head last read a mark, and how strong that mark was.
+   Slot 4 is the record head, which fires when a feedback head sends a repeat
+   back to be written again - that is the loop, drawn.                       */
+const FIRE_S = .42;
+const fireT = [9,9,9,9,9], fireA = [0,0,0,0,0];
+
+function strike(amp){
+  const a = (amp == null ? 1 : amp);
+  /* One note on the medium at a time. A fresh pluck wipes whatever is still
+     going round, so there is always exactly one mark to follow and the rest
+     of what you see is that note's own echoes.                              */
+  marks = [{ u:0, a, gen:0 }];
+  if (A.on && soundOn()) playNote(amp == null ? 1 : amp);
+}
+
+function stepModel(dt){
+  const sp = spacingBlend(), T4 = delay4(), C = cycle();
+  const hu = sp.r.map(r => r * T4 / C);
+  /* One lap per `cycle` seconds. That is what makes SPEED visible: the head
+     positions are identical at every speed, only the motor changes. Nothing
+     else bends this - MECHANICS' wow and flutter is Strymon's, not ours.     */
+  const lap = 1 / C;                                   // laps per second
+  mediaLaps  += dt * lap;
+  mediaPhase += dt * lap * Math.PI * 2;
+  const du = dt * lap;
+  const g = fbGain() / Math.max(1, Math.sqrt(S.heads.filter(h=>h.fb).length || 1));
+  const born = [];
+  for (let i = 0; i < 5; i++) fireT[i] = Math.min(9, fireT[i] + dt);
+  for (const m of marks){
+    const prev = m.u;
+    m.u += du;
+    for (let i = 0; i < 4; i++){
+      if (prev < hu[i] && m.u >= hu[i]){
+        const h = S.heads[i];
+        if (h.pb) flash[i] = Math.min(1, flash[i] + m.a * (h.half ? .5 : 1));
+        if (h.pb || h.fb){ fireT[i] = 0; fireA[i] = clamp(m.a); }
+        if (h.fb && m.gen < 22 && m.a*g > .012 && marks.length + born.length < 90){
+          born.push({ u:0, a:m.a*g, gen:m.gen+1 });
+          fireT[4] = 0; fireA[4] = clamp(m.a*g);       /* written back down */
+        }
+      }
+    }
+  }
+  marks = marks.filter(m => m.u < 1.02 && m.a > .012).concat(born);
+  for (let i = 0; i < 4; i++) flash[i] = Math.max(0, flash[i] - dt*3.4);
+  return { hu, sp, T4 };
+}
+
+/* ---- path helpers: racetrack for tape / studio ---- */
+function racetrack(w,h,inset,rr){
+  const xA = w*inset, xB = w*(1-inset), cy = h*.5;
+  const run = xB - xA, arc = Math.PI * rr, L = 2*run + 2*arc;
+  return {
+    xA, xB, cy, rr, run, arc, L,
+    at(u){
+      let s = ((u % 1) + 1) % 1 * L;
+      if (s < run)                return { x: xA + s,             y: cy - rr, nx:0, ny:-1 };
+      s -= run;
+      if (s < arc){ const a = Math.PI*(s/arc) - Math.PI/2;
+                    return { x: xB + Math.cos(a)*rr, y: cy + Math.sin(a)*rr, nx:Math.cos(a), ny:Math.sin(a) }; }
+      s -= arc;
+      if (s < run)                return { x: xB - s,             y: cy + rr, nx:0, ny:1 };
+      s -= run;
+      const a = Math.PI*(s/arc) + Math.PI/2;
+      return { x: xA + Math.cos(a)*rr, y: cy + Math.sin(a)*rr, nx:Math.cos(a), ny:Math.sin(a) };
+    }
+  };
+}
+
+/* ================= transport rendering ================= */
+const deck = document.getElementById("deck");
+
+function drawDeck(hu, sp){
+  const { g, w, h } = fitCanvas(deck);
+  if (w < 60 || h < 60) return;
+  parts = [];
+  g.clearRect(0,0,w,h);
+  g.fillStyle = "#0B0A06"; g.fillRect(0,0,w,h);
+  /* faint plate grain */
+  g.globalAlpha = .5;
+  for (let i = 0; i < 40; i++){
+    g.fillStyle = i%2 ? "rgba(255,255,255,.012)" : "rgba(0,0,0,.2)";
+    g.fillRect(0, i*h/40, w, h/80);
+  }
+  g.globalAlpha = 1;
+
+  if (S.type === "drum") drawDrum(g,w,h,hu,sp);
+  else                   drawTape(g,w,h,hu,sp,S.type === "studio");
+
+  /* whatever the pointer is over is clickable, and says so */
+  if (hoverPart){
+    const live = parts.find(q => q.key === hoverPart.key) || hoverPart;
+    g.strokeStyle = "rgba(230,236,180,.75)"; g.lineWidth = 1.4;
+    g.setLineDash([3,3]);
+    g.beginPath(); g.arc(live.x, live.y, live.r + 4, 0, 7); g.stroke();
+    g.setLineDash([]);
+    const name = (PART_TEXT[live.key] || ["Playback head " + (+live.key.slice(4) + 1)])[0];
+    g.font = "600 10.5px Archivo, sans-serif";
+    const tw = g.measureText(name).width;
+    const lx = Math.min(Math.max(live.x - tw/2 - 5, 4), w - tw - 14), ly = live.y + live.r + 10;
+    g.fillStyle = "rgba(11,10,6,.88)";
+    g.beginPath(); g.roundRect(lx, ly, tw + 10, 16, 3); g.fill();
+    g.fillStyle = "#E6ECB4"; g.fillText(name, lx + 5, ly + 11.5);
+  }
+
+  if (!S.engaged){
+    g.fillStyle = "rgba(11,10,6,.72)"; g.fillRect(0,0,w,h);
+    g.fillStyle = "#8A8470"; g.font = "600 13px Archivo, sans-serif";
+    g.textAlign = "center"; g.fillText("BYPASSED — tap the ON footswitch", w/2, h/2);
+    g.textAlign = "left";
+  }
+}
+
+/* A ring thrown off a head the moment it reads a mark. `p` runs 0 -> 1 over
+   FIRE_S seconds; `amp` only sets how bright it is, never whether you see it. */
+function fireRing(g, x, y, colour, p, amp){
+  if (p >= 1) return;
+  const e = 1 - Math.pow(1 - p, 2.2);            // fast out, slow stop
+  g.save();
+  g.globalAlpha = (1 - e) * (.65 + amp*.35);
+  g.strokeStyle = colour;
+  g.shadowColor = colour; g.shadowBlur = 14;
+  g.lineWidth = 1 + 3.4*(1 - e);
+  g.beginPath(); g.arc(x, y, 7 + e*30, 0, 7); g.stroke();
+  if (p < .45){                                  /* a second, tighter ring */
+    g.globalAlpha = (1 - p/.45) * .5;
+    g.lineWidth = 1.6;
+    g.beginPath(); g.arc(x, y, 5 + e*15, 0, 7); g.stroke();
+  }
+  g.shadowBlur = 0; g.restore();
+}
+
+/* Clickable parts of the machine. Rebuilt every frame while drawing, so the
+   hit boxes always match what is actually on screen.                        */
+let parts = [], hoverPart = null;
+const part = (x, y, r, key) => parts.push({ x, y, r, key });
+
+const PART_TEXT = {
+  rec: ["Record head", "Where the note is written onto the medium. Everything you hear afterwards is a read of what was laid down here, and REC LEVEL sets how hard this head is driven — far enough round and the medium saturates."],
+  erase: ["Erase head", "Wipes the medium clean just before it comes back round to the record head, so every lap starts blank. Without it a loop would pile up on itself forever; what survives from one lap to the next is only what a feedback head deliberately sends back to be re-recorded."],
+  capstan: ["Capstan and pinch roller", "The driven shaft and the rubber wheel that pinches the medium against it. Between them they set how fast the medium runs past the heads, which is what the SPEED switch changes. MECHANICS is this pair not running perfectly true — the wow and flutter of a machine that needs a service."],
+  reel: ["Reel", "Carries the loop round. The delay is not set here: it is set by how far the heads sit apart and how fast the capstan pulls the medium past them."],
+  drum: ["The drum", "A steel wire wound round a spinning platter, as in a Binson Echorec. The playback heads sit around the rim, so the delay is the arc from the record head to each of them — and one full turn is one lap of the medium."],
+  fbpath: ["Feedback return", "The dashed line is a head being sent back to the record head to be written again — one line per head with its feedback button lit, in that head's colour. Strymon: <q>Enables or disables feedback of the corresponding playback head signal to the record head.</q> That is the whole repeat mechanism: without a line here you get one pass and nothing more."],
+  medium: ["The medium", "Marks are written at the record head and carried round past each playback head in turn. A mark reaches a head at exactly the moment that repeat sounds, which is why the drawing and the timeline below always agree."]
+};
+
+function headGlyph(g, x, y, nx, ny, i, on, halfv, fl, p, amp){
+  const len = 15, wdt = 9;
+  const ax = -ny, ay = nx;                       // along the medium
+  const gx = x + nx*10, gy = y + ny*10;
+  part(gx, gy, 15, "head" + i);
+  fireRing(g, gx, gy, HEADC[i], p, amp);
+  g.save(); g.translate(gx, gy);
+  g.rotate(Math.atan2(ny,nx) + Math.PI/2);
+  g.fillStyle = on ? (halfv ? "#5A5030" : "#6B6448") : "#2A2820";
+  g.strokeStyle = on ? HEADC[i] : "#3A382C";
+  g.lineWidth = on ? 1.6 : 1;
+  g.beginPath(); g.roundRect(-wdt/2, -len/2, wdt, len, 2); g.fill(); g.stroke();
+  if (fl > .02){
+    g.globalAlpha = Math.min(1, .35 + fl*.65);
+    g.shadowColor = HEADC[i]; g.shadowBlur = 26;
+    g.fillStyle = HEADC[i];
+    g.beginPath(); g.roundRect(-wdt/2, -len/2, wdt, len, 2); g.fill();
+    /* white centre at the instant it reads */
+    if (p < .3){
+      g.globalAlpha = (1 - p/.3) * .9;
+      g.fillStyle = "#FFFDF4"; g.shadowColor = "#FFFDF4";
+      g.beginPath(); g.roundRect(-wdt/2 + 2, -len/2 + 2, wdt - 4, len - 4, 1.5); g.fill();
+    }
+    g.shadowBlur = 0; g.globalAlpha = 1;
+  }
+  g.restore();
+  /* label, bright while the head is reading */
+  const litL = p < .55;
+  g.fillStyle = litL ? "#FFFDF4" : (on ? HEADC[i] : "#4A4738");
+  if (litL){ g.shadowColor = HEADC[i]; g.shadowBlur = 10; }
+  g.font = (litL ? "700 12.5px" : "600 11px") + " Archivo, sans-serif";
+  g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillText(String(i+1), x + nx*27, y + ny*27);
+  g.shadowBlur = 0;
+  g.textAlign = "left"; g.textBaseline = "alphabetic";
+  void ax; void ay;
+}
+
+function recGlyph(g, x, y, nx, ny, label, colour, p, amp){
+  part(x + nx*10, y + ny*10, 15, label === "REC" ? "rec" : "erase");
+  if (p != null) fireRing(g, x + nx*10, y + ny*10, colour, p, amp);
+  g.save(); g.translate(x + nx*10, y + ny*10);
+  g.rotate(Math.atan2(ny,nx) + Math.PI/2);
+  g.fillStyle = "#3A3020"; g.strokeStyle = colour; g.lineWidth = 1.6;
+  g.beginPath(); g.roundRect(-5.5, -9, 11, 18, 2); g.fill(); g.stroke();
+  g.restore();
+  g.fillStyle = colour; g.font = "600 9.5px Archivo, sans-serif";
+  g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillText(label, x + nx*30, y + ny*30);
+  g.textAlign = "left"; g.textBaseline = "alphabetic";
+}
+
+/* ---------- drum ---------- */
+/* The dashed lines need saying once. Drawn only while something is actually
+   feeding back, on the line above the transport caption so the two cannot
+   collide on a narrow canvas.                                             */
+function fbKey(g, w, h){
+  if (!S.heads.some(x => x.fb)) return;
+  const label = "feedback to the record head";
+  g.font = "500 10px 'DM Mono', monospace";
+  const tw = g.measureText(label).width;
+  const x1 = Math.max(46, w - 16 - tw), y = h - 31;
+  g.strokeStyle = "rgba(214,208,158,.65)"; g.lineWidth = 1.3;
+  g.setLineDash([4,4]);
+  g.beginPath(); g.moveTo(x1 - 32, y); g.lineTo(x1 - 13, y); g.stroke();
+  g.setLineDash([]);
+  g.beginPath(); g.moveTo(x1 - 6, y); g.lineTo(x1 - 14, y - 3.8); g.lineTo(x1 - 14, y + 3.8); g.closePath();
+  g.fillStyle = "rgba(214,208,158,.8)"; g.fill();
+  g.fillStyle = "#8C8768"; g.fillText(label, x1, y + 3.5);
+}
+
+function drawDrum(g,w,h,hu){
+  const cx = w*.5, cy = h*.52;
+  const R = Math.min(h*.40, w*.23);
+  const wob = 0, dull = 0;
+
+  /* housing */
+  g.strokeStyle = "#1C1B15"; g.lineWidth = 1;
+  g.beginPath(); g.arc(cx, cy, R*1.52, 0, 7); g.stroke();
+  const bez = g.createRadialGradient(cx, cy, R*.98, cx, cy, R*1.10);
+  bez.addColorStop(0, "rgba(120,126,130,.35)"); bez.addColorStop(1, "rgba(0,0,0,0)");
+  g.fillStyle = bez; g.beginPath(); g.arc(cx, cy, R*1.10, 0, 7); g.fill();
+
+  /* platter */
+  const grad = g.createRadialGradient(cx - R*.3, cy - R*.35, R*.05, cx, cy, R);
+  grad.addColorStop(0, lerpHex("#A6B0B6","#7A7568",dull));
+  grad.addColorStop(.55, lerpHex("#5A6266","#4A4840",dull));
+  grad.addColorStop(1, lerpHex("#191D21","#1E1D17",dull));
+  g.fillStyle = grad;
+  g.beginPath(); g.arc(cx, cy, R + wob, 0, 7); g.fill();
+
+  /* spun-metal hairlines */
+  g.save(); g.beginPath(); g.arc(cx,cy,R,0,7); g.clip();
+  g.lineWidth = 1;
+  for (let i = 0; i < 96; i++){
+    const a = (i/96)*Math.PI*2 + mediaPhase*.9;
+    g.strokeStyle = i%3 ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.22)";
+    g.beginPath(); g.moveTo(cx + Math.cos(a)*R*.14, cy + Math.sin(a)*R*.14);
+    g.lineTo(cx + Math.cos(a)*R, cy + Math.sin(a)*R); g.stroke();
+  }
+  /* rotating highlight */
+  const hl = g.createLinearGradient(cx + Math.cos(mediaPhase)*R, cy + Math.sin(mediaPhase)*R, cx - Math.cos(mediaPhase)*R, cy - Math.sin(mediaPhase)*R);
+  hl.addColorStop(0, "rgba(255,255,255,.20)"); hl.addColorStop(.5, "rgba(255,255,255,0)");
+  g.fillStyle = hl; g.beginPath(); g.arc(cx,cy,R,0,7); g.fill();
+  g.restore();
+
+  /* rim bevel */
+  g.strokeStyle = "rgba(0,0,0,.65)"; g.lineWidth = 3;
+  g.beginPath(); g.arc(cx, cy, R - 1, 0, 7); g.stroke();
+  g.strokeStyle = "rgba(255,255,255,.16)"; g.lineWidth = 1;
+  g.beginPath(); g.arc(cx, cy, R - 3.5, 0, 7); g.stroke();
+
+  /* concentric grooves */
+  for (let i = 1; i <= 5; i++){
+    g.strokeStyle = "rgba(0,0,0,.28)"; g.lineWidth = 1;
+    g.beginPath(); g.arc(cx, cy, R*(.24 + i*.13), 0, 7); g.stroke();
+  }
+  /* the magnetic wire */
+  g.strokeStyle = lerpHex("#C9B98A","#6E6852",dull); g.lineWidth = 3.4;
+  g.globalAlpha = .85;
+  g.beginPath(); g.arc(cx, cy, R*.87, 0, 7); g.stroke();
+  g.globalAlpha = 1;
+
+  /* spindle */
+  part(cx, cy, R*.20, "drum");
+  g.fillStyle = "#1A1912"; g.beginPath(); g.arc(cx, cy, R*.16, 0, 7); g.fill();
+  g.strokeStyle = "#5E5943"; g.lineWidth = 1.4; g.stroke();
+  g.save(); g.translate(cx,cy); g.rotate(mediaPhase*2.2);
+  g.strokeStyle = "#7E7757"; g.lineWidth = 2;
+  for (let i=0;i<3;i++){ g.rotate(Math.PI*2/3); g.beginPath(); g.moveTo(0,0); g.lineTo(R*.13,0); g.stroke(); }
+  g.restore();
+
+  const P = u => { const a = -Math.PI/2 + ((u%1)+1)%1 * Math.PI*2;
+                   return { x: cx + Math.cos(a)*R*.87, y: cy + Math.sin(a)*R*.87, nx:Math.cos(a), ny:Math.sin(a) }; };
+
+  /* feedback arcs, drawn outside */
+  for (let i = 0; i < 4; i++){
+    if (!S.heads[i].fb) continue;
+    const rr = R*1.07 + i*7;
+    const a0 = -Math.PI/2 + hu[i]*Math.PI*2, a1 = -Math.PI/2 + Math.PI*2;
+    part(cx + Math.cos((a0+a1)/2)*rr, cy + Math.sin((a0+a1)/2)*rr, 14, "fbpath");
+    g.strokeStyle = HEADC[i]; g.globalAlpha = .5; g.lineWidth = 1.4;
+    g.setLineDash([4,4]);
+    g.beginPath(); g.arc(cx, cy, rr, a0, a1); g.stroke();
+    g.setLineDash([]); g.globalAlpha = 1;
+  }
+
+  /* heads */
+  const rec = P(0);
+  recGlyph(g, rec.x, rec.y, rec.nx, rec.ny, "REC", "#E2452F", fireT[4]/FIRE_S, fireA[4]);
+  const er = P(.86);
+  recGlyph(g, er.x, er.y, er.nx, er.ny, "ERASE", "#5E5943");
+  for (let i = 0; i < 4; i++){
+    const p = P(hu[i]);
+    headGlyph(g, p.x, p.y, p.nx, p.ny, i, S.heads[i].pb, S.heads[i].half, flash[i], fireT[i]/FIRE_S, fireA[i]);
+  }
+
+  /* marks */
+  for (const m of marks) paintMark(g, P, m);
+
+  g.fillStyle = "#514D3B"; g.font = "500 10.5px 'DM Mono', monospace";
+  g.fillText("drum echo · a steel wire on a spinning platter", 16, h - 12);
+  fbKey(g, w, h);
+}
+
+/* ---------- tape & studio ---------- */
+function drawTape(g,w,h,hu,sp,studio){
+  const rr = Math.min(h*.30, w*.15);
+  const T = racetrack(w, h, studio ? .175 : .155, rr);
+  const dull = 0, sag = 0;
+
+  /* reels */
+  const reelR = studio ? rr*.90 : rr*.80;
+  drawReel(g, T.xA, T.cy, reelR, studio, dull);
+  if (studio) drawReel(g, T.xB, T.cy, reelR, studio, dull);
+  else drawReel(g, T.xB, T.cy, reelR*.62, studio, dull);
+  /* capstan above the tape on the return run, pinch roller below it */
+  const capX = T.xA + (T.xB - T.xA) * .78;
+  part(capX, T.cy + rr, 22, "capstan");          /* the pair, as one target */
+  g.fillStyle = "#33312A"; g.strokeStyle = "#7A7350"; g.lineWidth = 1.4;
+  g.beginPath(); g.arc(capX, T.cy + rr - 13, 12, 0, 7); g.fill(); g.stroke();
+  g.save(); g.translate(capX, T.cy + rr - 13); g.rotate(-mediaPhase*3.2);
+  g.strokeStyle = "#A49B70"; g.lineWidth = 1.6;
+  g.beginPath(); g.moveTo(-8.5,0); g.lineTo(8.5,0); g.stroke(); g.restore();
+
+  /* the tape ribbon */
+  const tapeCol = studio ? lerpHex("#C6BFA6","#7C7663",dull) : lerpHex("#A9784A","#6B6250",dull);
+  const back    = studio ? lerpHex("#8E886F","#514E42",dull) : lerpHex("#6E4E30","#4A453A",dull);
+  g.lineCap = "butt";
+  for (const pass of [0,1]){
+    g.strokeStyle = pass ? tapeCol : back;
+    g.lineWidth = pass ? (studio ? 9 : 8) : (studio ? 13 : 12);
+    g.beginPath();
+    const N = 220;
+    for (let i = 0; i <= N; i++){
+      const u = i/N, p = T.at(u);
+      const s = (p.ny !== 0 ? 0 : sag * Math.sin(u*Math.PI*2));
+      if (i === 0) g.moveTo(p.x, p.y + s); else g.lineTo(p.x, p.y + s);
+    }
+    g.stroke();
+  }
+  /* oxide sheen */
+  g.strokeStyle = "rgba(255,255,255,.10)"; g.lineWidth = 2;
+  g.beginPath();
+  for (let i = 0; i <= 220; i++){ const p = T.at(i/220); if (i===0) g.moveTo(p.x,p.y-2.5); else g.lineTo(p.x,p.y-2.5); }
+  g.stroke();
+
+  /* pinch roller, pressing the tape onto the capstan */
+  g.fillStyle = "#413C2C"; g.strokeStyle = "#7A7350"; g.lineWidth = 1.4;
+  g.beginPath(); g.arc(capX, T.cy + rr + 11, 9, 0, 7); g.fill(); g.stroke();
+  g.fillStyle = "#514D3B"; g.font = "500 9px 'DM Mono', monospace"; g.textAlign = "center";
+  g.fillText("capstan", capX, T.cy + rr + 30); g.textAlign = "left";
+
+  /* head block */
+  const rec = T.at(0);
+  recGlyph(g, rec.x, rec.y, 0, -1, "REC", "#E2452F", fireT[4]/FIRE_S, fireA[4]);
+  const er = T.at(.70);
+  recGlyph(g, er.x, er.y, er.nx, er.ny, "ERASE", "#5E5943");
+  for (let i = 0; i < 4; i++){
+    const p = T.at(hu[i]);
+    headGlyph(g, p.x, p.y, p.nx, p.ny, i, S.heads[i].pb, S.heads[i].half, flash[i], fireT[i]/FIRE_S, fireA[i]);
+  }
+
+  /* feedback returns */
+  for (let i = 0; i < 4; i++){
+    if (!S.heads[i].fb) continue;
+    const p = T.at(hu[i]);
+    const y = T.cy - rr + 24 + i*11;
+    g.strokeStyle = HEADC[i]; g.globalAlpha = .6; g.lineWidth = 1.3; g.setLineDash([4,4]);
+    g.beginPath();
+    g.moveTo(p.x - p.nx*10, p.y - p.ny*10);
+    g.lineTo(p.x - p.nx*10, y); g.lineTo(rec.x, y); g.lineTo(rec.x, rec.y + 12);
+    g.stroke(); g.setLineDash([]);
+    g.beginPath(); g.moveTo(rec.x, rec.y + 9); g.lineTo(rec.x - 4, rec.y + 16); g.lineTo(rec.x + 4, rec.y + 16); g.closePath();
+    g.fillStyle = HEADC[i]; g.fill(); g.globalAlpha = 1;
+    part((p.x - p.nx*10 + rec.x)/2, y, 14, "fbpath");
+  }
+
+  /* marks */
+  for (const m of marks) paintMark(g, T.at, m);
+
+  /* transport caption */
+  g.fillStyle = "#514D3B"; g.font = "500 10.5px 'DM Mono', monospace";
+  g.fillText(studio ? "reel-to-reel · a tape loop running between two reels"
+                    : "tape echo · a tape loop, capstan and pinch roller", 16, h - 12);
+  fbKey(g, w, h);
+}
+
+function drawReel(g, cx, cy, R, studio, dull){
+  part(cx, cy, R*.9, "reel");
+  g.fillStyle = "#161509"; g.beginPath(); g.arc(cx,cy,R*1.04,0,7); g.fill();
+  /* tape pack */
+  g.fillStyle = lerpHex(studio ? "#5B5647" : "#4A3626", "#3C382E", dull);
+  g.beginPath(); g.arc(cx,cy,R*.92,0,7); g.fill();
+  g.save(); g.translate(cx,cy); g.rotate(mediaPhase*1.6);
+  g.strokeStyle = "rgba(255,255,255,.07)"; g.lineWidth = 1;
+  for (let i=0;i<24;i++){ g.rotate(Math.PI/12); g.beginPath(); g.moveTo(R*.45,0); g.lineTo(R*.92,0); g.stroke(); }
+  g.restore();
+  /* flange with three cut-outs */
+  g.save(); g.translate(cx,cy); g.rotate(mediaPhase*1.6);
+  for (let i=0;i<3;i++){
+    g.rotate(Math.PI*2/3);
+    g.fillStyle = "#8A8362";
+    g.beginPath();
+    g.arc(0,0,R*.80, -0.72, 0.72);
+    g.arc(0,0,R*.34,  0.72, -0.72, true);
+    g.closePath();
+    g.globalAlpha = .34; g.fill(); g.globalAlpha = 1;
+    g.strokeStyle = "rgba(255,255,255,.18)"; g.lineWidth = 1; g.stroke();
+  }
+  g.restore();
+  g.fillStyle = "#26241A"; g.beginPath(); g.arc(cx,cy,R*.19,0,7); g.fill();
+  g.strokeStyle = "#8A8362"; g.lineWidth = 1.4; g.stroke();
+  g.strokeStyle = "rgba(255,255,255,.10)"; g.lineWidth = 1.4;
+  g.beginPath(); g.arc(cx,cy,R*.96,0,7); g.stroke();
+}
+
+/* `at` is the medium's position function, u -> {x,y}, so the mark can drag a
+   trail behind it. It has to read against tan tape, near-white studio tape and
+   grey drum alike, hence the dark backing under the bright core. The note you
+   played is drawn hot and large; its echoes are the same mark, dimmer.       */
+function paintMark(g, at, m){
+  const dry = m.gen === 0;
+  const lvl = clamp(m.a);
+  const p   = at(m.u);
+  /* Level is read off the timeline and off how bright a mark is - it is NOT
+     read off how big it is, because a repeat that has faded to a quarter of
+     its level still has to be visible on the medium.                        */
+  const r   = (dry ? 6.4 : 4.8) + lvl * (dry ? 3.0 : 1.8);
+
+  /* trail — which way it is travelling, and where it just came from */
+  const span = (dry ? .034 : .019) * (.45 + lvl*.55);
+  const N = 8;
+  g.lineCap = "round";
+  for (let i = 0; i < N; i++){
+    const u0 = m.u - span*(i+1)/N;
+    if (u0 < 0) break;
+    const q0 = at(u0), q1 = at(m.u - span*i/N);
+    const f = 1 - i/N;
+    g.strokeStyle = `rgba(255,${dry?242:214},${dry?206:158},${f*f*(dry?.46:.2)*(.4+lvl*.6)})`;
+    g.lineWidth = r*1.5*f;
+    g.beginPath(); g.moveTo(q0.x, q0.y); g.lineTo(q1.x, q1.y); g.stroke();
+  }
+  g.lineCap = "butt";
+
+  /* A dark well under every mark. This is what carries the contrast: studio
+     tape is nearly white and a pale dot on it would disappear, so the mark
+     always sits in a hole of its own.                                       */
+  g.fillStyle = "rgba(6,5,3,.55)";
+  g.beginPath(); g.arc(p.x, p.y, r + (dry ? 6.2 : 5.0), 0, 7); g.fill();
+  g.fillStyle = "rgba(6,5,3,.9)";
+  g.beginPath(); g.arc(p.x, p.y, r + (dry ? 3.4 : 2.6), 0, 7); g.fill();
+
+  /* the mark itself, with its halo */
+  g.shadowColor = dry ? "#FFD98C" : "#E3C48E";
+  g.shadowBlur  = (dry ? 22 : 13) + lvl*16;
+  g.fillStyle   = dry
+    ? `rgba(255,238,196,${clamp(.82 + lvl*.18)})`
+    : `rgba(250,232,192,${clamp(.72 + lvl*.28)})`;
+  g.beginPath(); g.arc(p.x, p.y, r, 0, 7); g.fill();
+  g.shadowBlur = 0;
+
+  /* bright centre - white on the note you played, warm on its echoes */
+  g.fillStyle = dry ? `rgba(255,253,244,${clamp(.65 + lvl*.35)})`
+                    : `rgba(255,246,222,${clamp(.5 + lvl*.5)})`;
+  g.beginPath(); g.arc(p.x, p.y, r*(dry ? .44 : .38), 0, 7); g.fill();
+
+}
+
+function lerpHex(a,b,t){
+  const pa = [1,3,5].map(i=>parseInt(a.substr(i,2),16));
+  const pb = [1,3,5].map(i=>parseInt(b.substr(i,2),16));
+  return "#" + pa.map((v,i)=>Math.round(lerp(v,pb[i],clamp(t))).toString(16).padStart(2,"0")).join("");
+}
+
+/* ================= echo timeline ================= */
+const tlc = document.getElementById("tl");
+
+function drawTimeline(model){
+  const { g, w, h } = fitCanvas(tlc);
+  if (w < 60 || h < 40) return;
+  g.clearRect(0,0,w,h);
+  g.fillStyle = "#0B0A06"; g.fillRect(0,0,w,h);
+
+  const padL = 16, padR = 16;
+  const X = t => padL + (t/model.win) * (w - padL - padR);
+  const maxA = Math.max(.18, ...model.taps.map(t => t.a));
+
+  /* Two lanes. The first is what one note does on its way past the heads -
+     the pattern head spacing makes, and it happens whether or not anything
+     is fed back. The second is only there because a feedback head sent that
+     pattern round again, so it is the whole of what REPEATS buys you.     */
+  const top = 16, bot = h - 22, lane = (bot - top) / 2;
+  const midA = top + lane*.5, midB = top + lane*1.5;
+
+  /* head-4 grid */
+  for (let n = 1; n * model.T4 <= model.win; n++){
+    const x = X(n*model.T4);
+    g.strokeStyle = "rgba(198,188,94,.16)"; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(x, top - 4); g.lineTo(x, bot); g.stroke();
+    g.fillStyle = "rgba(198,188,94,.4)"; g.font = "500 9px 'DM Mono', monospace";
+    g.fillText("\u00d7" + n, x + 3, top + 4);
+  }
+
+  /* lane baselines and their names */
+  g.font = "600 8.5px Archivo, sans-serif";
+  for (const [y, label] of [[midA, "THE NOTE PAST THE HEADS"], [midB, "WHAT FEEDBACK ADDS"]]){
+    g.strokeStyle = "rgba(255,255,255,.12)"; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(padL, y); g.lineTo(w-padR, y); g.stroke();
+    g.fillStyle = "rgba(160,152,124,.55)";
+    g.fillText(label, padL + 1, y - lane*.5 + 9);
+  }
+  g.strokeStyle = "rgba(255,255,255,.07)";
+  g.beginPath(); g.moveTo(padL, top + lane); g.lineTo(w-padR, top + lane); g.stroke();
+
+  /* time ticks */
+  const stepT = model.win > 4 ? 1 : model.win > 1.6 ? .5 : .2;
+  g.font = "500 9px 'DM Mono', monospace";
+  for (let t = 0; t <= model.win + 1e-6; t += stepT){
+    const x = X(t);
+    g.strokeStyle = "rgba(255,255,255,.09)";
+    g.beginPath(); g.moveTo(x, bot); g.lineTo(x, bot + 4); g.stroke();
+    g.fillStyle = "rgba(160,152,124,.75)";
+    g.fillText(t === 0 ? "0" : (t < 1 ? Math.round(t*1000) : t.toFixed(1) + "s"), x + 2, h - 5);
+  }
+
+  /* the dry note, in the lane it belongs to */
+  g.strokeStyle = "#EDE7D3"; g.lineWidth = 2.5;
+  g.beginPath(); g.moveTo(X(0), midA - lane*.38); g.lineTo(X(0), midA + lane*.38); g.stroke();
+  g.fillStyle = "#EDE7D3"; g.font = "600 9px Archivo, sans-serif";
+  g.fillText("DRY", X(0) + 5, midA - lane*.38 + 8);
+
+  /* every repeat, in the lane that explains why it exists */
+  for (const t of model.taps){
+    const first = t.gen === 0;
+    const base = first ? midA : midB;
+    const x = X(t.t);
+    const amp = (t.a / maxA) * lane*.80;
+    const y = base - t.pan * lane*.28;
+    g.strokeStyle = HEADC[t.i];
+    g.globalAlpha = clamp((first ? .55 : .28) + t.a/maxA*.45);
+    g.lineWidth = first ? 2.2 : 1.5;
+    g.beginPath(); g.moveTo(x, y - amp*.5); g.lineTo(x, y + amp*.5); g.stroke();
+    g.globalAlpha = 1;
+    if (first){
+      g.fillStyle = HEADC[t.i];
+      g.beginPath(); g.arc(x, y - amp*.5, 2, 0, 7); g.fill();
+    }
+  }
+
+  /* the first pass is the one worth labelling in milliseconds */
+  const seen = new Set();
+  for (const t of model.taps){
+    if (t.gen !== 0 || seen.has(t.i)) continue; seen.add(t.i);
+    g.fillStyle = HEADC[t.i]; g.font = "600 9.5px 'DM Mono', monospace";
+    g.fillText(ms(t.t), X(t.t) + 4, midA + lane*.44);
+  }
+
+  if (!model.taps.length){
+    g.fillStyle = "#6B6650"; g.font = "500 12px Archivo, sans-serif";
+    g.textAlign = "center";
+    g.fillText(S.heads.some(h => h.fb)
+      ? "No playback head is engaged. The loop is still circulating and still decaying \u2014 you just cannot hear it."
+      : "No playback head is engaged \u2014 the dry signal passes and nothing comes back.", w/2, midA + 4);
+    g.textAlign = "left";
+  }
+  /* L / R */
+  g.fillStyle = "rgba(160,152,124,.5)"; g.font = "600 9px Archivo, sans-serif";
+  g.fillText("L", 5, midA - 4); g.fillText("R", 5, midA + 10);
+}
+
+/* ================= the pedal UI ================= */
+const pedal = document.getElementById("pedal");
+const ledTap = document.querySelector('.fled[data-f="tap"]');
+const hint  = document.getElementById("hint");
+let hintTimer = 0;
+
+function say(label, text){
+  hint.innerHTML = "<span><b>" + label + "</b> " + text + "</span>";
+  hint.dataset.live = "true";
+  clearTimeout(hintTimer);
+  hintTimer = setTimeout(() => { hint.dataset.live = "false"; }, 4200);
+}
+function idleHint(){
+  hint.innerHTML = "<span>Drag a knob up and down, or focus it and use the arrow keys. Tap the head buttons, flip the toggles, stamp the footswitches.</span>";
+  hint.dataset.live = "false";
+}
+
+/* --- knob descriptions --- */
+/* The only thing we add to a control is where it is sitting, which is read
+   off the knob rather than asserted. Everything explanatory is the manual's. */
+/* Controls whose sound is Strymon's DSP. We reproduce when the repeats land
+   and how loud they are; what these do to the tone we leave alone.        */
+const NOT_VOICED = { rec:1, mech:1, wear:1, lowcut:1, spring:1 };
+
+function sayKnob(key){
+  const k = KNOBS[key];
+  say(k.name, quote(k.pg, k.manual) + (NOT_VOICED[key]
+    ? '<span class="pos">Shaping the tone is Strymon\'s DSP. The drawing and the sound here do not reproduce it.</span>'
+    : ""));
+}
+
+/* --- knobs --- */
+document.querySelectorAll(".kn").forEach(kn => {
+  const key = kn.dataset.k;
+  const btn = kn.querySelector(".knob");
+  let drag = null;
+
+  const bump = (dv) => {
+    if (key === "time" && S.panArm >= 0){
+      const h = S.heads[S.panArm];
+      h.pan = clamp(h.pan + dv*2, -1, 1);
+      if (Math.abs(h.pan) < .06) h.pan = 0;
+      say("Pan head " + (S.panArm+1), h.pan === 0 ? "Centred — the playback button shows red."
+        : (h.pan < 0 ? "Left " : "Right ") + Math.round(Math.abs(h.pan)*100) + "%.");
+    } else {
+      S.k[key] = clamp(S.k[key] + dv);
+      sayKnob(key);
+    }
+    render();
+  };
+
+  btn.addEventListener("pointerdown", e => {
+    btn.setPointerCapture(e.pointerId);
+    drag = { y: e.clientY, v: S.k[key], pan: S.panArm >= 0 ? S.heads[S.panArm].pan : 0 };
+    kn.classList.add("tweak");
+  });
+  btn.addEventListener("pointermove", e => {
+    if (!drag) return;
+    const dv = (drag.y - e.clientY) / 190;
+    if (key === "time" && S.panArm >= 0){
+      const h = S.heads[S.panArm];
+      h.pan = clamp(drag.pan + dv*2, -1, 1);
+      if (Math.abs(h.pan) < .06) h.pan = 0;
+      say("Pan head " + (S.panArm+1), h.pan === 0 ? "Centred — the playback button shows red."
+        : (h.pan < 0 ? "Left " : "Right ") + Math.round(Math.abs(h.pan)*100) + "%.");
+    } else {
+      S.k[key] = clamp(drag.v + dv);
+      sayKnob(key);
+    }
+    render();
+  });
+  const end = () => { drag = null; kn.classList.remove("tweak"); };
+  btn.addEventListener("pointerup", end);
+  btn.addEventListener("pointercancel", end);
+  btn.addEventListener("keydown", e => {
+    const step = e.shiftKey ? .01 : .04;
+    if (e.key === "ArrowUp" || e.key === "ArrowRight"){ bump(step); e.preventDefault(); }
+    if (e.key === "ArrowDown" || e.key === "ArrowLeft"){ bump(-step); e.preventDefault(); }
+  });
+});
+
+/* --- toggles --- */
+document.querySelectorAll(".tog").forEach(t => {
+  const which = t.dataset.t;
+  const list = which === "type" ? TYPES : SPEEDNAMES;
+  const set = v => {
+    if (which === "type"){ S.type = v; say("Type", typeBlurb(v)); }
+    else {
+      S.speed = v;
+      const s = SPEEDS[v];
+      say("Speed", manualSays("speed") + '<span class="pos">Head 4 reaches ' +
+        ms(s.min) + " to " + ms(s.max) + " on <b>" + v + "</b>. The heads do not move; only the motor changes.</span>");
+    }
+    render();
+  };
+  const at = () => list.indexOf(which === "type" ? S.type : S.speed);
+  const bat = t.querySelector(".bat"), slot = t.querySelector(".slot");
+
+  /* Throw it like a real switch: grab the bat and drag it to a position.
+     A drag suppresses the click that follows, so it does not also cycle. */
+  let startY = 0, dragged = false, down = false;
+  bat.addEventListener("pointerdown", e => {
+    try { bat.setPointerCapture(e.pointerId); } catch (_) {}
+    down = true; dragged = false; startY = e.clientY;
+  });
+  bat.addEventListener("pointermove", e => {
+    if (!down) return;
+    if (Math.abs(e.clientY - startY) > 3) dragged = true;
+    const r = slot.getBoundingClientRect();
+    const f = (e.clientY - r.top) / r.height;
+    const idx = f < 1/3 ? 0 : f < 2/3 ? 1 : 2;
+    if (idx !== at()) set(list[idx]);
+  });
+  const release = () => { down = false; };
+  bat.addEventListener("pointerup", release);
+  bat.addEventListener("pointercancel", release);
+
+  bat.addEventListener("click", e => {
+    if (dragged){ dragged = false; e.preventDefault(); return; }
+    set(list[(at() + 1) % 3]);
+  });
+  bat.addEventListener("keydown", e => {
+    if (e.key === "ArrowUp"   || e.key === "ArrowLeft"){  set(list[Math.max(0, at()-1)]); e.preventDefault(); }
+    if (e.key === "ArrowDown" || e.key === "ArrowRight"){ set(list[Math.min(2, at()+1)]); e.preventDefault(); }
+  });
+  t.querySelectorAll(".names button").forEach(b => b.addEventListener("click", () => set(b.dataset.v)));
+});
+
+function typeBlurb(v){
+  return manualSays(v) + '<span class="pos">Changes which transport is drawn. What the medium does to the ' +
+    "tone is Strymon's DSP and is not reproduced here.</span>";
+}
+
+/* A button has more than one job, so pressing it explains all of them -
+   what a press does, what a hold does, and where this head stands now. */
+function sayHead(row, i){
+  if (row === "pb"){
+    say("Playback " + (i+1), manualSays("playback") + " " + manualSays("headvol") +
+      '<span class="pos"><b>Press</b> engages or silences the head. ' +
+      "<b>Hold one second</b> switches it between full and half volume.</span>");
+  } else {
+    say("Feedback " + (i+1), manualSays("feedback") + " " + manualSays("panning") +
+      '<span class="pos"><b>Press</b> sends the head back to the record head to repeat. ' +
+      "<b>Hold</b> arms panning, then turn TIME.</span>");
+  }
+}
+
+/* --- head buttons --- */
+document.querySelectorAll(".hbtn").forEach(b => {
+  const row = b.dataset.hb, i = +b.dataset.i;
+  let held = false, timer = 0;
+
+  b.addEventListener("pointerdown", () => {
+    held = false;
+    timer = setTimeout(() => {
+      held = true;
+      if (row === "pb"){
+        S.heads[i].half = !S.heads[i].half;
+        if (!S.heads[i].pb) S.heads[i].pb = true;
+        sayHead("pb", i);
+      } else {
+        S.panArm = S.panArm === i ? -1 : i;
+        sayHead("fb", i);
+      }
+      render();
+    }, 620);
+  });
+  const clear = () => clearTimeout(timer);
+  b.addEventListener("pointerup", clear);
+  b.addEventListener("pointercancel", clear);
+  b.addEventListener("pointerleave", clear);
+
+  b.addEventListener("click", () => {
+    if (held) { held = false; return; }
+    const h = S.heads[i];
+    if (row === "pb") h.pb = !h.pb; else h.fb = !h.fb;
+    sayHead(row, i);
+    render();
+  });
+});
+
+document.addEventListener("keydown", e => { if (e.key === "Escape" && S.panArm >= 0){ S.panArm = -1; render(); } });
+
+/* --- footswitches --- */
+/* Whoever presses FAVORITE is usually asking how the eight slots work, so
+   every FAVORITE hint carries the recall, save and compare gestures.       */
+const ON_HOW = '<span class="pos"><b>Press</b> engages or bypasses the effect, and the transport runs with it. ' +
+  "<b>Hold</b> gives infinite repeats with oscillation.</span>";
+const TAP_HOW = '<span class="pos"><b>Press</b> twice or more to set the quarter note at head 4; SPACING decides ' +
+  "where heads 1\u20133 fall inside it. <b>Hold</b> enters Sound on Sound.</span>";
+const FAV_HOW = "<b>Save:</b> hold FAVORITE until the LED flashes blue, release, then press a playback or feedback button to choose one of the eight slots. " +
+  "<b>Choose the active slot:</b> hold FAVORITE and press a head button. " +
+  "<b>Compare:</b> with a favorite engaged the LED flips green → red the moment a knob you are turning passes its saved value.";
+let tapTimes = [], favSaved = null;
+document.querySelectorAll(".fsw").forEach(sw => {
+  const which = sw.dataset.f;
+  let held = false, timer = 0;
+  sw.addEventListener("pointerdown", () => {
+    held = false;
+    timer = setTimeout(() => {
+      held = true;
+      if (which === "on"){
+        S.infinite = true;
+        say("On", manualSays("on") + ON_HOW);
+      } else if (which === "tap"){
+        say("Sound on Sound", "On the pedal this enters the looper and re-tasks all three footswitches: TAP becomes splice, ON becomes reverse, FAVORITE becomes pause. Not simulated here — the manual has it on page 10.");
+      } else {
+        say("Save mode", "Held until the LED flashes blue. Now pick a slot — press FAVORITE again for the active one, or any playback or feedback button for its slot. Everything on the panel goes with it. Press TAP to leave without saving.");
+      }
+      render();
+    }, 620);
+  });
+  const clear = () => clearTimeout(timer);
+  sw.addEventListener("pointerup", clear);
+  sw.addEventListener("pointercancel", clear);
+  sw.addEventListener("click", () => {
+    if (held){ held = false; return; }
+    if (which === "on"){
+      if (S.infinite) S.infinite = false; else S.engaged = !S.engaged;
+      say("On", manualSays("on") + ON_HOW);
+    } else if (which === "tap"){
+      const now = performance.now()/1000;
+      tapTimes = tapTimes.filter(t => now - t < 3).concat(now);
+      if (tapTimes.length >= 2){
+        const iv = (tapTimes[tapTimes.length-1] - tapTimes[0]) / (tapTimes.length - 1);
+        const s = SPEEDS[S.speed];
+        const T = clamp(iv, s.min, s.max);
+        S.k.time = timeKnobFor(T);
+        say("Tap", manualSays("tapsw") + TAP_HOW);
+      } else {
+        say("Tap", manualSays("tapsw") + TAP_HOW);
+      }
+    } else {
+      if (!favSaved){ favSaved = JSON.parse(JSON.stringify({k:S.k, heads:S.heads, type:S.type, speed:S.speed}));
+        say("Favorite", "Nothing was saved, so this is now the active favorite — move something and tap again to recall it. " + FAV_HOW); }
+      else { Object.assign(S.k, favSaved.k); S.heads = JSON.parse(JSON.stringify(favSaved.heads));
+        S.type = favSaved.type; S.speed = favSaved.speed;
+        say("Favorite recalled", "Every knob, button, Live Edit value and expression setting is back where it was. " + FAV_HOW); }
+    }
+    render();
+  });
+});
+
+/* --- transport tools --- */
+const btnStrike = document.getElementById("btnStrike");
+const btnAuto = document.getElementById("btnAuto");
+btnStrike.addEventListener("click", () => strike(1));
+const btnSound = document.getElementById("btnSound");
+const snote = document.getElementById("snote");
+btnSound.addEventListener("click", () => {
+  if (!A.on){
+    if (!soundOn()){ btnSound.textContent = "No audio here"; btnSound.disabled = true; snote.hidden = true; return; }
+    A.on = true;
+    strike(1);                                   /* play one straight away */
+  } else {
+    A.on = false;
+    stopVoice();
+  }
+  btnSound.setAttribute("aria-pressed", String(A.on));
+  btnSound.textContent = A.on ? "Sound on" : "Sound off";
+  snote.hidden = !A.on;
+});
+btnAuto.addEventListener("click", () => {
+  S.auto = !S.auto;
+  btnAuto.setAttribute("aria-pressed", String(S.auto));
+  btnAuto.textContent = S.auto ? "Auto-pluck on" : "Auto-pluck off";
+});
+function partAt(e){
+  const b = deck.getBoundingClientRect();
+  const x = e.clientX - b.left, y = e.clientY - b.top;
+  let best = null, bd = Infinity;
+  for (const p of parts){
+    const d = Math.hypot(p.x - x, p.y - y);
+    if (d <= p.r && d < bd){ bd = d; best = p; }
+  }
+  return best;
+}
+function explain(key){
+  if (PART_TEXT[key]) return PART_TEXT[key];
+  const i = +key.slice(4);                       /* head0..head3 */
+  const sp = spacingBlend(), T4 = delay4(), h = S.heads[i];
+  return ["Playback head " + (i+1),
+    "Reads the medium " + sp.r[i].toFixed(3) + "× of the way to head 4, so it sounds " +
+    ms(sp.r[i]*T4) + " after the note. Its top button decides whether you hear it — it is currently " +
+    (h.pb ? (h.half ? "on at half volume" : "on at full volume") : "off") +
+    ". Its bottom button decides whether it is sent back to the record head to repeat — currently " +
+    (h.fb ? "on" : "off") + "."];
+}
+deck.addEventListener("click", e => {
+  const p = partAt(e);
+  if (p){ say.apply(null, explain(p.key)); return; }
+  strike(1);
+});
+deck.addEventListener("pointermove", e => {
+  const p = partAt(e);
+  const key = p ? p.key : null;
+  if (key !== (hoverPart && hoverPart.key)) hoverPart = p;
+  else if (p) hoverPart = p;
+  deck.style.cursor = p ? "pointer" : "default";
+});
+deck.addEventListener("pointerleave", () => { hoverPart = null; deck.style.cursor = "default"; });
+
+/* Deep links into the PDF were a promise browsers do not keep - many
+   download the file rather than opening it at a page, and the fragment is
+   lost. One link to the whole manual, and page numbers printed as text.  */
+const MANUAL = "https://www.strymon.net/manuals/Volante_UserManual_RevE.pdf";
+
+/* ================= note glyphs ================= */
+/* A ratio is not something anyone hears. At the marked spacings the manual
+   names each head's note value, so draw that note instead: a head, a stem,
+   flags for the subdivisions, a dot for the dotted eighth and a bracketed 3
+   for the triplets. Golden and silver are ratio spacings, not note values,
+   so they get the ratio and say so.                                       */
+const NOTE_KIND = {
+  "quarter":"4", "8th":"8", "dotted 8th":"d8", "16th":"16",
+  "quarter trip.":"t4", "8th trip.":"t8", "16th trip.":"t16"
+};
+function noteSVG(kind){
+  const flags = kind === "16" || kind === "t16" ? 2
+              : kind === "8" || kind === "d8" || kind === "t8" ? 1 : 0;
+  const trip = kind.charAt(0) === "t";
+  let f = "";
+  for (let i = 0; i < flags; i++)
+    f += '<path d="M13.6 ' + (6 + i*5.4) + ' q6 3.2 4.4 9 q-.4-5-4.4-6.6 z"/>';
+  return '<svg class="ntsvg" viewBox="0 0 26 30" aria-hidden="true">' +
+    (trip ? '<g class="trip"><path d="M10.5 4.4 h7.5" /><text x="14.2" y="3.4">3</text></g>' : "") +
+    '<ellipse cx="8" cy="22" rx="5.2" ry="3.8" transform="rotate(-20 8 22)"/>' +
+    '<rect x="12.3" y="' + (trip ? 6.5 : 5) + '" width="1.5" height="' + (trip ? 15.5 : 17) + '"/>' +
+    f + (kind === "d8" ? '<circle cx="18.6" cy="22" r="1.5"/>' : "") +
+    "</svg>";
+}
+function noteCell(i, sp){
+  const name = sp.notes ? sp.notes[i] : null;
+  const kind = name ? NOTE_KIND[name] : null;
+  if (kind) return '<span class="nval">' + noteSVG(kind) +
+    '<span class="ntname">' + name.replace("trip.", "triplet") + "</span></span>";
+  return '<span class="nval"><span class="ntratio">' + sp.r[i].toFixed(3) +
+    ' &times;</span><span class="ntname">of the quarter</span></span>';
+}
+
+/* ================= render ================= */
+const headBody = document.querySelector("#headTable tbody");
+
+function render(){
+  const sp = spacingBlend(), T4 = delay4();
+
+  /* knobs */
+  document.querySelectorAll(".kn").forEach(kn => {
+    kn.querySelector(".cap").style.transform = "rotate(" + ang(S.k[kn.dataset.k]) + "deg)";
+  });
+  /* toggles */
+  const tt = document.querySelector('.tog[data-t="type"]');
+  tt.dataset.i = TYPES.indexOf(S.type);
+  tt.querySelectorAll(".names button").forEach(b => b.classList.toggle("on", b.dataset.v === S.type));
+  const ts = document.querySelector('.tog[data-t="speed"]');
+  ts.dataset.i = SPEEDNAMES.indexOf(S.speed);
+  ts.querySelectorAll(".names button").forEach(b => b.classList.toggle("on", b.dataset.v === S.speed));
+  /* spacing markers */
+  document.querySelectorAll(".smark").forEach(m => m.classList.toggle("on", sp.label === m.dataset.s));
+
+  /* head buttons */
+  document.querySelectorAll(".hbtn").forEach(b => {
+    const i = +b.dataset.i, h = S.heads[i];
+    if (b.dataset.hb === "pb"){
+      b.dataset.lit = !h.pb ? "off" : (S.panArm === i && h.pan === 0 ? "red" : (h.half ? "amber" : "green"));
+    } else {
+      b.dataset.lit = h.fb ? "green" : "off";
+      b.classList.toggle("panning", S.panArm === i);
+    }
+  });
+  /* footswitch LEDs */
+  const ledOn = document.querySelector('.fled[data-f="on"]');
+  ledOn.dataset.lit = !S.engaged ? "off" : (S.infinite ? "amber" : "green");
+  document.querySelector('.fled[data-f="fav"]').dataset.lit = favSaved ? "green" : "off";
+
+  /* strip */
+  document.getElementById("cT4").textContent = ms(T4);
+  document.getElementById("cT4s").textContent = "TIME " + clockOf(S.k.time) + " · " + S.speed + " speed";
+  document.getElementById("cSpace").textContent = sp.label;
+  document.getElementById("cSpaces").textContent = sp.notes ? sp.notes.slice(0,3).join(" · ") : sp.sub;
+  document.getElementById("cBpm").textContent = Math.round(60/T4) + " bpm";
+  document.getElementById("thNote").textContent = "Note at " + Math.round(60/T4) + " bpm";
+  const nfb = S.heads.filter(h => h.fb).length;
+  document.getElementById("cFb").textContent = S.infinite ? "∞" : pct(fbGain());
+  document.getElementById("cFbs").textContent = nfb ? nfb + " head" + (nfb>1?"s":"") + " feeding back" : "no feedback — one pass only";
+
+  /* head table */
+  headBody.innerHTML = "";
+  for (let i = 0; i < 4; i++){
+    const h = S.heads[i], t = sp.r[i]*T4;
+    const tr = document.createElement("tr");
+    tr.dataset.off = String(!h.pb && !h.fb);
+    tr.innerHTML =
+      "<td><span class='hdot' style='background:" + HEADC[i] + "'></span>Head " + (i+1) + "</td>" +
+      "<td>" + noteCell(i, sp) + "</td>" +
+      "<td class='mono'>" + ms(t) + "</td>" +
+      "<td><span class='pill" + (h.pb ? " on" : "") + "'>" + (h.pb ? (h.half ? "half" : "full") : "off") + "</span></td>" +
+      "<td><span class='pill" + (h.fb ? " on" : "") + "'>" + (h.fb ? "on" : "off") + "</span></td>" +
+      "<td class='mono'>" + (h.pan === 0 ? "centre" : (h.pan < 0 ? "L" : "R") + Math.round(Math.abs(h.pan)*100)) + "</td>";
+    headBody.appendChild(tr);
+  }
+
+  /* deck header */
+  document.getElementById("deckName").textContent = S.type === "drum" ? "Drum" : S.type === "tape" ? "Tape" : "Studio";
+  document.getElementById("deckSub").textContent =
+    (S.type === "drum" ? "steel wire on a spinning platter" : S.type === "tape" ? "magnetic tape loop" : "reel-to-reel studio tape")
+    + " · " + S.speed + " speed";
+  /* the manual's own three names for what these recreate */
+  document.getElementById("deckKind").textContent =
+    S.type === "drum" ? "Drum echo" : S.type === "tape" ? "Tape echo" : "Studio reel-to-reel echo";
+
+  const model = computeTaps();
+  document.getElementById("tlMeta").textContent =
+    model.taps.length + " repeats in " + ms(model.win) + " · window is 3.4 × head 4";
+  drawTimeline(model);
+}
+
+/* ================= loop ================= */
+function frame(now){
+  requestAnimationFrame(frame);
+  const t = now/1000;
+  let dt = Math.min(.05, t - lastT); lastT = t;
+  if (!S.engaged) dt = 0;          /* the motor stops with the pedal */
+
+  const { hu, sp } = stepModel(dt);
+
+  if (dt > 0 && S.auto){
+    sinceStrike += dt;
+    /* wait for the note and its echoes to leave the medium before the next
+       one, so two plucks are never in the air together; on infinite repeats
+       nothing ever decays, so fall back to a ceiling                        */
+    const ceiling = clamp(cycle()*5, 7, 16);
+    if (sinceStrike >= .6 && (marks.length === 0 || sinceStrike >= ceiling)){
+      sinceStrike = 0; strike(1);
+    }
+  }
+  drawDeck(hu, sp);
+
+  /* TAP flashes quarter notes at head 4 */
+  const T4 = delay4();
+  ledTap.dataset.lit = (S.engaged && (t % T4) < Math.min(.07, T4*.18)) ? "red" : "off";
+}
+
+/* ================= boot ================= */
+["pointerdown","keydown"].forEach(ev =>
+  window.addEventListener(ev, () => { gestured = true; if (A.on) soundOn(); },
+                          { once:true, capture:true }));
+
+idleHint();
+strike(1);
+render();
+requestAnimationFrame(frame);
+window.addEventListener("resize", render);
+})();
+</script>

@@ -1,0 +1,791 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OCD-Ge, Knob by Knob</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231C96A5'/><path d='M9 7.5v17l13-8.5z' fill='%23F3EEE2'/><rect x='22.2' y='6.5' width='3.8' height='19' rx='1.4' fill='%23F3EEE2'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=DM+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap">
+
+<style>
+/* ---------- tokens: light is the bare :root, dark redefines ---------- */
+:root{
+  --bg:#F1EDE6;
+  --surface:#FAF7F1;
+  --surface-2:#E9E3D8;
+  --line:#D8D0C1;
+  --line-soft:#E4DDD0;
+  --ink:#1C1A17;
+  --ink-2:#57514A;
+  --ink-3:#877F73;
+  --tint:#0E0C09;
+  --shadow:0 1px 0 rgba(28,26,23,.04), 0 12px 32px -20px rgba(28,26,23,.45);
+
+  /* the enclosure's own colours, sampled from Fulltone's product shot. They belong to
+     the object, so they do not move with the light/dark theme. */
+  --panel:#007C8A;
+  --panel-dark:#00606D;
+  --panel-ink:#F3EEE2;
+  --panel-ink-2:rgba(243,238,226,.62);
+  --knob-face:#F4EBDA;
+  --knob-edge:#CFC7B4;
+  --chrome:#C9CDD0;
+
+  --acc:#00707E;
+  --acc-text:color-mix(in oklab, var(--acc) 84%, var(--tint));
+  --led:#E2453A;
+  --warn:#B4611B;
+
+  --r:14px;
+  --step:clamp(2.6rem, 5vw, 4.4rem);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131211; --surface:#1B1917; --surface-2:#232019;
+    --line:#312C25; --line-soft:#272320;
+    --ink:#EFE8DB; --ink-2:#A99F90; --ink-3:#7A7263;
+    --tint:#FFF7EA;
+    --shadow:0 1px 0 rgba(255,255,255,.02), 0 16px 40px -24px rgba(0,0,0,.9);
+    --acc:#49BFD0;
+    --acc-text:color-mix(in oklab, var(--acc) 88%, var(--tint));
+    --warn:#E0A05B;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131211; --surface:#1B1917; --surface-2:#232019;
+  --line:#312C25; --line-soft:#272320;
+  --ink:#EFE8DB; --ink-2:#A99F90; --ink-3:#7A7263;
+  --tint:#FFF7EA;
+  --shadow:0 1px 0 rgba(255,255,255,.02), 0 16px 40px -24px rgba(0,0,0,.9);
+  --acc:#49BFD0;
+  --acc-text:color-mix(in oklab, var(--acc) 88%, var(--tint));
+  --warn:#E0A05B;
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Newsreader",Georgia,"Times New Roman",serif;
+  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
+#app{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 84px}
+h1,h2,h3,h4,.lbl,.mono,button,th{font-family:"Archivo",system-ui,-apple-system,"Helvetica Neue",sans-serif}
+h1,h2,h3{text-wrap:balance;margin:0}
+.mono,code{font-family:"DM Mono","SFMono-Regular",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+a{color:var(--acc-text)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:3px;border-radius:4px}
+.lbl{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+
+/* ---------- header ---------- */
+header.top{padding:clamp(38px,7vw,76px) 0 clamp(30px,4vw,46px)}
+.backlink{flex:none;display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);text-decoration:none;padding-right:12px;border-right:1px solid var(--line)}
+.backlink:hover{color:var(--ink)}
+.backlink .bk-arrow{font-size:13px;letter-spacing:0;transition:transform .14s ease}
+.backlink:hover .bk-arrow{transform:translateX(-3px)}
+@media (max-width:560px){.brandline{flex-wrap:wrap}.backlink{flex-basis:100%;border-right:0;padding-right:0;margin-bottom:2px}}
+.brandline{display:flex;align-items:center;gap:12px;margin-bottom:22px;flex-wrap:wrap}
+.brandline .rule{flex:1;min-width:24px;height:1px;background:var(--line)}
+h1{font-size:clamp(3.2rem,12vw,7.4rem);font-weight:700;letter-spacing:-.045em;line-height:.86;text-transform:uppercase}
+h1 .thin{display:block;font-weight:500;font-size:.2em;letter-spacing:.2em;color:var(--ink-3);margin-top:1.2em;text-transform:uppercase}
+
+/* ---------- console ---------- */
+.console{display:grid;grid-template-columns:minmax(260px,360px) 1fr;gap:clamp(20px,3vw,38px);align-items:start}
+@media (max-width:860px){ .console{grid-template-columns:1fr} }
+.pedal-col{position:sticky;top:20px;display:flex;flex-direction:column;gap:12px}
+@media (max-width:860px){ .pedal-col{position:static} }
+
+.pedal{position:relative;width:100%;max-width:max(250px, calc((100vh - 150px) * 0.514));margin:0 auto;
+  aspect-ratio:369/677;
+  background:linear-gradient(172deg, color-mix(in oklab, var(--panel) 90%, #ffffff), var(--panel) 42%, var(--panel-dark));
+  border-radius:5% / 2.6%;
+  box-shadow:0 30px 60px -34px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.22);
+  color:var(--panel-ink);container-type:inline-size;touch-action:none;user-select:none}
+
+.nub{position:absolute;width:4.5cqw;height:7cqw;transform:translateY(-50%);
+  background:linear-gradient(90deg,#9AA0A4,var(--chrome),#8E9498);border-radius:2px;pointer-events:none}
+.nub[data-side="l"]{left:-2.6cqw;border-radius:3px 0 0 3px}
+.nub[data-side="r"]{right:-2.6cqw;border-radius:0 3px 3px 0}
+
+.arc{position:absolute;transform:translate(-50%,-50%);width:52cqw;aspect-ratio:1;pointer-events:none;overflow:visible}
+.arc path{fill:none;stroke:var(--panel-ink);stroke-width:2.6;stroke-linecap:round;opacity:.92}
+.arc polygon{fill:var(--panel-ink);opacity:.92}
+
+.knob{position:absolute;width:35.5cqw;aspect-ratio:1;transform:translate(-50%,-50%);
+  border-radius:50%;cursor:ns-resize;background:none;border:0;padding:0}
+.knob .cap{position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 36% 28%, #FFFDF6, var(--knob-face) 58%, var(--knob-edge));
+  box-shadow:0 4px 9px -3px rgba(0,0,0,.55), inset 0 0 0 1px rgba(0,0,0,.08);
+  transition:transform .04s linear}
+.knob .cap::after{content:"";position:absolute;left:50%;top:6%;width:5.5%;height:40%;
+  transform:translateX(-50%);border-radius:2px;background:#191714}
+.knob:focus-visible{outline:none}
+.knob:focus-visible .cap{outline:2px solid #fff;outline-offset:4px}
+.knob.active .cap{box-shadow:0 0 0 2px #fff, 0 4px 9px -3px rgba(0,0,0,.55)}
+
+.klabel{position:absolute;transform:translate(-50%,-50%);
+  font-family:"Archivo",sans-serif;font-size:6.4cqw;font-weight:600;letter-spacing:-.01em;
+  color:var(--panel-ink);pointer-events:none;white-space:nowrap}
+
+.tog{position:absolute;left:49.7%;top:7.3%;transform:translate(-50%,-50%);
+  width:9cqw;height:13cqw;border:0;padding:0;background:none;cursor:pointer}
+.tog .base{position:absolute;left:50%;bottom:0;transform:translateX(-50%);
+  width:9cqw;height:6cqw;border-radius:50%/38%;
+  background:radial-gradient(ellipse at 40% 26%, #E8EBEC, #A8AEB2 70%, #7E8488);
+  box-shadow:0 2px 5px -2px rgba(0,0,0,.6), 0 0 0 1.4cqw #14181A}
+.tog .lever{position:absolute;left:50%;bottom:2.4cqw;width:3.4cqw;height:9.5cqw;
+  transform-origin:50% 100%;border-radius:1.6cqw;
+  background:linear-gradient(90deg,#8F9599,#DFE3E5 45%,#9AA0A4);
+  box-shadow:0 1px 3px rgba(0,0,0,.5);transition:transform .12s ease}
+.tog[data-hp="true"]  .lever{transform:translateX(-50%) rotate(0deg)}
+.tog[data-hp="false"] .lever{transform:translateX(-50%) rotate(13deg) translateY(1.4cqw) scaleY(.55)}
+.tog:focus-visible{outline:2px solid #fff;outline-offset:3px;border-radius:4px}
+.toglbl{position:absolute;left:49.7%;transform:translate(-50%,-50%);
+  font-family:"Archivo",sans-serif;font-size:4.6cqw;font-weight:600;letter-spacing:.02em;pointer-events:none;
+  color:var(--panel-ink-2)}
+.toglbl[data-on="true"]{color:var(--panel-ink)}
+.toglbl[data-t="hp"]{top:3.3%}
+.toglbl[data-t="lp"]{top:13.3%}
+
+.led{position:absolute;left:49.9%;top:16.8%;transform:translate(-50%,-50%);
+  width:10cqw;aspect-ratio:1;border-radius:50%;pointer-events:none;
+  background:
+    repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.20) 0 6%, rgba(0,0,0,.14) 6% 12%),
+    radial-gradient(circle at 38% 32%, #C6CBCE, #8E9498 72%);
+  box-shadow:inset 0 0 0 1.2px rgba(0,0,0,.4)}
+.led[data-on="true"]{background:radial-gradient(circle at 38% 32%, #FFD4CE, var(--led) 55%, #8E1D16);
+  box-shadow:0 0 11px 1px color-mix(in oklab, var(--led) 55%, transparent)}
+
+.wordmark{position:absolute;left:50%;top:55.4%;transform:translate(-50%,-50%);
+  font-family:"Archivo",sans-serif;font-size:26cqw;font-weight:700;letter-spacing:-.01em;
+  color:var(--panel-ink);pointer-events:none}
+.gemark{position:absolute;left:81%;top:69.6%;transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;gap:1.4cqw;pointer-events:none}
+.gemark span{font-family:"Archivo",sans-serif;font-size:8.4cqw;font-weight:600;color:var(--panel-ink)}
+.gemark svg{width:19cqw;display:block;overflow:visible}
+
+.fsw{position:absolute;left:50%;top:76.6%;transform:translate(-50%,-50%);
+  width:25.6cqw;aspect-ratio:1;border-radius:50%;padding:0;cursor:pointer;
+  background:radial-gradient(circle at 36% 28%, #EFF1F2, #A5ABAF 74%, #7C8286);
+  border:1px solid rgba(0,0,0,.32);box-shadow:0 5px 12px -5px rgba(0,0,0,.7)}
+.fsw::after{content:"";position:absolute;inset:26%;border-radius:50%;
+  background:radial-gradient(circle at 40% 34%, #6B6F70, #3D4141);box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
+.fsw:active{transform:translate(-50%,-50%) scale(.95)}
+.fsw:focus-visible{outline:2px solid #fff;outline-offset:4px}
+
+.maker{position:absolute;left:50%;top:89.4%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
+.maker .cs{display:block;font-family:"Archivo",sans-serif;font-size:2.3cqw;font-weight:600;letter-spacing:.22em;color:var(--panel-ink-2)}
+.maker .ft{display:block;font-family:"Newsreader",serif;font-style:italic;font-size:7.4cqw;color:var(--panel-ink);line-height:1.1}
+.usa{position:absolute;left:50%;top:96.6%;transform:translate(-50%,-50%);
+  font-family:"Archivo",sans-serif;font-size:2.9cqw;font-weight:700;letter-spacing:.04em;color:var(--panel-ink);pointer-events:none}
+
+.hint{min-height:50px;display:flex;align-items:center;gap:10px;padding:10px 14px;
+  border:1px dashed var(--line);border-radius:10px;background:var(--surface);
+  font-size:.86rem;color:var(--ink-2);line-height:1.45}
+.hint[data-live="true"]{border-style:solid;border-color:var(--acc);color:var(--ink)}
+.hint b{font-family:"Archivo",sans-serif;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--acc-text)}
+.disclaim{margin:0;font-size:.8rem;line-height:1.5;color:var(--ink-3)}
+
+/* ---------- readout ---------- */
+.readout{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden;box-shadow:var(--shadow)}
+.rhead{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:baseline;justify-content:space-between;
+  padding:18px 20px 14px;border-bottom:1px solid var(--line-soft)}
+.rhead h2{font-size:1.45rem;font-weight:700;letter-spacing:-.02em}
+
+.krow{display:grid;grid-template-columns:1fr auto;gap:6px 16px;padding:15px 20px;
+  border-bottom:1px solid var(--line-soft);transition:background .18s}
+.krow.active{background:color-mix(in oklab, var(--acc) 10%, transparent)}
+.krow .pname{font-family:"Archivo",sans-serif;font-weight:600;font-size:1rem;letter-spacing:-.01em}
+.krow .val{text-align:right;font-family:"DM Mono",monospace;font-size:.9rem;color:var(--ink);white-space:nowrap}
+.krow .pdesc{grid-column:1/-1;font-size:.94rem;color:var(--ink-2);margin:0}
+.krow .pdesc + .pdesc{margin-top:6px}
+.krow .live{color:var(--ink)}
+.krow .live b{font-weight:500;font-family:"Archivo",sans-serif;font-size:.72rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--acc-text);margin-right:7px}
+.krow .aside{font-size:.86rem;color:var(--ink-3)}
+
+.robox{padding:16px 20px;background:var(--surface-2);border-top:1px solid var(--line-soft)}
+.robox h3{font-family:"Archivo",sans-serif;font-size:.74rem;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--acc-text);margin-bottom:6px}
+.robox p{margin:0;font-size:.94rem;color:var(--ink-2)}
+.robox p + p{margin-top:8px}
+.robox b{font-weight:500;color:var(--ink)}
+
+/* ---------- sections ---------- */
+section{padding-top:var(--step)}
+.shead{display:flex;align-items:baseline;gap:14px;margin-bottom:18px}
+.shead h2{font-size:clamp(1.55rem,3.3vw,2.15rem);font-weight:700;letter-spacing:-.03em}
+.shead .rule{flex:1;height:1px;background:var(--line)}
+.sdek{max-width:68ch;color:var(--ink-2);margin:-4px 0 24px}
+
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.card{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:18px 20px;box-shadow:var(--shadow)}
+.card h3{font-size:1.05rem;font-weight:600;letter-spacing:-.01em;margin-bottom:6px}
+.card p{margin:0;color:var(--ink-2);font-size:.95rem}
+.card p + p{margin-top:9px}
+.card b{font-weight:500;color:var(--ink)}
+
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.mode{text-align:left;font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;
+  border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:17px 19px;
+  display:flex;flex-direction:column;gap:9px;transition:border-color .15s,transform .15s,box-shadow .15s}
+.mode:hover{transform:translateY(-2px)}
+.mode[aria-pressed="true"]{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
+.mode .mtop{display:flex;align-items:baseline;gap:10px}
+.mode .mcode{font-family:"Archivo",sans-serif;font-weight:700;font-size:1.25rem;letter-spacing:-.02em}
+.mode .mname{font-family:"Archivo",sans-serif;font-weight:500;font-size:.8rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3)}
+.mode .now{margin-left:auto;font-family:"Archivo",sans-serif;font-size:9px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--acc-text);visibility:hidden}
+.mode[aria-pressed="true"] .now{visibility:visible}
+.mode p{margin:0;font-size:.94rem;color:var(--ink-2)}
+.mode ul{margin:0;padding-left:18px;font-size:.92rem;color:var(--ink-2)}
+.mode li + li{margin-top:3px}
+
+.note{padding:14px 17px;border-radius:11px;font-size:.92rem;line-height:1.55;
+  background:var(--surface);border:1px solid var(--line);color:var(--ink-2)}
+.note h4{font-family:"Archivo",sans-serif;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);margin:0 0 5px;font-weight:600}
+.note.flag{border-color:color-mix(in oklab, var(--warn) 45%, transparent);
+  background:color-mix(in oklab, var(--warn) 8%, var(--surface))}
+.note.flag h4{color:var(--warn)}
+.note b{font-weight:500;color:var(--ink)}
+.note + .note{margin-top:12px}
+
+.feed{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  border:1px solid var(--line);border-radius:var(--r);background:var(--surface);
+  padding:20px;box-shadow:var(--shadow)}
+.fctl{display:flex;flex-direction:column;gap:9px}
+.fctl input[type="range"]{width:100%;accent-color:var(--acc);height:22px;cursor:ew-resize}
+.fctl input[type="range"]:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:4px}
+.fends{display:flex;justify-content:space-between;gap:8px;font-size:.78rem;color:var(--ink-3)}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;font:inherit;font-size:.9rem;padding:7px 10px;cursor:pointer;
+  border:1px solid var(--line);border-radius:9px;background:var(--surface-2);color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff}
+.fsay{margin-top:14px;border:1px solid var(--line);border-radius:var(--r);
+  background:var(--surface);padding:18px 20px;box-shadow:var(--shadow)}
+.fsay .fline{margin:0;color:var(--ink-2);font-size:.95rem}
+.fsay .fline + .fline{margin-top:11px;padding-top:11px;border-top:1px solid var(--line-soft)}
+.fsay .fk{font-family:"Archivo",sans-serif;font-weight:600;color:var(--ink);
+  display:block;font-size:.82rem;letter-spacing:.02em;margin-bottom:3px}
+
+.setrow{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;
+  font-family:"DM Mono",monospace;font-size:.88rem;color:var(--ink-2);margin:2px 0 12px}
+.setrow span b{color:var(--ink);font-weight:500}
+
+button.btn{font-family:"Archivo",sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  padding:9px 14px;border-radius:8px;cursor:pointer;background:var(--surface-2);color:var(--ink);
+  border:1px solid var(--line);transition:background .15s,border-color .15s,color .15s}
+button.btn:hover{border-color:var(--acc);color:var(--acc-text)}
+.card .btn{align-self:flex-start;margin-top:4px}
+
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;font-size:.92rem;min-width:300px}
+th,td{text-align:left;padding:11px 18px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+th{font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-3);background:var(--surface-2)}
+tr:last-child td{border-bottom:0}
+td.mono{color:var(--ink-2)}
+
+.mindex{display:grid;grid-template-columns:repeat(auto-fit,minmax(266px,1fr));gap:10px 22px}
+.mindex a{display:flex;align-items:baseline;gap:10px;text-decoration:none;color:var(--ink-2);
+  padding:7px 11px;border:1px solid var(--line-soft);border-radius:9px;background:var(--surface);
+  transition:border-color .15s,color .15s,background .15s}
+.mindex a:hover{border-color:var(--acc);color:var(--ink);background:var(--surface-2)}
+.mindex a .t{flex:1;font-family:"Archivo",sans-serif;font-size:.9rem;font-weight:600}
+.mindex a .n{font-family:"DM Mono",monospace;font-size:.8rem;color:var(--ink-3);white-space:nowrap}
+.mindex a:hover .n{color:var(--acc-text)}
+.mindex .grp{grid-column:1/-1;margin:12px 0 2px}
+.mindex .grp:first-child{margin-top:0}
+
+footer.end{margin-top:var(--step);padding-top:22px;border-top:1px solid var(--line);color:var(--ink-3);
+  font-size:.88rem;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+}
+</style>
+
+<div id="app">
+
+<header class="top">
+  <div class="brandline">
+    <a class="backlink" href="index.html"><span class="bk-arrow" aria-hidden="true">&#8592;</span>All manuals</a>
+    <span class="lbl">Fulltone Custom Shop</span>
+    <span class="rule"></span>
+    <span class="lbl">Unofficial companion to the manual · not affiliated with Fulltone</span>
+  </div>
+  <h1>OCD-Ge<span class="thin">Obsessive Compulsive Drive · three knobs and a switch</span></h1>
+</header>
+
+<div class="console">
+  <!-- ============ the pedal ============ -->
+  <div class="pedal-col">
+    <div class="pedal" id="pedal">
+      <i class="nub" data-side="l" style="top:21%"></i>
+      <i class="nub" data-side="l" style="top:51%"></i>
+      <i class="nub" data-side="l" style="top:78%"></i>
+      <i class="nub" data-side="r" style="top:21%"></i>
+      <i class="nub" data-side="r" style="top:51%"></i>
+      <i class="nub" data-side="r" style="top:78%"></i>
+
+      <svg class="arc" data-k="volume" viewBox="0 0 100 100" aria-hidden="true"></svg>
+      <svg class="arc" data-k="drive"  viewBox="0 0 100 100" aria-hidden="true"></svg>
+      <svg class="arc" data-k="tone"   viewBox="0 0 100 100" aria-hidden="true"></svg>
+
+      <button class="knob" data-k="volume" type="button"><span class="cap"></span></button>
+      <button class="knob" data-k="drive"  type="button"><span class="cap"></span></button>
+      <button class="knob" data-k="tone"   type="button"><span class="cap"></span></button>
+
+      <span class="klabel" data-k="volume">Volume</span>
+      <span class="klabel" data-k="drive">Drive</span>
+      <span class="klabel" data-k="tone">Tone</span>
+
+      <span class="toglbl" data-t="hp">HP</span>
+      <span class="toglbl" data-t="lp">LP</span>
+      <button class="tog" id="tog" type="button" aria-label="HP / LP switch"><span class="lever"></span><span class="base"></span></button>
+
+      <i class="led" id="led"></i>
+
+      <span class="wordmark">OCD</span>
+
+      <span class="gemark">
+        <span>Ge</span>
+        <svg viewBox="0 0 60 20" aria-hidden="true">
+          <line x1="0" y1="10" x2="20" y2="10" stroke="currentColor" stroke-width="2.2"/>
+          <polygon points="20,2 20,18 36,10" fill="currentColor"/>
+          <rect x="36" y="1.5" width="3.4" height="17" fill="currentColor"/>
+          <line x1="39.4" y1="10" x2="60" y2="10" stroke="currentColor" stroke-width="2.2"/>
+        </svg>
+      </span>
+
+      <button class="fsw" id="fsw" type="button" aria-label="Footswitch"></button>
+
+      <span class="maker"><b class="cs">Custom Shop</b><b class="ft">Fulltone</b></span>
+      <span class="usa">Built in the USA</span>
+    </div>
+    <div class="hint" id="hint"></div>
+    <p class="disclaim">The panel is drawn from Fulltone's own product shot, so the control positions and silkscreen are the pedal's. Nothing about the sound is modelled. The readout quotes what the manual says about each control, and tells you where the knob is now, in the clock positions the manual uses.</p>
+  </div>
+
+  <!-- ============ the readout ============ -->
+  <div class="readout">
+    <div class="rhead">
+      <h2>What you have right now</h2>
+      <span class="lbl" id="roMeta"></span>
+    </div>
+    <div id="krows"></div>
+    <div class="robox">
+      <h3 id="moTitle">Mode</h3>
+      <p id="moBody"></p>
+    </div>
+  </div>
+</div>
+
+<!-- ============ what you feed it ============ -->
+<section id="feed">
+  <div class="shead"><h2>What you feed it</h2><span class="rule"></span></div>
+  <p class="sdek">Page 1 of the manual is a letter signed by Michael Fuller, and nearly every
+  claim he makes for this pedal is about what reaches it rather than where its knobs sit: how
+  hard you pick, where your guitar's volume control is, and what voltage you run it on. None
+  of the three is on the enclosure. Set them here and you get his own sentence for where you
+  have them.</p>
+
+  <div class="feed">
+    <div class="fctl">
+      <label class="lbl" for="fPick">Picking</label>
+      <input id="fPick" type="range" min="0" max="100" value="50" step="1"
+             aria-describedby="fSay">
+      <div class="fends"><span>soft</span><span>hard</span></div>
+    </div>
+    <div class="fctl">
+      <label class="lbl" for="fGtr">Guitar volume</label>
+      <input id="fGtr" type="range" min="0" max="100" value="100" step="1"
+             aria-describedby="fSay">
+      <div class="fends"><span>rolled back</span><span>full</span></div>
+    </div>
+    <div class="fctl">
+      <span class="lbl">Supply</span>
+      <div class="seg" role="group" aria-label="Supply voltage">
+        <button type="button" data-v="9"  aria-pressed="true">9V</button>
+        <button type="button" data-v="18" aria-pressed="false">18V</button>
+      </div>
+      <div class="fends"><span>the included battery</span><span>Fuller's suggestion</span></div>
+    </div>
+  </div>
+
+  <div class="fsay" id="fSay" aria-live="polite"></div>
+
+  <div class="note flag" style="margin-top:14px">
+    <h4>Not in the manual</h4>
+    <p style="margin:0">Fuller puts no numbers on any of this — no threshold for the clipping,
+    no point on a guitar's volume control where the pedal cleans up, no measurement of the
+    difference between 9 and 18 volts. These three controls are positions on his description,
+    not values he gave, and nothing here models the sound.</p>
+  </div>
+</section>
+
+<!-- ============ the switch ============ -->
+<section id="switch">
+  <div class="shead"><h2>The HP/LP switch</h2><span class="rule"></span></div>
+  <p class="sdek">Both descriptions below are quoted from page 2; picking one here moves the toggle on the pedal too.</p>
+  <div class="modes" id="modes"></div>
+  <div class="note flag" style="margin-top:14px">
+    <h4>Not in the manual</h4>
+    <p style="margin:0">What the switch changes <b>in the circuit</b> is not documented. Page 2 gives the audible result only — HP is “increased distortion throughout the Drive Knob's range, more volume, and a slight increase in the midrange (between 1-2 Khz)”, LP is “incredible accuracy to the original sound of your Guitar and amp…very little coloration!” The only number page 2 puts on the difference is the output gain: “about 20dB of available gain (more in HP mode)”.</p>
+  </div>
+</section>
+
+<!-- ============ sample settings ============ -->
+<section id="settings">
+  <div class="shead"><h2>Fulltone's sample settings</h2><span class="rule"></span></div>
+  <p class="sdek">The two starting points printed on page 2, each with the pickup and amp it assumes. Both give Tone as “set to preference”, so loading one moves Volume, Drive and the toggle, and leaves the Tone knob where you had it.</p>
+  <div class="grid g2" id="samples"></div>
+</section>
+
+
+
+<!-- ============ the manual index ============ -->
+<section id="manual">
+  <div class="shead"><h2>Find it in the manual</h2><span class="rule"></span></div>
+  <p class="sdek">This page is a companion, not a replacement — when you want Fulltone's own words, or want to check something here against the source, these open the manual at the right page. The manual is two sheets, printed 1 and 2, so each number below is the printed page number and the PDF page number at once.</p>
+  <div class="mindex" id="mindex"></div>
+</section>
+
+<footer class="end">
+  <span><a href="https://www.fulltoneusa.com/pages/manuals" target="_blank" rel="noopener">fulltoneusa.com/pages/manuals</a></span>
+  <span>CS-OCD Ge · © 2024 FMP Inc.</span>
+</footer>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = s => document.querySelector(s);
+const clamp = (v,a=0,b=1) => Math.min(b, Math.max(a,v));
+const ang = v => -150 + v*300;      /* 0 = 7 o'clock, 1 = 5 o'clock */
+const pct = v => Math.round(v*100) + "%";
+
+function clockOf(v){
+  let r = Math.round(((ang(v)/30 + 12) % 12) * 2) / 2;
+  if (r >= 12) r -= 12;
+  if (r === 0)  return "12 noon";
+  if (r < 1)    return "12:30";
+  const hh = Math.floor(r);
+  return hh + ":" + ((r - hh) >= .5 ? "30" : "00");
+}
+/* clock landmarks as knob values, so the manual's "10 o'clock" and "12 o'clock"
+   are compared against the real sweep rather than eyeballed. Hours 6 and up sit
+   counter-clockwise of noon, so they take a negative angle. */
+const AT = h => clamp((((h >= 6 ? h - 12 : h) * 30) + 150) / 300);
+const TEN = AT(10), NOON = AT(12);   /* 0.30 and 0.50 */
+
+/* ---------------- geometry, taken off Fulltone's product shot ---------------- */
+const KPOS = { volume:[23.9,15.9], drive:[76.9,15.8], tone:[50.3,34.8] };
+const KLBL = { volume:[25.5,3.2],  drive:[76.1,3.6],  tone:[79.8,35.3] };
+
+/* ---------------- state ---------------- */
+/* Opens on the manual's Blues/Rock Rhythm setting. Fulltone leave Tone to preference
+   there, so Tone starts at the 12 o'clock they call neutral — not a recommendation. */
+const S = { volume:.40, drive:TEN, tone:NOON, hp:false, on:true, active:null,
+             pick:.5, gtr:1, volts:9 };
+
+/* ---------------- what the manual says about each control ---------------- */
+const KNOBS = [
+  {
+    k:"volume", n:"Volume",
+    says:"Page 2: “Controls the amount of signal that exits the pedal. The OCD has about 20dB of available gain (more in HP mode) so don't be surprised if you end up running the Volume control at around 10 o'clock to get unity gain on lower gain settings.”",
+    aside:"Page 1, on the audio taper fitted to the Ge: it “allows you to find the right volume without having to be super-careful around the lower third section of the pot's rotation.”",
+    live: v => {
+      if (v < TEN - .04) return "Below 10 o'clock, the position page 2 gives for unity gain on lower gain settings.";
+      if (v > TEN + .04) return "Above 10 o'clock, the position page 2 gives for unity gain on lower gain settings.";
+      return "At about 10 o'clock, the position page 2 gives for unity gain on lower gain settings.";
+    }
+  },
+  {
+    k:"drive", n:"Drive",
+    aside:"Page 1, on what Drive is pushing: the OCD “accomplishes its tube-like distortion through the unusual combination of overdriving its JFET opamp and additionally with the use of hard-clipping via a pair of MOSFETs to Vref.”",
+    says:"Page 2: “Turn this Clockwise (CW) for more distortion, keep below 10 o'clock for cleaner sounds and for boosting your amp's input without changing your basic tone”.",
+    live: v => (v <= TEN + .02
+      ? "Below 10 o'clock, where page 2 puts cleaner sounds and boosting the amp's input."
+      : "Past 10 o'clock, above the range page 2 gives for cleaner sounds and boosting the amp's input.")
+      + (S.hp ? " The toggle is in HP, which page 2 says gives “increased distortion throughout the Drive Knob's range”." : "")
+  },
+  {
+    k:"tone", n:"Tone",
+    aside:"Page 1, on what the germanium let Fuller change: its softer characteristics “allowed me to tweak some values to let through more highs, this results in more clarity without harshness when the tone control is turned up.”",
+    says:"Page 2: “This knob only affects the high frequencies, you'll find that 12 o'clock position is very much neutral, turn it CCW (counter clockwise) to 10 o'clock or so for smoother high-gain lead sounds (with Drive knob higher than 12 o'clock) or turn it clockwise for more cut, and a less compressed feel.”",
+    live: v => {
+      if (Math.abs(v - NOON) <= .035) return "At the 12 o'clock page 2 calls very much neutral.";
+      if (v < NOON) return "Counter-clockwise of noon, heading for the 10 o'clock page 2 gives for smoother high-gain lead sounds"
+        + (S.drive <= NOON ? ". Page 2 asks for the Drive knob higher than 12 o'clock alongside it, and Drive is below noon at the moment." : ", with Drive above 12 o'clock as page 2 asks.");
+      return "Clockwise of noon, the direction page 2 gives for more cut and a less compressed feel.";
+    }
+  }
+];
+
+/* ---------------- the two switch positions, Fulltone's words ---------------- */
+const MODES = {
+  hp: {
+    code:"HP", name:"High Peak",
+    p:"Page 2: “Set to HP (High Peak) you get increased distortion throughout the Drive Knob's range, more volume, and a slight increase in the midrange (between 1-2 Khz) for more of a ‘British’ vibe (ala Vox and Marshall)”.",
+    bul:["Page 2 on the gain: “about 20dB of available gain (more in HP mode)”", "Fulltone's Rock British Tones sample setting uses HP"]
+  },
+  lp: {
+    code:"LP", name:"Low Peak",
+    p:"Page 2: “Set to LP (Low Peak) you get incredible accuracy to the original sound of your Guitar and amp…very little coloration! Excellent for Clean Boosting, for cranked Blackface or Tweed-style ones, and for when you're not going for a British type sounds.”",
+    bul:["Fulltone's Blues/Rock Rhythm tones sample setting uses LP"]
+  }
+};
+
+/* ---------------- Fulltone's sample settings ---------------- */
+const SAMPLES = [
+  { t:"Blues/Rock Rhythm tones", sub:"Neck pickup, on a clean-set amp",
+    volume:.40, vLbl:"11 o'clock", drive:TEN, dLbl:"10 o'clock", hp:false },
+  { t:"Rock British Tones", sub:"Bridge pickup, on a clean-set amp",
+    volume:TEN, vLbl:"10 o'clock", drive:AT(1), dLbl:"1 o'clock", hp:true }
+];
+
+/* ---------------- the manual ---------------- */
+/* Two pages, and the manual numbers them straight: the sheet that prints "Page 2" is
+   PDF page 2, so a #page= fragment takes the printed number unchanged. */
+const MANUAL = "https://cdn.shopify.com/s/files/1/0845/8652/9070/files/CS-OCD-Ge_manual_USA.pdf";
+const pdfPage = p => p;
+const MANUAL_INDEX = [
+  ["Page 1 — Michael Fuller's letter", [
+    ["What the OCD is, and how it cleans up", 1],
+    ["JFET opamp and MOSFET clipping", 1],
+    ["Running it at 18 volts", 1],
+    ["Ge: germanium diodes", 1],
+    ["Ge: audio taper volume pot", 1],
+    ["Ge: a more open sound", 1]
+  ]],
+  ["Page 2 — controls and specifications", [
+    ["Drive knob", 2], ["Volume knob", 2], ["HP/LP switch", 2], ["Tone knob", 2],
+    ["Sample settings", 2], ["Specifications", 2],
+    ["DC power options and the battery", 2],
+    ["True-Bypass or Enhanced Bypass", 2],
+    ["Warranty", 2]
+  ]]
+];
+
+/* ---------------- build the panel ---------------- */
+const pedal = $("#pedal");
+KNOBS.forEach(def => {
+  const k = def.k;
+  [".knob", ".arc"].forEach(sel => {
+    const el = pedal.querySelector(sel + '[data-k="' + k + '"]');
+    el.style.left = KPOS[k][0] + "%"; el.style.top = KPOS[k][1] + "%";
+  });
+  const l = pedal.querySelector('.klabel[data-k="' + k + '"]');
+  l.style.left = KLBL[k][0] + "%"; l.style.top = KLBL[k][1] + "%";
+});
+/* the painted sweep arrow silkscreened round each knob, -150 deg to +150 deg */
+pedal.querySelectorAll(".arc").forEach(svg => {
+  svg.innerHTML =
+    '<path d="M31 82.9 A38 38 0 1 1 69 82.9"/>' +
+    '<polygon points="44.5,6.5 55,12 44.5,17.5" transform="rotate(150 50 50)"/>';
+});
+
+const krows = $("#krows");
+krows.innerHTML = KNOBS.map(d =>
+  '<div class="krow" data-row="' + d.k + '">' +
+    '<span class="pname">' + d.n + '</span>' +
+    '<span class="val"><span class="clock"></span> <span style="opacity:.6"></span></span>' +
+    '<p class="pdesc">' + d.says + '</p>' +
+    '<p class="pdesc live"><b>Now</b><span class="lv"></span></p>' +
+    (d.aside ? '<p class="pdesc aside">' + d.aside + '</p>' : '') +
+  '</div>').join("");
+
+$("#modes").innerHTML = ["hp","lp"].map(id => {
+  const m = MODES[id];
+  return '<button class="mode" type="button" data-m="' + id + '" aria-pressed="false">' +
+    '<span class="mtop"><span class="mcode">' + m.code + '</span>' +
+    '<span class="mname">' + m.name + '</span><span class="now">On the pedal</span></span>' +
+    '<p>' + m.p + '</p>' +
+    '<ul>' + m.bul.map(b => "<li>" + b + "</li>").join("") + '</ul></button>';
+}).join("");
+
+$("#samples").innerHTML = SAMPLES.map((s,i) =>
+  '<div class="card" style="display:flex;flex-direction:column">' +
+    '<h3>' + s.t + '</h3>' +
+    '<p style="margin-bottom:10px">' + s.sub + '</p>' +
+    '<div class="setrow">' +
+      '<span>Volume <b>' + s.vLbl + '</b></span>' +
+      '<span>Drive <b>' + s.dLbl + '</b></span>' +
+      '<span>Tone <b>to preference</b></span>' +
+      '<span>Toggle <b>' + (s.hp ? "HP" : "LP") + '</b></span>' +
+    '</div>' +
+    '<button class="btn" type="button" data-sample="' + i + '">Set the pedal</button>' +
+  '</div>').join("");
+
+$("#mindex").innerHTML = MANUAL_INDEX.map(([grp, rows]) =>
+  '<div class="grp lbl">' + grp + '</div>' +
+  rows.map(([t,p]) =>
+    '<a href="' + MANUAL + '#page=' + pdfPage(p) + '" target="_blank" rel="noopener">' +
+    '<span class="t">' + t + '</span><span class="n">pg. ' + p + '</span></a>').join("")
+).join("");
+
+/* ---------------- what you feed it ----------------
+   Three things Fuller's letter turns on that the enclosure has no control for. Each
+   entry is his sentence, or page 2's, for the position the reader has picked. */
+const FEED = {
+  pick: {
+    band: v => v < .34 ? "soft" : v > .66 ? "hard" : "medium",
+    q: "Fuller, page 1: the OCD “has a good bit more Dynamic-Range, meaning the difference between picking soft or picking hard will actually yield a more natural and wider range of distortion, with less compression than traditional diode-clipped overdrives.”",
+    ge: "And on why this one in particular: “A pair of matched Germanium diodes are used in conjunction with the pair of Mosfets. This not only widens the clipping threshold, but the clipping takes on the ‘soft-knee’ characteristics of the Germanium diodes, giving a tubey feel and enhancing Octave-up overtones.”"
+  },
+  gtr: {
+    band: v => v > .92 ? "full" : v < .35 ? "rolled well back" : "part way back",
+    q: "Fuller, page 1: “The OCD's can access a slew of other in-between sounds by simply turning up or down your guitar's volume control, in fact, no other pedal ‘cleans up’ like the OCD.”",
+    atFull: "That sentence is about moving this control, and it is at full here."
+  },
+  volts: {
+    9:  "Page 2: “You may run this pedal on the 9 volt battery (included) or on any voltage between 9 and 18 Volts DC as long as the adapter is (standard) 2.1mm x 5.5mm barrel plug with ‘Negative to Center Pin’ configuration.”",
+    18: "Fuller, page 1: “Try it at 18VDC and you get another level of dynamic range and clarity.” Page 2 puts it as “cleaner, louder, and more dynamic”."
+  },
+  hp: "The toggle is at HP, which page 2 says gives “increased distortion throughout the Drive Knob's range, more volume, and a slight increase in the midrange (between 1-2 Khz)” — so the same picking arrives harder than it does in LP."
+};
+
+const fSay = $("#fSay");
+function renderFeed(){
+  const pk = FEED.pick.band(S.pick), gv = FEED.gtr.band(S.gtr);
+  $("#fPick").value = Math.round(S.pick * 100);
+  $("#fGtr").value  = Math.round(S.gtr  * 100);
+  document.querySelectorAll(".seg button").forEach(b =>
+    b.setAttribute("aria-pressed", String(Number(b.dataset.v) === S.volts)));
+
+  const rows = [
+    ["Picking " + pk, FEED.pick.q + " " + FEED.pick.ge],
+    ["Guitar volume " + gv, FEED.gtr.q + (S.gtr > .92 ? " " + FEED.gtr.atFull : "")],
+    [S.volts + " volts", FEED.volts[S.volts]]
+  ];
+  if (S.hp) rows.push(["HP", FEED.hp]);
+  if (!S.on) rows.push(["Bypassed", "The footswitch has the pedal bypassed, so none of this is reaching your sound."]);
+  fSay.innerHTML = rows.map(([k, t]) =>
+    '<p class="fline"><span class="fk">' + k + "</span>" + t + "</p>").join("");
+}
+
+/* ---------------- render ---------------- */
+const hintEl = $("#hint");
+function say(text, live){
+  hintEl.innerHTML = (live ? "<b>Live</b> " : "") + text;
+  hintEl.dataset.live = String(!!live);
+}
+
+function render(){
+  KNOBS.forEach(d => {
+    const v = S[d.k];
+    const knob = pedal.querySelector('.knob[data-k="' + d.k + '"]');
+    knob.querySelector(".cap").style.transform = "rotate(" + ang(v) + "deg)";
+    knob.classList.toggle("active", S.active === d.k);
+    knob.setAttribute("aria-label", d.n + " — " + clockOf(v) + ", " + pct(v));
+
+    const row = krows.querySelector('[data-row="' + d.k + '"]');
+    row.classList.toggle("active", S.active === d.k);
+    row.querySelector(".clock").textContent = clockOf(v);
+    row.querySelector(".val span:last-child").textContent = pct(v);
+    row.querySelector(".lv").textContent = d.live(v);
+  });
+
+  const tog = $("#tog");
+  tog.dataset.hp = String(S.hp);
+  tog.setAttribute("aria-label", "HP / LP switch — currently " + (S.hp ? "HP, High Peak" : "LP, Low Peak"));
+  document.querySelectorAll(".toglbl").forEach(l =>
+    l.dataset.on = String((l.dataset.t === "hp") === S.hp));
+
+  $("#led").dataset.on = String(S.on);
+  $("#fsw").setAttribute("aria-label", "Footswitch — pedal is " + (S.on ? "engaged" : "bypassed"));
+
+  const m = MODES[S.hp ? "hp" : "lp"];
+  $("#moTitle").textContent = m.code + " · " + m.name;
+  $("#moBody").innerHTML = m.p + (S.on ? "" :
+    ' <b>The footswitch is bypassing the pedal at the moment, so the toggle is not doing any of this to your sound.</b>');
+
+  $("#roMeta").textContent = (S.on ? "Engaged" : "Bypassed") + " · " + m.code;
+  document.querySelectorAll(".mode").forEach(b =>
+    b.setAttribute("aria-pressed", String((b.dataset.m === "hp") === S.hp)));
+
+  renderFeed();
+}
+
+/* ---------------- knobs ---------------- */
+KNOBS.forEach(d => {
+  const el = pedal.querySelector('.knob[data-k="' + d.k + '"]');
+  let drag = null;
+  const bump = dv => {
+    S[d.k] = clamp(S[d.k] + dv); S.active = d.k;
+    say(d.n + " at " + clockOf(S[d.k]) + ". " + d.live(S[d.k]), true);
+    render();
+  };
+  el.addEventListener("pointerdown", e => {
+    drag = { y:e.clientY, x:e.clientX, v:S[d.k] };
+    try { el.setPointerCapture(e.pointerId); } catch (err) { /* no active pointer */ }
+    S.active = d.k; render(); e.preventDefault(); el.focus();
+  });
+  el.addEventListener("pointermove", e => {
+    if (!drag) return;
+    S[d.k] = clamp(drag.v + ((drag.y - e.clientY) + (e.clientX - drag.x)) / 200);
+    S.active = d.k;
+    say(d.n + " at " + clockOf(S[d.k]) + ". " + d.live(S[d.k]), true);
+    render();
+  });
+  const end = () => { drag = null; };
+  el.addEventListener("pointerup", end);
+  el.addEventListener("pointercancel", end);
+  el.addEventListener("keydown", e => {
+    const step = e.shiftKey ? .01 : .04;
+    if (e.key === "ArrowUp"   || e.key === "ArrowRight"){ bump(step);  e.preventDefault(); }
+    if (e.key === "ArrowDown" || e.key === "ArrowLeft" ){ bump(-step); e.preventDefault(); }
+    if (e.key === "Home"){ S[d.k] = 0; bump(0); e.preventDefault(); }
+    if (e.key === "End" ){ S[d.k] = 1; bump(0); e.preventDefault(); }
+  });
+  el.addEventListener("focus", () => { S.active = d.k; render(); });
+  el.addEventListener("blur",  () => { if (S.active === d.k){ S.active = null; render(); } });
+});
+
+/* ---------------- switch, footswitch, mode cards, samples ---------------- */
+function setMode(hp){
+  S.hp = hp;
+  const m = MODES[hp ? "hp" : "lp"];
+  say(m.code + ", " + m.name + ". " + m.p, true);
+  render();
+}
+$("#tog").addEventListener("click", () => setMode(!S.hp));
+document.querySelectorAll(".mode").forEach(b =>
+  b.addEventListener("click", () => setMode(b.dataset.m === "hp")));
+
+$("#fsw").addEventListener("click", () => {
+  S.on = !S.on;
+  say(S.on ? "Engaged. The LED is lit."
+           : "Bypassed. Which kind of bypass you get depends on the switch inside the enclosure: True-Bypass or Enhanced Bypass.", true);
+  render();
+});
+
+document.querySelectorAll("[data-sample]").forEach(b =>
+  b.addEventListener("click", () => {
+    const s = SAMPLES[Number(b.dataset.sample)];
+    S.volume = s.volume; S.drive = s.drive; S.hp = s.hp;
+    say(s.t + " loaded — Volume " + s.vLbl + ", Drive " + s.dLbl + ", toggle " +
+        (s.hp ? "HP" : "LP") + ". Page 2 gives Tone as “set to preference”, so the Tone knob has not moved.", true);
+    render();
+    document.querySelector(".pedal").scrollIntoView({ behavior:"smooth", block:"center" });
+  }));
+
+$("#fPick").addEventListener("input", e => {
+  S.pick = Number(e.target.value) / 100;
+  say("Picking " + FEED.pick.band(S.pick) + ". " + FEED.pick.q, true); render();
+});
+$("#fGtr").addEventListener("input", e => {
+  S.gtr = Number(e.target.value) / 100;
+  say("Guitar volume " + FEED.gtr.band(S.gtr) + ". " + FEED.gtr.q, true); render();
+});
+document.querySelectorAll(".seg button").forEach(b =>
+  b.addEventListener("click", () => {
+    S.volts = Number(b.dataset.v);
+    say(S.volts + " volts. " + FEED.volts[S.volts], true); render();
+  }));
+
+say("Drag a knob, flip the toggle, or step on the footswitch. The pedal starts on Fulltone's Blues/Rock Rhythm tones setting, which gives Tone as “set to preference”, so Tone is parked at the 12 o'clock page 2 calls very much neutral.", false);
+render();
+})();
+</script>

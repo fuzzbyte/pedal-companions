@@ -2,66 +2,64 @@ pedal-companions — third-party material
 =======================================
 
 The MIT licence in LICENSE covers the code and the original work here: the
-HTML, CSS and JavaScript, the drawings of the enclosures, the shelf on the
-homepage, the layout and the interaction design.
+HTML, CSS and JavaScript, the SVG drawings of the pedals, the layout and the
+interaction design.
 
-It does not cover the material below, which belongs to the makers of the pedals
+It does not cover the material below, which belongs to the manufacturers named
 and is not ours to sublicense. The MIT grant should not be read as doing so.
 
 
 Descriptions taken from the manuals
 -----------------------------------
 
-Each companion says what a control does in the manual's own words, quoted and
-attributed to the printed page it came from rather than rewritten. That text is
-its maker's, not ours:
+Each companion quotes its maker's own manual rather than paraphrasing it, so
+the writing describing what a control does is largely theirs:
 
-  Chase Bliss Lost + Found   the twenty-four mode descriptions, the per-mode
-                             tips and the knob descriptions — roughly 1,400
-                             words. Copyright Chase Bliss Audio.
+  Chase Bliss Audio — Lost + Found. The twenty-four mode descriptions, the
+  per-mode tips and the knob descriptions, quoted or closely adapted from the
+  Lost + Found manual. Roughly 1,400 words.
 
-  Strymon Volante            the knob and switch descriptions, quoted by
-                             printed page — roughly 550 words. Copyright
-                             Strymon.
+  Strymon — Volante. The knob and switch descriptions and the notes on the
+  machine types, quoted from the Volante user manual, Rev E. A few hundred
+  words.
 
-  Fulltone OCD-Germanium     the knob and HP/LP descriptions, and passages from
-                             Michael Fuller's letter on page 1 — roughly 700
-                             words. Copyright Fulltone.
+  Fulltone — OCD-Germanium. The control descriptions and the notes on power
+  and gain, quoted from the CS-OCD-Ge manual. A few hundred words.
 
-The rest of each page — the drawing of the enclosure, the working model of what
-the controls do to timing or gain, the index of the printed manual, and the
-notes marked as inferred rather than documented — was written for this site and
-is covered by the MIT licence.
+Copyright in that text remains with the manufacturer it came from.
 
-No manual is reproduced here in full, and there is no PDF in this repository.
-Every link at a manual opens the maker's own copy of it.
+The rest — the drawings of the enclosures, the mode-picker, the printed-page
+indexes, the glosses on the makers' terms of art, and the notes marked as
+inferred rather than documented — was written for this site and is covered by
+the MIT licence.
 
 
-Product photographs
+Product photography
 -------------------
 
-The homepage carries one photograph of each pedal, downloaded from that maker's
-own site and normalized for the shelf: background removed, trimmed to the
-pedal, centred on a common canvas at a common scale.
-
-  images/chase-bliss-lost-and-found.webp   Chase Bliss Audio
-  images/strymon-volante.webp              Strymon
-  images/fulltone-ocd-germanium.webp       Fulltone
-
-Each remains the property of its maker, and is used here only to identify the
-pedal whose companion sits behind it.
+The index page carries one product photograph per pedal, taken from each
+manufacturer's own site and processed for this index — background removed,
+trimmed and centred on a common canvas. The processing is ours; the
+photographs are not. Copyright in each remains with the manufacturer that
+published it.
 
 
 Trademarks
 ----------
 
-Chase Bliss Audio and Lost + Found are trademarks of Chase Bliss Audio.
-Strymon and Volante are trademarks of Strymon.
-Fulltone, OCD and Obsessive Compulsive Drive are trademarks of Fulltone.
+The manufacturer and pedal names used here — among them Chase Bliss Audio,
+Strymon, Fulltone, Walrus Audio, JHS, Kinotone, Keeley, JAM Pedals,
+Electro-Harmonix and Gamechanger Audio — are the trademarks of their
+respective owners, used only to identify the pedal each page is about. This
+project is not affiliated with, endorsed by, or connected to any of them.
 
-All are used here only to identify the pedals these pages are about. This
-project is not affiliated with, endorsed by, or connected to any of these
-companies.
+
+No manuals
+----------
+
+No manual is reproduced here in full and there is no PDF in this repository.
+Every link to a manual points at the manufacturer's own copy on their own
+site.
 
 
 Removal

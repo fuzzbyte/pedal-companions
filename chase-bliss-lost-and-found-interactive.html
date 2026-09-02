@@ -434,13 +434,11 @@ h1 .thin{display:block;font-weight:500;font-size:.24em;letter-spacing:.22em;colo
   border-radius:10px;background:var(--surface);font-size:.86rem;color:var(--ink-2);line-height:1.45}
 .hint[data-live="true"]{border-style:solid;border-color:var(--acc);color:var(--ink)}
 .hint b{font-family:"Archivo",sans-serif;font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;color:var(--acc-text)}
-/* A dip switch answers in two voices: Chase Bliss's sentence, in quotation marks with the
-   page it is on, and then ours underneath it carrying no page number -- which is how the
-   reader tells one from the other without being told. */
+/* A dip switch answers in Chase Bliss's own sentences, in quotation marks, each with a
+   link to the page it is printed on. */
 .hint .hbody{flex:1 1 auto;min-width:0}
 .hint .hq{color:var(--ink)}
 .hint .hpg{font-family:"DM Mono",monospace;font-size:.72rem;white-space:nowrap}
-.hint .hgl{color:var(--ink-2)}
 .pedal-actions{display:flex;gap:8px;flex-wrap:wrap}
 
 /* which enclosure you own */
@@ -731,10 +729,19 @@ section{padding-top:var(--step)}
    which six modes this box is even showing -- so it belongs beside them rather than only
    on the enclosure. Amber rather than the channel accent, because it is not the channel's
    own control and because the note it raises below is amber too. */
+.bswap{color:var(--ink-2)}
+.bswap .track{border-color:var(--ink-3)}
+.bswap .thumb{background:var(--ink-2)}
 .bswap:hover .track{border-color:var(--warn)}
 .bswap[aria-pressed="true"]{color:var(--warn)}
 .bswap[aria-pressed="true"] .track{background:var(--warn);border-color:var(--warn)}
 .bswap .bswn{letter-spacing:.13em}
+/* the three positions this switch is reaching right now: the enclosure's own numerals,
+   in the enclosure's own face, so they read against the chips in the rows below */
+.bswap .bswset{font-family:"DM Mono",monospace;font-size:11px;font-weight:400;letter-spacing:.02em;
+  text-transform:none;color:var(--ink-2);padding:1px 5px;border-radius:5px;border:1px solid var(--line)}
+.bswap[aria-pressed="true"] .bswset{color:var(--warn);border-color:color-mix(in oklab,var(--warn) 45%,transparent)}
+.bswap:hover .bswset{color:var(--ink)}
 .bh .who{font-family:"Archivo",sans-serif;font-size:11px;font-weight:700;letter-spacing:.13em;text-transform:uppercase}
 .bch[data-ch="L"] .bh .who{color:var(--accL)} .bch[data-ch="R"] .bh .who{color:var(--accR)}
 .bh .silk{font-family:"DM Mono",monospace;font-size:10.5px;color:var(--ink-3)}
@@ -778,8 +785,6 @@ section{padding-top:var(--step)}
 .pm:hover{border-color:var(--acc);color:var(--ink)}
 .pm.on{border-color:var(--acc);background:color-mix(in oklab,var(--acc) 15%,var(--surface));color:var(--ink)}
 .pm.on i{color:var(--acc)}
-.bnote{margin:8px 0 0;font-size:.8rem;line-height:1.4;color:var(--warn)}
-.bnote b{font-family:"Archivo",sans-serif;font-weight:700}
 
 /* the manual index */
 .mindex{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:10px 22px}
@@ -1077,17 +1082,14 @@ const LSET = MODES.filter(m => m.set === "L");
 const RSET = MODES.filter(m => m.set === "R");
 
 /* ---------------- dip switches ----------------
-   Two voices per switch, kept apart. `cb` holds Chase Bliss's own sentences with the
-   printed page each is on, quoted rather than paraphrased; `gloss` is this page's words,
-   printed under the quotation with no page number, so a reader can tell whose is whose
-   without being told.
+   Every switch says what Chase Bliss say about it and nothing else: `cb` holds their own
+   sentences with the printed page each is on, quoted rather than paraphrased.
 
-   The eight yellow switches each get a description of their own on pg. 40 and 41, so all
-   eight are quotable. The eight red ones never do: pg. 42 names them in a diagram and
-   then teaches ramping as four numbered steps, which leaves BOUNCE, SWEEP and POLARITY
-   defined nowhere. Where a sentence about ramping covers one of them it is quoted here
-   too; POLARITY has no quote at all, because the manual gets as far as "3. Choose the
-   polarity." and no further. */
+   The eight yellow switches each get a description of their own on pg. 40 and 41. The
+   eight red ones never do -- pg. 42 names them in a diagram and then teaches ramping as
+   four numbered steps -- so those take the sentences from the ramping and external
+   control pages that cover them. POLARITY is the thin one: the manual gets as far as
+   listing it as a step and no further, and that is what it gets here. */
 const RAMPON = "Ramping is engaged as soon as the dip switch for a corresponding knob is set to ON. At this point, the MIX knob automatically changes to control the ramp speed.";
 const EXPSAME = "CV and expression are set up the same way as ramping using the dip switches on the top of the pedal.";
 const DIPS = [
@@ -1106,39 +1108,33 @@ const DIPS = [
   {k:"trails", nm:"TRAILS", kind:"yellow",
    cb:[["Allows the effects to naturally fade out after the pedal is bypassed.",41]]},
   {k:"bank", nm:"BANK", kind:"yellow",
-   cb:[["Switches over to an alternate bank of internal presets, giving you access to two additional slots on the pedal (Presets 3 and 4). Save and recall are performed as usual (pg. 16).",41]],
-   gloss:"The preset toggle keeps its two positions; this is which pair of slots they land on."},
+   cb:[["Switches over to an alternate bank of internal presets, giving you access to two additional slots on the pedal (Presets 3 and 4). Save and recall are performed as usual (pg. 16).",41]]},
   {k:"rLtime", nm:"L TIME", kind:"ramp", cb:[[RAMPON,43],[EXPSAME,44]]},
-  {k:"rLmodify", nm:"L MODIFY", kind:"ramp", cb:[[RAMPON,43],[EXPSAME,44]],
-   gloss:"MODIFY picks the mode either side of noon, so a movement wide enough to cross noon carries the channel into the other mode."},
-  {k:"rblend", nm:"BLEND", kind:"ramp", cb:[[RAMPON,43],[EXPSAME,44]],
-   gloss:"In the parallel routing that pans between the two channels; in series it rides how much of the second effect you hear."},
-  {k:"rRmodify", nm:"R MODIFY", kind:"ramp", cb:[[RAMPON,43],[EXPSAME,44]],
-   gloss:"MODIFY picks the mode either side of noon, so a movement wide enough to cross noon carries the channel into the other mode."},
+  {k:"rLmodify", nm:"L MODIFY", kind:"ramp", cb:[[RAMPON,43],[EXPSAME,44]]},
+  {k:"rblend", nm:"BLEND", kind:"ramp", cb:[[RAMPON,43],[EXPSAME,44]]},
+  {k:"rRmodify", nm:"R MODIFY", kind:"ramp", cb:[[RAMPON,43],[EXPSAME,44]]},
   {k:"rRtime", nm:"R TIME", kind:"ramp", cb:[[RAMPON,43],[EXPSAME,44]]},
   {k:"bounce", nm:"BOUNCE", kind:"ramp",
    cb:[["Ramping gives you the ability to automate Lost + Found’s knobs, either as a one-time movement (ramp) or continuous motion (bounce).",42],
-       ["Ramp is the same idea, but the movement only happens once when you turn the pedal on. Your chosen knob(s) either rise or fall to the position set by the knob, then stay there.",43]],
-   gloss:"Up is bounce, down is ramp. Neither does anything until one of the five knob switches to its left is up — those pick which knobs move, this one picks whether they keep moving."},
+       ["Ramp is the same idea, but the movement only happens once when you turn the pedal on. Your chosen knob(s) either rise or fall to the position set by the knob, then stay there.",43],
+       [RAMPON,43]]},
   {k:"sweep", nm:"SWEEP", kind:"ramp",
-   cb:[["The position of the knob you’re controlling is important because it either sets the maximum or minimum point of the range (depending on the SWEEP setting).",43]],
-   gloss:"Chase Bliss label the two positions (B)ottom and (T)op. Either way the knob stays where you left it and that becomes one end of the travel; SWEEP is which end, and the movement runs to the other."},
+   cb:[["The position of the knob you’re controlling is important because it either sets the maximum or minimum point of the range (depending on the SWEEP setting).",43]]},
   {k:"polarity", nm:"POLARITY", kind:"ramp",
-   gloss:"Which end of an expression pedal or CV signal lines up with which end of the sweep — whether heel-down is the bottom of the range or the top. Ramping and bouncing have no outside signal to orient against, so this one only bites with something plugged into the EXP/CV jack."}
+   cb:[[EXPSAME,44],
+       ["1. Choose which knob(s) you wish to control. 2. Choose the sweep. 3. Choose the polarity. 4. Set the range.",45]]}
 ];
 const DIP = {}; DIPS.forEach(d => DIP[d.k] = d);
 
 /* Two renderings of an entry: one for the hint strip, which can carry a link to the page
    the quotation is on, and one for a title attribute, which cannot. */
 function dipHint(d){
-  const q = (d.cb || []).map(([t,pg]) =>
+  return '<span class="hbody">' + d.cb.map(([t,pg]) =>
     '<span class="hq">\u201c' + t + '\u201d</span> <a class="hpg" href="' + MANUAL + '#page=' + pdfPage(pg) +
-    '" target="_blank" rel="noopener">pg. ' + pg + '</a>').join(" ");
-  return '<span class="hbody">' + q + (d.gloss ? (q ? " " : "") + '<span class="hgl">' + d.gloss + '</span>' : "") + '</span>';
+    '" target="_blank" rel="noopener">pg. ' + pg + '</a>').join(" ") + '</span>';
 }
 function dipText(d){
-  return (d.cb || []).map(([t,pg]) => '\u201c' + t + '\u201d \u2014 Chase Bliss, pg. ' + pg)
-    .concat(d.gloss ? [d.gloss] : []).join("\n\n");
+  return d.cb.map(([t,pg]) => '\u201c' + t + '\u201d \u2014 Chase Bliss, pg. ' + pg).join("\n\n");
 }
 
 /* ---------------- presets ----------------
@@ -1454,6 +1450,10 @@ function renderBoard(){
        so it belongs here as well as on the strip -- same switch, same state, either one
        flips it. */
     const swd = DIP[ch === "L" ? "lswap" : "rswap"];
+    /* The silkscreen never moves, so the numbers the switch is actually reaching are the
+       other channel's once SWAP is up. Printing them on the toggle is the answer to the
+       question the toggle raises. */
+    const reach = SILK[(swapped ? (ch === "L" ? "R" : "L") : ch) + "sw"].join(" ");
     let h = '<div class="bch'+((!c.on && S.layer !== "hidden") ? " dim" : "")+'" data-ch="'+ch+'">' +
       '<div class="bh"><span class="whobox"><span class="who">'+(ch === "L" ? "Left" : "Right")+' Channel</span>' +
       '<button class="ben" data-eng="'+ch+'" aria-pressed="'+String(!!c.on)+'" role="switch">' +
@@ -1462,7 +1462,7 @@ function renderBoard(){
       '<button class="bswap" data-swap="'+swd.k+'" aria-pressed="'+String(!!swapped)+'" role="switch" title="'+
         dipText(swd).replace(/"/g,"&quot;")+'">' +
       '<span class="track"><span class="thumb"></span></span>' +
-      '<span class="bswn">'+swd.nm+'</span></button>' +
+      '<span class="bswn">'+swd.nm+'</span><span class="bswset">'+reach+'</span></button>' +
       '</div>';
     h += '<div class="bcols"><span>Type</span>' +
       [0,1].map(side => '<span class="'+(!nul && ((c.modify < .5) === (side === 0)) ? "on" : "")+'">' +
@@ -1478,8 +1478,6 @@ function renderBoard(){
                  '<i>'+m.code+'</i>'+m.name+'</button>';
         }).join("") + '</div>';
     }
-    if (swapped) h += '<p class="bnote"><b>'+ch+' SWAP is up.</b> The enclosure still reads ' +
-      silk.join(" ") + ' — it always does — but this switch is reaching the other six.</p>';
     return h + '</div>';
   })(ch); });
 }
@@ -1607,21 +1605,14 @@ function knobRow(lo, hi, v, centre, path){
 function renderChan(ch){
   const c = S[ch], m = modeOf(ch), el = $("#chan"+ch), h = S.layer === "hidden";
   const nul = isNull(ch);
-  const swapped = ch === "L" ? S.dips.lswap : S.dips.rswap;
 
   /* The name, then what the mode is, then the controls: the mode's own line is what the
      reader wants the moment MODIFY lands on it, so it sits against the name rather than
      under the knob grid. It changes length with the mode, which used to shove the knobs
-     down the page as you turned -- .blurb reserves five lines for it. The SWAP caveat
-     stays below the grid: it appears on one channel at a time, so carrying it up here
-     would drop that channel's knobs out of line with the other's. */
+     down the page as you turned -- .blurb reserves five lines for it. */
   const blurb = '<div class="blurb">'+(nul
       ? "MODIFY is at noon, so this channel makes no sound of its own. Engage it anyway and you have GLUE as a standalone compressor and saturator."
       : m.blurb)+'</div>';
-  const chnote = '<div class="chnote">' + (swapped
-    ? '<div class="hold" style="margin:0"><b>'+ch+' SWAP is up</b>The silkscreen still reads '+(ch==="L"?"1 2 3":"4 5 6")+' \u2014 it always does \u2014 but this toggle is selecting '+(ch==="L"?"4, 5 and 6":"1, 2 and 3")+'. Right now it is on '+m.num+'.</div>'
-    : '') + '</div>';
-
   let html = '<div class="ch-h"><span class="code">'+(nul ? m.num : m.code)+'</span><h3>'+(nul ? "No effect" : m.name)+'</h3>' +
     (nul ? '' : '<a class="chpg" href="'+MANUAL+'#page='+pdfPage(m.pg)+'" target="_blank" rel="noopener">manual pg. '+m.pg+'</a>') + '</div>' +
     blurb;
@@ -1647,7 +1638,6 @@ function renderChan(ch){
       knobCell("dark", "thin", c.eq, true, ch+".eq"), true, ch+"eq") +
     '</div>';
 
-  html += chnote;
   html += '<div class="hold"><b>Hold the '+ch.toLowerCase()+' footswitch \u2014 '+m.hold.n+'</b>'+m.hold.d+'</div>';
   html += '<div class="tip">Manual&rsquo;s tip: '+m.tip+'</div>';
   el.innerHTML = html;

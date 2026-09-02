@@ -43,13 +43,20 @@
 
 const CSS = [
 ".sharewrap{flex:none;position:relative;display:inline-flex}",
+/* This sits beside .themetoggle, which wears the inverted palette and so carries real
+   contrast. Drawn in --line and --ink-3 the button disappeared next to it, so it takes
+   the same weight instead: filled in the page's own ink, which lands on the same side of
+   the palette as --tt-surface in both themes. Those --tt-* values are not defined on
+   every companion, so this uses tokens every page has. */
 ".sharebtn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;",
-"  border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink-3);cursor:pointer;",
-"  transition:color .15s,border-color .15s}",
-".sharebtn:hover{color:var(--ink);border-color:var(--ink-3)}",
+"  border:1px solid transparent;border-radius:8px;background:var(--ink);color:var(--bg);cursor:pointer;",
+"  transition:opacity .15s}",
+".sharebtn:hover{opacity:.82}",
 ".sharebtn svg{display:block;width:15px;height:15px}",
-".sharebtn[data-mod='1']::after{content:'';position:absolute;top:2px;right:2px;width:5px;height:5px;border-radius:50%;",
-"  background:var(--acc-text,var(--accent-text));box-shadow:0 0 0 2px var(--surface)}",
+/* Outside the corner, so the dot sits on --bg and keeps the accent's normal contrast
+   rather than fighting the filled button behind it. */
+".sharebtn[data-mod='1']::after{content:'';position:absolute;top:-3px;right:-3px;width:7px;height:7px;border-radius:50%;",
+"  background:var(--acc-text,var(--accent-text));box-shadow:0 0 0 2px var(--bg)}",
 ".sharepop{position:absolute;top:38px;right:0;z-index:60;width:min(330px,calc(100vw - 32px));",
 "  background:var(--surface);border:1px solid var(--line);border-radius:var(--r,12px);box-shadow:var(--shadow);",
 "  padding:14px;font-family:'Archivo',system-ui,sans-serif;font-size:13px;line-height:1.45;color:var(--ink);",
@@ -328,6 +335,9 @@ function init(cfg){
           '<input type="text" placeholder="Name it to save" maxlength="60" aria-label="Name for this setting">' +
           '<button class="sp-b" data-act="save">Save</button>' +
         '</div>' +
+        /* Where a page holds something a link cannot carry, it says so here rather than
+           letting the reader find out by sending one. */
+        (cfg.caveat ? '<p class="sp-note">' + esc(cfg.caveat) + '</p>' : '') +
         (now === DEFAULT ? ''
           : '<p class="sp-note">Not the setting the page opens on. ' +
             '<button class="sp-b" style="padding:1px 7px;font-size:11.5px;vertical-align:1px" data-act="reset">Reset</button></p>') +

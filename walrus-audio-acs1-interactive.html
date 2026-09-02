@@ -1,0 +1,1641 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ACS1 Amp by Cab</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23C7912B'/><circle cx='16' cy='16' r='9.2' fill='none' stroke='%23231A0E' stroke-width='2.8'/><circle cx='16' cy='16' r='3.4' fill='%23231A0E'/></svg>">
+<script>
+/* Theme: apply the reader's stored pick before first paint, then wire the header toggle. */
+(function(){
+  var root = document.documentElement, KEY = "pedal-theme";
+  try {
+    var saved = localStorage.getItem(KEY);
+    if (saved === "light" || saved === "dark") root.dataset.theme = saved;
+  } catch(e){}
+  var isDark = function(){
+    return root.dataset.theme ? root.dataset.theme === "dark"
+                              : matchMedia("(prefers-color-scheme: dark)").matches;
+  };
+  addEventListener("DOMContentLoaded", function(){
+    var btn = document.querySelector(".themetoggle");
+    if (!btn) return;
+    var sync = function(){
+      var label = "Switch to the " + (isDark() ? "light" : "dark") + " theme";
+      btn.setAttribute("aria-label", label);
+      btn.title = label;
+    };
+    btn.addEventListener("click", function(){
+      root.dataset.theme = isDark() ? "light" : "dark";
+      try { localStorage.setItem(KEY, root.dataset.theme); } catch(e){}
+      sync();
+    });
+    sync();
+  });
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=DM+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap">
+
+<style>
+/* ---------- tokens: light is the bare :root, dark redefines ---------- */
+:root{
+  --bg:#F2EDE2;
+  --surface:#FBF8F0;
+  --surface-2:#EAE2D2;
+  --line:#D8CEB9;
+  --line-soft:#E5DCCA;
+  --ink:#1C1810;
+  --ink-2:#59503E;
+  --ink-3:#8B8270;
+  --tint:#0F0C06;
+  --shadow:0 1px 0 rgba(28,24,16,.04), 0 12px 32px -20px rgba(28,24,16,.45);
+
+  --accent:#B5811A;
+  --accent-text:#8C6210;
+  --warn:#A85A1C;
+
+  --r:14px;
+  --step:clamp(2.6rem, 5vw, 4.4rem);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12100B;
+    --surface:#1B1811;
+    --surface-2:#241F16;
+    --line:#35301F;
+    --line-soft:#29241A;
+    --ink:#EEE7D6;
+    --ink-2:#ABA189;
+    --ink-3:#746B57;
+    --tint:#FFF8E9;
+    --shadow:0 1px 0 rgba(255,255,255,.02), 0 16px 40px -24px rgba(0,0,0,.9);
+    --accent:#DFAE4C;
+    --accent-text:#E8BE68;
+    --warn:#DC9A5B;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12100B;
+  --surface:#1B1811;
+  --surface-2:#241F16;
+  --line:#35301F;
+  --line-soft:#29241A;
+  --ink:#EEE7D6;
+  --ink-2:#ABA189;
+  --ink-3:#746B57;
+  --tint:#FFF8E9;
+  --shadow:0 1px 0 rgba(255,255,255,.02), 0 16px 40px -24px rgba(0,0,0,.9);
+  --accent:#DFAE4C;
+  --accent-text:#E8BE68;
+  --warn:#DC9A5B;
+}
+
+/* constants — sampled from Walrus Audio's own top-down photograph */
+:root{
+  --case-hi:#E2B14B;
+  --case:#C7912B;
+  --case-lo:#9C6D17;
+  --silk:#2C2A22;
+  --silk-2:rgba(44,42,34,.62);
+
+  --led-red:#E24136;
+  --led-green:#33BE60;
+  --led-blue:#3E86E8;
+  --led-purple:#9B5BD8;
+  --led-white:#F3EFE4;
+}
+
+/* ---------- base ---------- */
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Newsreader",Georgia,"Times New Roman",serif;
+  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased;
+}
+#app{max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 96px}
+h1,h2,h3,h4,.lbl,.mono,button,th{font-family:"Archivo",system-ui,-apple-system,"Helvetica Neue",sans-serif}
+h1,h2,h3{text-wrap:balance;margin:0}
+.mono,code{font-family:"DM Mono","SFMono-Regular",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+a{color:var(--accent-text)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+
+.lbl{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.lbl-a{color:var(--accent-text)}
+.brandline .unoff{font-weight:700;color:var(--accent-text)}
+
+/* ---------- masthead ---------- */
+header.top{padding:clamp(40px,7vw,84px) 0 clamp(24px,4vw,40px)}
+.backlink{flex:none;display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);text-decoration:none;padding-right:12px;border-right:1px solid var(--line)}
+.backlink:hover{color:var(--ink)}
+.backlink .bk-arrow{font-size:13px;letter-spacing:0;transition:transform .14s ease}
+.backlink:hover .bk-arrow{transform:translateX(-3px)}
+@media (max-width:560px){.brandline{flex-wrap:wrap}.backlink{flex-basis:100%;border-right:0;padding-right:0;margin-bottom:2px}}
+/* The page follows the OS until the reader picks a side; after that [data-theme] on
+   <html> wins, and the pick is remembered. The button is an invitation to swap, so it
+   wears the theme it offers: a moon in dark colours on a light page, a sun in light
+   colours on a dark page. --tt-* is the opposite palette, cross-wired for that reason,
+   and held here rather than beside the tokens it inverts. */
+:root{color-scheme:light;--tt-surface:#1B1811;--tt-line:#35301F;--tt-ink:#EEE7D6;--tt-ink-3:#746B57}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;--tt-surface:#FBF8F0;--tt-line:#D8CEB9;--tt-ink:#1C1810;--tt-ink-3:#8B8270}}
+:root[data-theme="dark"]{color-scheme:dark;--tt-surface:#FBF8F0;--tt-line:#D8CEB9;--tt-ink:#1C1810;--tt-ink-3:#8B8270}
+.themetoggle{flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;
+  border:1px solid var(--tt-line);border-radius:8px;background:var(--tt-surface);color:var(--tt-ink-3);cursor:pointer;
+  transition:color .15s,border-color .15s}
+.themetoggle:hover{color:var(--tt-ink);border-color:var(--tt-ink-3)}
+.themetoggle svg{display:block;width:15px;height:15px}
+.themetoggle .i-sun{display:none}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .themetoggle .i-moon{display:none}
+  :root:not([data-theme="light"]) .themetoggle .i-sun{display:block}
+}
+:root[data-theme="dark"] .themetoggle .i-moon{display:none}
+:root[data-theme="dark"] .themetoggle .i-sun{display:block}
+.brandline{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.brandline .rule{flex:1;height:1px;background:var(--line)}
+h1{font-size:clamp(3.4rem,12vw,7.6rem);font-weight:700;letter-spacing:-.05em;line-height:.84;text-transform:uppercase}
+h1 .thin{display:block;font-weight:500;font-size:.2em;letter-spacing:.3em;color:var(--ink-3);margin-top:1.2em}
+.headrow{display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start;justify-content:space-between;margin-top:26px}
+.dek{max-width:60ch;margin:0;font-size:1.14rem;color:var(--ink-2)}
+.dek strong{color:var(--ink);font-weight:500}
+
+.getmanual{
+  display:flex;align-items:center;gap:16px;flex:0 1 30ch;
+  padding:15px 19px;border:1px solid var(--accent);border-radius:var(--r);
+  background:color-mix(in oklab, var(--accent) 10%, var(--surface));
+  text-decoration:none;color:var(--ink);box-shadow:var(--shadow);
+  transition:background .15s,transform .15s;
+}
+.getmanual:hover{background:color-mix(in oklab, var(--accent) 20%, var(--surface));transform:translateY(-1px)}
+.getmanual .gm-txt{flex:1;min-width:0}
+.getmanual b{display:block;font-family:"Archivo",sans-serif;font-size:1.02rem;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+.getmanual small{display:block;margin-top:3px;font-size:.86rem;color:var(--ink-2)}
+.getmanual .gm-arrow{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+  background:var(--accent);color:#17120A;font-size:1.05rem;font-weight:700}
+
+/* ---------- the console ---------- */
+.machine{
+  --mw:min(1420px, calc(100vw - 48px));
+  width:var(--mw);margin-left:calc((100% - var(--mw)) / 2);
+  border:1px solid var(--line);border-radius:var(--r);background:var(--surface);
+  box-shadow:var(--shadow);overflow:hidden;margin-top:14px;
+}
+.mhead{
+  display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;
+  padding:15px 20px;border-bottom:1px solid var(--line-soft);background:var(--surface-2);
+}
+.mhead .who b{font-family:"Archivo",sans-serif;font-size:1.06rem;font-weight:600;letter-spacing:-.01em;display:block}
+.mtools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+.stage{display:grid;grid-template-columns:minmax(280px,382px) 1fr;gap:clamp(18px,2.4vw,34px);padding:clamp(18px,2.4vw,30px)}
+@media (max-width:900px){ .stage{grid-template-columns:1fr} }
+.pedalcol{display:flex;flex-direction:column;gap:12px}
+
+.pedal{
+  position:relative;width:100%;aspect-ratio:2.9/4.89;margin:0 auto;
+  border-radius:4.5% / 2.7%;container-type:inline-size;touch-action:none;user-select:none;
+  background:linear-gradient(168deg, var(--case-hi) 0%, var(--case) 34%, var(--case) 62%, var(--case-lo) 100%);
+  box-shadow:0 30px 60px -34px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.32), inset 0 -2px 0 rgba(0,0,0,.18);
+  color:var(--silk);
+}
+/* the seam between the angled upper face and the flat lower face */
+.pedal .seam{position:absolute;left:0;right:0;top:62.3%;height:1px;background:rgba(0,0,0,.22);
+  box-shadow:0 1px 0 rgba(255,255,255,.22)}
+/* the boxed EQ group printed around the top row */
+.pedal .eqbox{position:absolute;left:8%;right:8%;top:5.4%;height:13.4%;border:.36cqw solid var(--silk-2);
+  border-radius:2.4cqw;pointer-events:none}
+
+.kn{position:absolute;left:var(--x);top:var(--y);width:20.5%;aspect-ratio:1;transform:translate(-50%,-50%)}
+.kn .knob{position:absolute;inset:0;border-radius:50%;background:none;border:0;padding:0;cursor:ns-resize;touch-action:none}
+.kn .cap{
+  position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 50% 32%, #3B3B3E 0%, #1F1F22 32%, #0B0B0D 72%, #000 100%);
+  box-shadow:0 .6cqw 1.2cqw -.3cqw rgba(0,0,0,.85), inset 0 .3cqw .5cqw rgba(255,255,255,.22),
+             inset 0 -.3cqw .6cqw rgba(0,0,0,.8);
+  transition:transform .05s linear;
+}
+.kn .cap::after{ /* the index line on the skirt */
+  content:"";position:absolute;left:50%;top:3%;width:1.1cqw;height:16%;transform:translateX(-50%);
+  border-radius:.5cqw;background:#F2F0E8;
+}
+.kn .dome{
+  position:absolute;inset:20%;border-radius:50%;
+  background:radial-gradient(circle at 38% 28%, #FAFAF8 0%, #DCDEDA 32%, #A8ADA9 68%, #747975 100%);
+  box-shadow:inset 0 .3cqw .5cqw rgba(255,255,255,.7), inset 0 -.3cqw .6cqw rgba(0,0,0,.3),
+             0 0 0 .14cqw rgba(0,0,0,.5);
+}
+.kn .knob:focus-visible{outline:none}
+.kn .knob:focus-visible .cap{outline:2px solid var(--accent);outline-offset:.4cqw}
+.kn.tweak .cap{box-shadow:0 0 0 .34cqw var(--accent), 0 .5cqw 1.1cqw -.3cqw rgba(0,0,0,.9)}
+.kn .klbl{
+  position:absolute;left:50%;top:calc(100% + 1.1cqw);transform:translateX(-50%);
+  font-family:"Archivo",sans-serif;font-size:max(2.6cqw,9px);font-weight:600;letter-spacing:.06em;line-height:1;
+  text-transform:uppercase;color:var(--silk);white-space:nowrap;pointer-events:none;
+}
+.kn.alt .klbl{color:#5B2E12}
+.kn .arc{position:absolute;inset:-19%;pointer-events:none;overflow:visible}
+.kn .arc circle{fill:none;stroke:var(--silk-2);stroke-width:1.1;stroke-dasharray:1.6 4.2;pathLength:100}
+
+/* toggles: horizontal three-position */
+.tog{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);width:15%}
+.tog .slot{
+  position:relative;width:100%;height:6.6cqw;border-radius:3.3cqw;
+  background:linear-gradient(90deg,rgba(0,0,0,.42),rgba(255,255,255,.07) 50%,rgba(0,0,0,.42));
+}
+.tog .slot::after{ /* hex nut */
+  content:"";position:absolute;left:50%;top:50%;width:5.4cqw;height:5.4cqw;transform:translate(-50%,-50%);
+  border-radius:.5cqw;background:linear-gradient(150deg,#DCDEDA,#8E938F 62%,#606561);
+  clip-path:polygon(25% 4%,75% 4%,100% 50%,75% 96%,25% 96%,0 50%);
+  box-shadow:0 .2cqw .4cqw rgba(0,0,0,.55);
+}
+.tog .bat{
+  position:absolute;top:50%;z-index:2;width:3.4cqw;height:3.4cqw;border-radius:50%;transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 34% 28%,#FBFCFA,#BABEBB 46%,#727773 100%);
+  box-shadow:0 .25cqw .5cqw rgba(0,0,0,.65), inset 0 -.15cqw .3cqw rgba(0,0,0,.3);
+  transition:left .14s cubic-bezier(.3,1.4,.5,1);
+  border:0;padding:0;cursor:pointer;touch-action:none;
+}
+.tog[data-i="0"] .bat{left:18%}
+.tog[data-i="1"] .bat{left:50%}
+.tog[data-i="2"] .bat{left:82%}
+.tog .names{
+  position:absolute;left:50%;top:calc(100% + 1.1cqw);transform:translateX(-50%);
+  display:flex;gap:.7cqw;align-items:baseline;white-space:nowrap;
+}
+.tog .names button{
+  background:none;border:0;padding:0;cursor:pointer;color:var(--silk-2);
+  font-family:"Archivo",sans-serif;font-weight:600;letter-spacing:.03em;line-height:1;
+  font-size:max(2.5cqw,8px);text-transform:uppercase;transition:color .15s;
+}
+/* the amp names run to the right-hand edge on the real panel, so they are hung
+   off that edge rather than centred - centred, they fall off a narrow pedal */
+.tog.amp .names{left:auto;right:-73%;transform:none;gap:.5cqw}
+.tog.amp .names button{font-size:max(1.85cqw,6.5px)}
+.tog .names .bar{color:var(--silk-2);font-size:max(1.85cqw,6.5px)}
+.tog .names button.on{color:var(--silk)}
+.tog .names button:hover{color:#5B2E12}
+.tog .tlbl{
+  position:absolute;left:50%;top:calc(100% + 4.4cqw);transform:translateX(-50%);
+  font-family:"Archivo",sans-serif;font-size:max(2.1cqw,8px);font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--silk-2);
+}
+.pedal .simline{
+  position:absolute;left:50%;top:57.4%;transform:translate(-50%,-50%);
+  font-family:"Archivo",sans-serif;font-size:max(2.1cqw,8px);font-weight:500;letter-spacing:.16em;
+  color:var(--silk-2);white-space:nowrap;
+}
+
+/* lower face */
+.pedal .wordmark{
+  position:absolute;left:50%;top:74.6%;transform:translate(-50%,-50%);
+  font-family:"Archivo",sans-serif;font-size:8.4cqw;font-weight:600;letter-spacing:-.01em;color:var(--silk);
+}
+.pedal .wordmark i{font-style:normal;font-weight:400;color:var(--silk-2)}
+.fled{
+  position:absolute;top:74.6%;width:4.2cqw;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);
+  background:#171512;box-shadow:inset 0 0 0 .3cqw rgba(0,0,0,.35);transition:background .12s,box-shadow .12s;
+}
+.fled[data-f="bypass"]{left:15.5%}
+.fled[data-f="boost"]{left:84.5%}
+.fled[data-lit="red"]{background:var(--led-red);box-shadow:0 0 2.4cqw var(--led-red)}
+.fled[data-lit="green"]{background:var(--led-green);box-shadow:0 0 2.4cqw var(--led-green)}
+.fled[data-lit="blue"]{background:var(--led-blue);box-shadow:0 0 2.4cqw var(--led-blue)}
+.fled[data-lit="purple"]{background:var(--led-purple);box-shadow:0 0 2.4cqw var(--led-purple)}
+.fled[data-lit="white"]{background:var(--led-white);box-shadow:0 0 2.4cqw var(--led-white)}
+.fled.blink{animation:blink 1s steps(1,end) infinite}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:.22}}
+
+.fsw{
+  position:absolute;top:86.6%;width:19%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);
+  cursor:pointer;padding:0;border:.3cqw solid rgba(0,0,0,.35);
+  background:radial-gradient(circle at 36% 30%,#EFEFEC,#9EA29E 74%,#6A6E6A);
+  box-shadow:0 .8cqw 1.6cqw -.5cqw rgba(0,0,0,.75);
+}
+.fsw[data-f="bypass"]{left:15.5%}
+.fsw[data-f="boost"]{left:84.5%}
+.fsw:active{transform:translate(-50%,-50%) scale(.94)}
+.fsw.held{box-shadow:0 0 0 .5cqw var(--accent), 0 .8cqw 1.6cqw -.5cqw rgba(0,0,0,.75)}
+.fname{
+  position:absolute;top:95.4%;transform:translate(-50%,-50%);
+  font-family:"Archivo",sans-serif;font-size:max(2.4cqw,9px);font-weight:600;letter-spacing:.1em;color:var(--silk);
+}
+.fname[data-f="bypass"]{left:15.5%}
+.fname[data-f="boost"]{left:84.5%}
+.presetbtn{
+  position:absolute;left:50%;top:87.4%;transform:translate(-50%,-50%);
+  background:none;border:0;padding:.6cqw 1cqw;cursor:pointer;
+  font-family:"Archivo",sans-serif;font-size:max(2.2cqw,8px);font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--silk-2);transition:color .15s;
+}
+.presetbtn:hover{color:#5B2E12}
+.pedal .brandmark{
+  position:absolute;left:50%;top:95.4%;transform:translate(-50%,-50%);
+  font-family:"Archivo",sans-serif;font-size:max(2cqw,8px);font-weight:600;letter-spacing:.06em;color:var(--silk-2);
+}
+
+/* jack notches, purely so the enclosure reads as one */
+.pedal .jack{position:absolute;width:1.6%;height:5.2%;background:rgba(0,0,0,.28);border-radius:1px}
+.pedal .jack.l{left:0}
+.pedal .jack.r{right:0}
+
+/* ---------- hint ---------- */
+.hint{
+  min-height:78px;display:flex;gap:10px;padding:12px 15px;border:1px dashed var(--line);border-radius:11px;
+  background:var(--surface);font-size:.9rem;color:var(--ink-2);line-height:1.5;
+}
+.hint[data-live="true"]{border-style:solid;border-color:var(--accent);color:var(--ink)}
+.hint b.h{display:block;font-family:"Archivo",sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--accent-text);margin-bottom:3px}
+.hint q{quotes:"\201C" "\201D";font-style:italic;color:var(--ink)}
+.hint .src{display:inline-block;margin-left:6px;font-family:"Archivo",sans-serif;font-size:.64rem;font-weight:600;
+  letter-spacing:.09em;text-transform:uppercase;white-space:nowrap;color:var(--accent-text);
+  text-decoration:none;border-bottom:1px solid currentColor}
+.hint .pos{display:block;margin-top:5px;color:var(--ink-2);font-size:.85rem}
+.hint .pos b{color:var(--ink);font-weight:600}
+
+/* ---------- readout ---------- */
+.readout{display:flex;flex-direction:column;gap:14px;min-width:0}
+.chain{border:1px solid var(--line);border-radius:12px;background:var(--surface-2);overflow:hidden}
+.chain .crow{display:grid;grid-template-columns:44px 1fr;gap:12px;padding:13px 15px;border-bottom:1px solid var(--line-soft);align-items:start}
+.chain .crow:last-child{border-bottom:0}
+.chain .crow[data-sel="true"]{background:color-mix(in oklab,var(--accent) 12%,transparent)}
+.chain .chn{font-family:"Archivo",sans-serif;font-size:.78rem;font-weight:700;letter-spacing:.1em;color:var(--ink-3);padding-top:3px}
+.chain .crow[data-sel="true"] .chn{color:var(--accent-text)}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.flow .st{
+  display:flex;flex-direction:column;gap:1px;padding:6px 10px;border-radius:8px;
+  background:var(--surface);border:1px solid var(--line-soft);min-width:0;
+}
+.flow .st b{font-family:"Archivo",sans-serif;font-size:.86rem;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+.flow .st span{font-size:.76rem;color:var(--ink-3);line-height:1.3}
+.flow .ar{color:var(--ink-3);font-size:.8rem}
+.flow .st.off{opacity:.5}
+.flow .st.mic{border-color:color-mix(in oklab,var(--accent) 55%,transparent)}
+
+.krows{border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
+.krow{display:grid;grid-template-columns:104px 1fr auto;gap:14px;align-items:baseline;
+  padding:11px 15px;border-bottom:1px solid var(--line-soft)}
+.krow:last-child{border-bottom:0}
+.krow.on{background:color-mix(in oklab,var(--accent) 10%,transparent)}
+.krow .kn-name{font-family:"Archivo",sans-serif;font-weight:600;font-size:.92rem;letter-spacing:-.01em}
+.krow .kn-name em{display:block;font-style:normal;font-family:"DM Mono",monospace;font-size:.7rem;color:var(--ink-3)}
+.krow .kn-what{font-size:.88rem;color:var(--ink-2)}
+.krow .kn-val{text-align:right;font-family:"DM Mono",monospace;font-size:.86rem;white-space:nowrap}
+.krow .kn-val small{display:block;font-family:"Archivo",sans-serif;font-size:.62rem;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-3)}
+.krow.dead{opacity:.5}
+
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{
+  display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:8px;
+  border:1px solid var(--line);background:var(--surface);
+  font-family:"Archivo",sans-serif;font-size:.76rem;font-weight:600;letter-spacing:.02em;color:var(--ink-2);
+}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--ink-3);font-style:normal}
+.chip.on{border-color:var(--accent);color:var(--ink)}
+.chip.on i{background:var(--accent);box-shadow:0 0 7px var(--accent)}
+.chip.warn{border-color:var(--warn);color:var(--warn)}
+.chip.warn i{background:var(--warn);box-shadow:0 0 7px var(--warn)}
+
+/* ---------- buttons ---------- */
+button.btn{
+  font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  padding:8px 12px;border-radius:8px;cursor:pointer;background:var(--surface);color:var(--ink);
+  border:1px solid var(--line);transition:background .15s,border-color .15s,color .15s;
+}
+button.btn:hover{border-color:var(--accent);color:var(--accent-text)}
+button.btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#17120A}
+button.btn.pr{border-left-width:4px}
+button.btn.pr[data-p="0"]{border-left-color:var(--led-red)}
+button.btn.pr[data-p="1"]{border-left-color:var(--led-green)}
+button.btn.pr[data-p="2"]{border-left-color:var(--led-blue)}
+
+/* ---------- sections ---------- */
+section{padding-top:var(--step)}
+.shead{display:flex;align-items:baseline;gap:14px;margin-bottom:18px}
+.shead h2{font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:700;letter-spacing:-.03em}
+.shead .rule{flex:1;height:1px;background:var(--line)}
+.sdek{max-width:70ch;color:var(--ink-2);margin:-4px 0 24px}
+.sdek + .sdek{margin-top:-14px}
+
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.card{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:18px 20px;box-shadow:var(--shadow)}
+.card h3{font-size:1.06rem;font-weight:600;letter-spacing:-.01em;margin-bottom:6px}
+.card p{margin:0;color:var(--ink-2);font-size:.95rem}
+.card p + p{margin-top:9px}
+.card b{font-weight:500;color:var(--ink)}
+.card .gearlist{margin:10px 0 0;padding:0;list-style:none;font-size:.86rem;color:var(--ink-2)}
+.card .gearlist li{padding:5px 0;border-top:1px solid var(--line-soft)}
+
+q{quotes:"\201C" "\201D";font-style:italic;color:var(--ink)}
+.src{display:inline-block;margin-left:6px;font-family:"Archivo",sans-serif;font-size:.64rem;font-weight:600;
+  letter-spacing:.09em;text-transform:uppercase;white-space:nowrap;color:var(--accent-text);
+  text-decoration:none;border-bottom:1px solid currentColor}
+
+.note{display:flex;gap:10px;padding:13px 16px;border-radius:11px;font-size:.9rem;line-height:1.52;
+  background:color-mix(in oklab,var(--accent) 11%,var(--surface));
+  border:1px solid color-mix(in oklab,var(--accent) 38%,transparent);color:var(--ink)}
+.note.plain{background:var(--surface);border-color:var(--line)}
+.note.ours{background:color-mix(in oklab,var(--warn) 9%,var(--surface));border-color:color-mix(in oklab,var(--warn) 40%,transparent)}
+.note h4{font-family:"Archivo",sans-serif;font-size:.72rem;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--accent-text);margin:0 0 4px;font-weight:600}
+.note.ours h4{color:var(--warn)}
+.note strong{font-weight:500}
+.note p{margin:0}
+.note p + p{margin-top:8px}
+
+/* ---------- the amp x cab matrix ---------- */
+.mtxwrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow)}
+table.mtx{border-collapse:collapse;width:100%;min-width:660px}
+table.mtx th,table.mtx td{padding:0;text-align:center;border-bottom:1px solid var(--line-soft);border-right:1px solid var(--line-soft)}
+table.mtx th:last-child,table.mtx td:last-child{border-right:0}
+table.mtx tr:last-child td{border-bottom:0}
+table.mtx thead th{
+  font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);background:var(--surface-2);padding:9px 8px;
+}
+table.mtx thead th.bank{border-bottom:1px solid var(--line);color:var(--accent-text)}
+table.mtx thead th.slot{font-size:11px;letter-spacing:.04em;text-transform:none;color:var(--ink-2);line-height:1.3;padding:8px 6px}
+table.mtx thead th.slot em{display:block;font-style:normal;font-family:"DM Mono",monospace;font-size:9.5px;color:var(--ink-3)}
+table.mtx th.amp{
+  text-align:left;padding:12px 14px;background:var(--surface-2);min-width:150px;
+  font-family:"Archivo",sans-serif;font-size:.94rem;font-weight:600;letter-spacing:-.01em;color:var(--ink);text-transform:none;
+}
+table.mtx th.amp span{display:block;font-size:11px;font-weight:500;letter-spacing:.02em;color:var(--ink-3);margin-top:2px}
+.cell{
+  width:100%;min-height:52px;display:grid;place-items:center;background:none;border:0;cursor:pointer;
+  padding:12px 6px;font-family:"DM Mono",monospace;font-size:.74rem;color:var(--ink-3);
+  transition:background .14s,color .14s;
+}
+.cell:hover{background:color-mix(in oklab,var(--accent) 14%,transparent);color:var(--ink)}
+.cell .dot{width:9px;height:9px;border-radius:50%;border:1.4px solid var(--ink-3);opacity:.45}
+.cell.paired .dot{opacity:1;border-color:var(--accent);background:color-mix(in oklab,var(--accent) 35%,transparent)}
+.cell.on{background:color-mix(in oklab,var(--accent) 28%,transparent)}
+.cell.on .dot{background:var(--accent);border-color:var(--accent);opacity:1;box-shadow:0 0 8px var(--accent)}
+.mtxkey{display:flex;flex-wrap:wrap;gap:16px;margin-top:12px;font-size:.84rem;color:var(--ink-3);align-items:center}
+.mtxkey span{display:inline-flex;align-items:center;gap:7px}
+.mtxkey i{width:9px;height:9px;border-radius:50%;border:1.4px solid var(--accent);
+  background:color-mix(in oklab,var(--accent) 35%,transparent);font-style:normal}
+.mtxkey i.sel{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table.doc{border-collapse:collapse;width:100%;font-size:.9rem;min-width:540px}
+table.doc th,table.doc td{text-align:left;padding:11px 16px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+table.doc th{font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-3);background:var(--surface-2)}
+table.doc tr:last-child td{border-bottom:0}
+table.doc td.mono{font-family:"DM Mono",monospace;color:var(--ink-2);white-space:nowrap}
+table.doc td b{font-weight:500}
+table.doc td .sub{display:block;font-size:.78rem;color:var(--ink-3)}
+
+/* ---------- gestures ---------- */
+.gests{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden;box-shadow:var(--shadow)}
+.gest{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;padding:13px 17px;border-bottom:1px solid var(--line-soft)}
+.gest:last-child{border-bottom:0}
+.gest .gdo{font-size:.94rem}
+.gest .gdo b{font-weight:500}
+.gest .gdo small{display:block;font-size:.82rem;color:var(--ink-3);margin-top:2px}
+.gkeys{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.key{font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  padding:5px 9px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink-2);white-space:nowrap}
+.key.live{border-color:var(--accent);color:var(--accent-text)}
+.plus{color:var(--ink-3);font-size:11px}
+
+/* ---------- the manual index ---------- */
+.mindex{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px 22px}
+.mindex a{
+  display:flex;align-items:baseline;gap:10px;text-decoration:none;color:var(--ink-2);
+  padding:8px 12px;border:1px solid var(--line-soft);border-radius:9px;background:var(--surface);
+  transition:border-color .15s,color .15s,background .15s;
+}
+.mindex a:hover{border-color:var(--accent);color:var(--ink);background:var(--surface-2)}
+.mindex a .t{flex:1;font-family:"Archivo",sans-serif;font-size:.9rem;font-weight:600}
+.mindex a .n{font-family:"DM Mono",monospace;font-size:.8rem;color:var(--ink-3);white-space:nowrap}
+.mindex a:hover .n{color:var(--accent-text)}
+
+footer.end{margin-top:var(--step);padding-top:22px;border-top:1px solid var(--line);color:var(--ink-3);
+  font-size:.88rem;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+}
+
+/* ---------- mode strip: what the six knobs are doing right now ---------- */
+.modes{display:inline-flex;border:1px solid var(--line);border-radius:9px;background:var(--surface);overflow:hidden}
+.modes button{
+  font-family:"Archivo",sans-serif;font-size:11.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+  padding:8px 13px;background:none;border:0;border-left:1px solid var(--line);color:var(--ink-2);cursor:pointer;
+  transition:background .15s,color .15s;
+}
+.modes button:first-child{border-left:0}
+.modes button:hover{color:var(--accent-text)}
+.modes button[aria-pressed="true"]{background:var(--accent);color:#17120A}
+.msep{width:1px;align-self:stretch;background:var(--line);margin:0 3px}
+
+/* ---------- the signal path, full width under the stage ---------- */
+.bench{border-top:1px solid var(--line);padding:clamp(16px,2.2vw,24px) clamp(18px,2.4vw,30px) clamp(20px,2.6vw,28px)}
+.bhead{display:flex;align-items:baseline;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.bhead h3{font-family:"Archivo",sans-serif;font-size:1rem;font-weight:600;letter-spacing:-.01em}
+.bhead .sub{font-size:.84rem;color:var(--ink-3)}
+.bhead .rule{flex:1;height:1px;background:var(--line-soft);min-width:20px}
+
+/* the path itself */
+.path{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding-bottom:4px}
+.pstage{
+  flex:1 1 0;min-width:104px;display:flex;flex-direction:column;gap:4px;
+  padding:11px 12px;border:1px solid var(--line-soft);background:var(--surface);
+  border-right:0;position:relative;
+}
+.pstage:first-child{border-radius:11px 0 0 11px}
+.pstage:last-child{border-radius:0 11px 11px 0;border-right:1px solid var(--line-soft)}
+.pstage b{font-family:"Archivo",sans-serif;font-size:.82rem;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+.pstage .pk{font-family:"DM Mono",monospace;font-size:.68rem;letter-spacing:.04em;color:var(--ink-3);text-transform:uppercase}
+.pstage .pv{font-size:.79rem;color:var(--ink-2);line-height:1.35}
+.pstage.off{opacity:.44}
+.pstage.lit{background:color-mix(in oklab,var(--accent) 13%,var(--surface));border-color:var(--accent);z-index:1}
+.pstage.lit + .pstage{border-left-color:var(--accent)}
+.pstage.byp{background:color-mix(in oklab,var(--warn) 11%,var(--surface));border-color:color-mix(in oklab,var(--warn) 45%,transparent)}
+.pstage.byp b{color:var(--warn)}
+.pstage .ours{font-family:"Archivo",sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--warn)}
+.pends{display:flex;justify-content:space-between;margin-top:7px;font-family:"DM Mono",monospace;
+  font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+
+/* level / boost readouts */
+.lvlgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:16px}
+.meter{border:1px solid var(--line);border-radius:11px;background:var(--surface);padding:13px 15px}
+.meter .mt{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:9px}
+.meter .mt b{font-family:"Archivo",sans-serif;font-size:.86rem;font-weight:600}
+.meter .mt .v{font-family:"DM Mono",monospace;font-size:.8rem;color:var(--ink-2);white-space:nowrap}
+.track{height:9px;border-radius:5px;background:var(--surface-2);border:1px solid var(--line-soft);position:relative;overflow:hidden}
+.track .fill{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:4px}
+.track .span{position:absolute;top:0;bottom:0;background:color-mix(in oklab,var(--accent) 42%,transparent)}
+.track .tick{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);border-radius:1px}
+.track .tick.mid{background:var(--ink-3)}
+.meter .cap{margin-top:8px;font-size:.82rem;color:var(--ink-2);line-height:1.45}
+.meter .cap b{color:var(--ink);font-weight:600}
+.meter q{quotes:"\201C" "\201D";font-style:italic;color:var(--ink)}
+.meter .src{display:inline-block;margin-left:6px;font-family:"Archivo",sans-serif;font-size:.62rem;font-weight:600;
+  letter-spacing:.09em;text-transform:uppercase;white-space:nowrap;color:var(--accent-text);
+  text-decoration:none;border-bottom:1px solid currentColor}
+
+/* folded gloss — ours, not the maker's */
+details.gloss{margin-top:14px;border:1px solid color-mix(in oklab,var(--warn) 40%,transparent);
+  border-radius:11px;background:color-mix(in oklab,var(--warn) 8%,var(--surface))}
+details.gloss > summary{
+  list-style:none;cursor:pointer;padding:12px 15px;display:flex;align-items:baseline;gap:10px;
+  font-family:"Archivo",sans-serif;font-size:.88rem;font-weight:600;color:var(--ink);
+}
+details.gloss > summary::-webkit-details-marker{display:none}
+details.gloss > summary::after{content:"+";margin-left:auto;font-family:"DM Mono",monospace;color:var(--warn);font-size:1rem}
+details.gloss[open] > summary::after{content:"\2212"}
+details.gloss > summary .tag{font-size:.6rem;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--warn)}
+details.gloss .gbody{padding:0 15px 14px;font-size:.9rem;line-height:1.58;color:var(--ink-2);max-width:78ch}
+details.gloss .gbody p{margin:0}
+details.gloss .gbody p + p{margin-top:9px}
+details.gloss .gbody b{color:var(--ink);font-weight:600}
+details.gloss .gbody q{quotes:"\201C" "\201D";font-style:italic;color:var(--ink)}
+details.gloss .gbody .src{display:inline-block;margin-left:6px;font-family:"Archivo",sans-serif;font-size:.62rem;
+  font-weight:600;letter-spacing:.09em;text-transform:uppercase;white-space:nowrap;color:var(--accent-text);
+  text-decoration:none;border-bottom:1px solid currentColor}
+
+/* amp + cab voice, routed off the two toggles */
+.voice{border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
+.vrow{padding:13px 15px;border-bottom:1px solid var(--line-soft)}
+.vrow:last-child{border-bottom:0}
+.vrow .vh{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:5px}
+.vrow .vh b{font-family:"Archivo",sans-serif;font-size:.95rem;font-weight:600;letter-spacing:-.01em}
+.vrow .vh .after{font-size:.79rem;color:var(--ink-3)}
+.vrow p{margin:0;font-size:.87rem;color:var(--ink-2);line-height:1.5}
+.vrow q{quotes:"\201C" "\201D";font-style:italic;color:var(--ink)}
+.vrow .src{display:inline-block;margin-left:6px;font-family:"Archivo",sans-serif;font-size:.62rem;font-weight:600;
+  letter-spacing:.09em;text-transform:uppercase;white-space:nowrap;color:var(--accent-text);
+  text-decoration:none;border-bottom:1px solid currentColor}
+.vrow .gear{margin:7px 0 0;font-size:.8rem;color:var(--ink-3);line-height:1.45}
+
+@media (max-width:720px){
+  .path{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .pstage{border-right:1px solid var(--line-soft);border-radius:10px}
+  .pstage:first-child,.pstage:last-child{border-radius:10px}
+  .pends{display:none}
+}
+
+/* ---------- work in progress ---------- */
+/* The page is unfinished, so it says so above everything else on it. Its own colours
+   rather than the pedal's or the theme's accent - a warning that borrows the palette
+   stops reading as one - and every value carries its [data-theme] twin, so a reader
+   who has forced a theme gets the same warning as one following the OS. */
+:root{--wip-bg:#FBF1D9;--wip-line:#E7D4A4;--wip-edge:#A0700F;--wip-ink:#5A4520}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--wip-bg:#231C11;--wip-line:#3C3120;--wip-edge:#D9A441;--wip-ink:#CDBB9A}
+}
+:root[data-theme="dark"]{--wip-bg:#231C11;--wip-line:#3C3120;--wip-edge:#D9A441;--wip-ink:#CDBB9A}
+.wipbar{
+  display:flex;align-items:baseline;gap:6px 14px;flex-wrap:wrap;
+  margin:18px 0 0;padding:14px 18px;
+  background:var(--wip-bg);color:var(--wip-ink);
+  border:1px solid var(--wip-line);border-left:5px solid var(--wip-edge);
+  border-radius:11px;
+}
+.wipbar b{
+  font-family:"Archivo",system-ui,sans-serif;font-weight:700;font-size:12px;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--wip-edge);
+}
+.wipbar p{margin:0;flex:1 1 24ch;font-size:.95rem;line-height:1.55}
+.wipbar a{color:var(--wip-edge)}
+</style>
+
+<div id="app">
+<div class="wipbar" role="note">
+  <b>Work in progress</b>
+  <p>This page is unfinished and has not been checked against <a href="https://cdn.shopify.com/s/files/1/0906/8480/files/ACS1_2.03_Digital_Manual.pdf" target="_blank" rel="noopener">Walrus Audio's manual</a>. Some of what it says may be wrong; where the two differ, the manual is right.</p>
+</div>
+
+<header class="top">
+  <div class="brandline">
+    <a class="backlink" href="index.html"><span class="bk-arrow" aria-hidden="true">&#8592;</span>All manuals</a>
+    <span class="lbl">Walrus Audio</span><span class="rule"></span>
+    <span class="lbl unoff">Unofficial companion to the manual &middot; not affiliated with Walrus Audio</span>
+    <button class="themetoggle" type="button" aria-label="Switch theme"><svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg><svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2M12 19.4v2M4.6 4.6 6 6M18 18l1.4 1.4M2.6 12h2M19.4 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg></button>
+  </div>
+  <h1>ACS1<span class="thin">Amp + Cab Simulator</span></h1>
+
+  <div class="headrow">
+    <p class="dek">Three amp models and six cabinet impulse responses &mdash;
+    <strong>three cabs, each captured with two microphones</strong>. Every amp can be put in front of every
+    cab from the front panel, and the left and right channels can each hold a different amp and cab.
+    <strong>Four of the six knobs also do a second job while the Bypass switch is held down</strong>, and
+    two of them hold a second value for the Boost.</p>
+    <a class="getmanual" href="https://cdn.shopify.com/s/files/1/0906/8480/files/ACS1_2.03_Digital_Manual.pdf" target="_blank" rel="noopener">
+      <span class="gm-txt">
+        <b>Read the official manual</b>
+        <small>ACS1 digital manual, firmware 2.03 &middot; PDF, 8 sheets</small>
+      </span>
+      <span class="gm-arrow" aria-hidden="true">&#8595;</span>
+    </a>
+  </div>
+</header>
+
+<div class="machine">
+  <div class="mhead">
+    <div class="who">
+      <b id="headline">Fullerton into front A</b>
+      <span class="lbl" id="headsub">both channels &middot; bypassed</span>
+    </div>
+    <div class="mtools">
+      <div class="modes" id="modes" role="group" aria-label="What the six knobs are doing">
+        <button type="button" data-m="play"  aria-pressed="true">Playing</button>
+        <button type="button" data-m="hold"  aria-pressed="false">Bypass held</button>
+        <button type="button" data-m="boost" aria-pressed="false">Setting boost</button>
+      </div>
+      <span class="msep"></span>
+      <button class="btn pr" data-p="0" id="pRed">Red</button>
+      <button class="btn pr" data-p="1" id="pGreen">Green</button>
+      <button class="btn pr" data-p="2" id="pBlue">Blue</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="pedalcol">
+      <div class="pedal" id="pedal">
+        <span class="seam"></span>
+        <span class="eqbox"></span>
+        <span class="jack l" style="top:20%"></span>
+        <span class="jack l" style="top:34%"></span>
+        <span class="jack r" style="top:20%"></span>
+        <span class="jack r" style="top:34%"></span>
+
+        <div class="kn" data-k="bass"   style="--x:20.5%;--y:11.8%"><svg class="arc" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg><button class="knob" aria-label="Bass knob"><span class="cap"></span><span class="dome"></span></button><span class="klbl">Bass</span></div>
+        <div class="kn" data-k="mid"    style="--x:50%;--y:11.8%"><svg class="arc" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg><button class="knob" aria-label="Mid knob"><span class="cap"></span><span class="dome"></span></button><span class="klbl">Mid</span></div>
+        <div class="kn" data-k="treble" style="--x:79.5%;--y:11.8%"><svg class="arc" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg><button class="knob" aria-label="Treble knob"><span class="cap"></span><span class="dome"></span></button><span class="klbl">Treb</span></div>
+
+        <div class="kn" data-k="vol"    style="--x:20.5%;--y:31.9%"><svg class="arc" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg><button class="knob" aria-label="Volume knob"><span class="cap"></span><span class="dome"></span></button><span class="klbl">Vol</span></div>
+        <div class="kn" data-k="gain"   style="--x:50%;--y:31.9%"><svg class="arc" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg><button class="knob" aria-label="Gain knob"><span class="cap"></span><span class="dome"></span></button><span class="klbl">Gain</span></div>
+        <div class="kn" data-k="room"   style="--x:79.5%;--y:31.9%"><svg class="arc" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg><button class="knob" aria-label="Room knob"><span class="cap"></span><span class="dome"></span></button><span class="klbl">Room</span></div>
+
+        <div class="tog cab" data-t="cab" data-i="0" style="--x:21%;--y:46.7%">
+          <div class="slot"></div><button class="bat" aria-label="Cab switch: A, B or C"></button>
+          <div class="names"><button data-v="0">A</button><span class="bar">|</span><button data-v="1">B</button><span class="bar">|</span><button data-v="2">C</button></div>
+          <span class="tlbl">Cab</span>
+        </div>
+        <div class="tog lr" data-t="lr" data-i="1" style="--x:50%;--y:46.7%">
+          <div class="slot"></div><button class="bat" aria-label="Channel switch: L, both or R"></button>
+          <div class="names"><button data-v="0">L</button><button data-v="1">+</button><button data-v="2">R</button></div>
+        </div>
+        <div class="tog amp" data-t="amp" data-i="0" style="--x:79.5%;--y:46.7%">
+          <div class="slot"></div><button class="bat" aria-label="Amp switch: Fullerton, London or Dartford"></button>
+          <div class="names"><button data-v="0">Fullerton</button><span class="bar">|</span><button data-v="1">London</button><span class="bar">|</span><button data-v="2">Dartford</button></div>
+        </div>
+
+        <span class="simline">AMP + CAB SIMULATOR</span>
+
+        <span class="fled" data-f="bypass" id="ledBypass"></span>
+        <span class="wordmark">[<i>&nbsp;</i>ACS1<i>&nbsp;</i>]</span>
+        <span class="fled" data-f="boost" id="ledBoost"></span>
+
+        <button class="fsw" data-f="bypass" id="swBypass" aria-label="Bypass footswitch — click to engage, hold to reach the hidden controls"></button>
+        <button class="presetbtn" id="swPreset" aria-label="Press both switches to change preset">&mdash; Preset &mdash;</button>
+        <button class="fsw" data-f="boost" id="swBoost" aria-label="Boost footswitch"></button>
+        <span class="fname" data-f="bypass">Bypass</span>
+        <span class="fname" data-f="boost">Boost</span>
+        <span class="brandmark">WALRUS AUDIO</span>
+      </div>
+
+      <div class="hint" id="hint" data-live="false"></div>
+      <p style="margin:0;font-size:.78rem;color:var(--ink-3);line-height:1.45">
+        Drag a knob up and down, or focus it and use the arrow keys. Click a toggle to step it,
+        or click the name you want.
+      </p>
+    </div>
+
+    <div class="readout">
+      <div class="chain" id="chain"></div>
+      <div class="voice" id="voice"></div>
+      <div class="krows" id="krows"></div>
+    </div>
+  </div>
+
+  <div class="bench">
+    <div class="bhead">
+      <h3 id="benchTitle">Where each control acts</h3>
+      <span class="sub" id="benchSub"></span>
+      <span class="rule"></span>
+    </div>
+    <div class="path" id="path"></div>
+    <div class="pends"><span>Guitar in</span><span>Outputs &middot; headphones</span></div>
+    <div class="lvlgrid" id="lvlgrid"></div>
+    <div class="chips" id="chips" style="margin-top:14px"></div>
+
+    <div id="glossHost"></div>
+  </div>
+</div>
+
+<!-- ============ the eighteen combinations ============ -->
+<section id="grid">
+  <div class="shead"><h2>Three amps into six cabs</h2><span class="rule"></span></div>
+  <p class="sdek">Eighteen combinations, all reachable from the front panel. The Cab toggle picks the SM57
+  capture of a cabinet; held with Bypass it picks the Royer 121 capture of the same cabinet.
+  <q>we have laid these out based on the amp we like using them with, but there is no right or wrong. Mix and
+  match however you like!</q><a class="src" data-pg="2" href="#"></a></p>
+
+  <div class="mtxwrap">
+    <table class="mtx" id="mtx"></table>
+  </div>
+  <div class="mtxkey">
+    <span><i></i> Walrus&rsquo;s own amp-and-cab pairing</span>
+    <span><i class="sel"></i> what the pedal is set to now</span>
+  </div>
+</section>
+
+<!-- ============ the manual index ============ -->
+<section id="manual">
+  <div class="shead"><h2>Find it in the manual</h2><span class="rule"></span></div>
+  <p class="sdek">The ACS1 manual prints no page numbers, so these count sheets in the order the PDF holds
+  them.</p>
+  <div class="mindex" id="mindex"></div>
+</section>
+
+<footer class="end">
+  <span><a href="https://www.walrusaudio.com/pages/manuals" target="_blank" rel="noopener">walrusaudio.com/pages/manuals</a></span>
+  <span>This page is the original ACS1 &mdash; six knobs and three toggles &mdash; on firmware 2.03, not the
+  screen-and-encoders <a href="https://cdn.shopify.com/s/files/1/0906/8480/files/ACS1_MKII_Digital_Manual.pdf" target="_blank" rel="noopener">MKII</a>.</span>
+  <span>Quoted text is Walrus Audio's, from the ACS1 firmware 2.03 manual.</span>
+</footer>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = s => document.querySelector(s);
+const clamp = (v,a=0,b=1) => Math.min(b, Math.max(a,v));
+const pct = v => Math.round(v*100) + "%";
+const ang = v => -150 + v*300;
+
+/* The manual is eight sheets with no printed page numbers anywhere on them, so a
+   sheet's number here is its position in the PDF and #page= takes it directly. */
+const MANUAL = "https://cdn.shopify.com/s/files/1/0906/8480/files/ACS1_2.03_Digital_Manual.pdf";
+const sheetHref = n => MANUAL + "#page=" + n;
+
+function clockOf(v){
+  /* 7 o'clock fully down, noon centred, 5 o'clock fully up - a standard pot sweep,
+     which is what the manual's own "clock face positions" presume. */
+  let r = Math.round(((ang(v)/30 + 12) % 12) * 2) / 2;
+  if (r >= 12) r -= 12;
+  if (r === 0) return "12 noon";
+  if (r < 1) return "12:30";
+  const hh = Math.floor(r);
+  return hh + ":" + ((r - hh) >= .5 ? "30" : "00");
+}
+/* clock hour -> knob value, for reading Walrus's printed preset settings back in */
+const fromClock = h => (((h - 7) % 12) + 12) % 12 / 10;
+
+/* ---------------- the manual's own sentences ---------------- */
+const SAYS = {
+  bass:    [3, "The Bass knob shapes the low-end tone stack of the selected amp model. Turn up for a thicker sound and down to help tame muddy pickups."],
+  mid:     [3, "The Mid knob shapes the mid-range tone stack of the selected amp model. Try this control above noon for punchy raw mid-range tones and below noon for more classic scooped sounds."],
+  treble:  [3, "The Treble knob shapes the high-frequency section of the tone stack on the selected amp model. Turn up for adding sparkle and down for taming harsh pickups."],
+  vol:     [3, "The Volume knob controls the overall output level of the pedal. It also controls the volume of the headphone out."],
+  gain:    [3, "The Gain knob controls the amount of gain through the amp “circuit” within each model. The amount gain and character changes with each amp. The Gain knob also affects the overall volume just like a real amp so you may want to increase the Volume knob at lower gain settings."],
+  room:    [3, "The Room knob engages a tight room reverb meant to give the impression of your amp being mic’d up in various size rooms. Turn it all the way down to disengage and turn it up to add a sense of space to your sound."],
+  cab:     [3, "The Cab switch lets you select one of six on-board cabinet impulse responses (IRs) to accompany the selected amp model."],
+  amp:     [1, "The Amp switch selects between one of three classic amp models built into the ACS1."],
+  lr:      [2, "The L+R switch is an important control as it selects which channel the controls will affect."],
+  comp:    [3, "Add in compression before the amp circuit. Press and hold the Bypass Switch and turn the Gain knob clockwise to increase the amount of compression. At minimum, there is no compression added."],
+  irblock: [6, "Disable the IR block for interfacing with external IR loader hardware or plugins, etc."],
+  filters: [6, "The ACS1 has a global HPF and LPF at the output, post amp and cab, to trim high and low frequencies to taste. These two parameters are stored per preset."],
+  boost:   [3, "The boosted gain control goes from the non-boosted gain value at minimum to the maximum possible gain available with an additional +4db of of gain."],
+  led:     [3, "The Preset LED lights up the color of the selected preset – Red, Green, or Blue. When a knob is turned, this LED turns purple to indicate the preset has been modified."],
+  preset:  [4, "Simply press both stomp switches at the same time to scroll through the three on-board presets - red, green, and blue then back to red."]
+};
+const quote = (pg, text) =>
+  '<q>' + text + '</q><a class="src" href="' + sheetHref(pg) + '" target="_blank" rel="noopener">Walrus, sheet ' + pg + '</a>';
+const says = key => quote(SAYS[key][0], SAYS[key][1]);
+
+/* ---------------- the fixed data ---------------- */
+const AMPS = [
+  { name:"Fullerton", after:"Fender® Deluxe Reverb",
+    q:"Inspired by the classically snappy and clear Fender® Deluxe Reverb. Clean headroom that blooms into the fat, rich breakup that players have come to love over the years." },
+  { name:"London", after:"1962 Marshall® Bluesbreaker",
+    q:"Inspired by a 1962 Marshall® Bluesbreaker with a harmonically rich, valve-driven breakup. Perfect for sustained lead notes with tons of gain on tap and a punchy mid-ranged voicing." },
+  { name:"Dartford", after:"1960s Vox® AC30",
+    q:"Inspired by the legendary and jangly tones from a 1960s Vox® AC30 with all the bite and chime from the British Invasion. Higher gain settings offer up plenty of saturation that represent the loudness and punch of the original amp cranked." }
+];
+
+const CABS = [
+  { slot:"A", name:"‘66 Fender® Deluxe Replication",
+    gear:"Vintage 1966 Fender Deluxe Reverb with its original Jensen C12NA" },
+  { slot:"B", name:"Marshall® JTM50 Bluesbreaker Replication",
+    gear:"Marshall JTM50 Tremolo Bluesbreaker 2x12 combo, UK-made 6402-cone G12M Greenbacks — the 16 ohm versions that come in Marshall cabs, which are brighter than the 8 ohm versions in Vox cabs" },
+  { slot:"C", name:"Vox® AC30 6TB Replication",
+    gear:"90’s UK-made AC30 6TB with Blue Alnicos" }
+];
+const MICS = { front:"SM57", back:"Royer 121" };
+
+const KNOBS = ["bass","mid","treble","vol","gain","room"];
+const KNAME = { bass:"Bass", mid:"Mid", treble:"Treble", vol:"Volume", gain:"Gain", room:"Room" };
+/* the opening sentence of each knob's entry in the manual, verbatim */
+const KWHAT = {
+  bass:   quote(3, "The Bass knob shapes the low-end tone stack of the selected amp model."),
+  mid:    quote(3, "The Mid knob shapes the mid-range tone stack of the selected amp model."),
+  treble: quote(3, "The Treble knob shapes the high-frequency section of the tone stack on the selected amp model."),
+  vol:    quote(3, "The Volume knob controls the overall output level of the pedal. It also controls the volume of the headphone out."),
+  gain:   quote(3, "The Gain knob controls the amount of gain through the amp “circuit” within each model."),
+  room:   quote(3, "The Room knob engages a tight room reverb meant to give the impression of your amp being mic’d up in various size rooms.")
+};
+const KSILK = { bass:"Bass", mid:"Mid", treble:"Treb", vol:"Vol", gain:"Gain", room:"Room" };
+/* what each knob becomes while the Bypass switch is held */
+const ALT = {
+  bass:   { name:"Output HPF",       silk:"HPF",  span:["20 Hz","200 Hz"] },
+  treble: { name:"Output LPF",       silk:"LPF",  span:["1 kHz","20 kHz"] },
+  mid:    { name:"IR block",         silk:"IR" },
+  gain:   { name:"Compression",      silk:"Comp" }
+};
+
+/* The three stock presets, exactly as printed, sheet 4. Clock positions only. */
+const STOCK = [
+  { key:"Red",   led:"red",   amp:0, slot:0, bank:"front",
+    k:{ bass:fromClock(2),  mid:fromClock(12), treble:fromClock(1),  gain:fromClock(1), vol:fromClock(1), room:fromClock(9) },
+    boost:{ gain:fromClock(2), vol:fromClock(2) },
+    print:"Bass 2 / Mid noon / Treble 1 &middot; Gain 1 &middot; Volume 1 &middot; Room 9 &middot; Boost — Volume and Gain 2" },
+  { key:"Green", led:"green", amp:1, slot:1, bank:"front",
+    k:{ bass:fromClock(11), mid:fromClock(12), treble:fromClock(12), gain:fromClock(1), vol:fromClock(1), room:fromClock(9) },
+    boost:{ gain:fromClock(2), vol:fromClock(2) },
+    print:"Bass 11 / Mid noon / Treble noon &middot; Gain 1 &middot; Volume 1 &middot; Room 9 &middot; Boost — Volume and Gain 2" },
+  { key:"Blue",  led:"blue",  amp:2, slot:2, bank:"front",
+    k:{ bass:fromClock(1),  mid:fromClock(11), treble:fromClock(2),  gain:fromClock(1), vol:fromClock(1), room:fromClock(9) },
+    boost:{ gain:fromClock(2), vol:null },
+    print:"Bass 1 / Mid 11 / Treble 2 &middot; Gain 1 &middot; Volume 1 &middot; Room 9 &middot; Boost — Gain 2" }
+];
+
+/* ---------------- state ---------------- */
+const blankChan = () => ({
+  amp:0, slot:0, bank:"front",
+  k:{ bass:.5, mid:.5, treble:.5, vol:.5, gain:.5, room:0 },
+  boost:{ gain:0, vol:.5 }
+});
+const S = {
+  sw: 1,                 /* 0 = L, 1 = +, 2 = R */
+  ch: { L:blankChan(), R:blankChan() },
+  saved: null,           /* the loaded preset's stored values, for the LED */
+  preset: 0,
+  modified: false,
+  engaged: false,
+  hold: false,
+  boostOn: false,
+  g: { hpf:0, lpf:1, ir:.8, comp:0 },   /* the held-Bypass parameters */
+  crossing: false
+};
+S.saved = JSON.parse(JSON.stringify(S.ch.L));
+
+const chans = () => S.sw === 1 ? ["L","R"] : [S.sw === 0 ? "L" : "R"];
+const lead  = () => S.sw === 2 ? S.ch.R : S.ch.L;
+const chLabel = () => S.sw === 0 ? "left channel" : S.sw === 2 ? "right channel" : "both channels";
+const setOn  = () => S.sw === 1 ? "Set on both channels." : "Set on the " + chLabel() + ".";
+
+/* the knob value currently under each physical knob */
+function knobValue(k){
+  if (S.hold){
+    if (k === "bass")   return S.g.hpf;
+    if (k === "treble") return S.g.lpf;
+    if (k === "mid")    return S.g.ir;
+    if (k === "gain")   return S.g.comp;
+    return lead().k[k];
+  }
+  if (S.boostOn && (k === "gain" || k === "vol")) return lead().boost[k];
+  return lead().k[k];
+}
+function setKnob(k, v){
+  v = clamp(v);
+  if (S.hold){
+    if (k === "bass")   { S.g.hpf = v; return; }
+    if (k === "treble") { S.g.lpf = v; return; }
+    if (k === "mid")    { S.g.ir  = v; return; }
+    if (k === "gain")   { S.g.comp = v; return; }
+    return;                       /* Volume and Room have no held-Bypass job */
+  }
+  if (S.boostOn && (k === "gain" || k === "vol")){
+    chans().forEach(c => S.ch[c].boost[k] = v);
+    return;
+  }
+  chans().forEach(c => S.ch[c].k[k] = v);
+  S.crossing = Math.abs(v - S.saved.k[k]) < .015;
+  S.modified = true;
+}
+const altOf = k => S.hold ? ALT[k] : null;
+
+/* ---------------- hint ---------------- */
+const hint = $("#hint");
+let hintTimer = null;
+function say(title, html, live){
+  clearTimeout(hintTimer);
+  hint.dataset.live = live === false ? "false" : "true";
+  hint.innerHTML = '<div><b class="h">' + title + "</b>" + html + "</div>";
+}
+function idle(){
+  hint.dataset.live = "false";
+  hint.innerHTML = '<div><b class="h">Six knobs, three jobs</b>Nothing on the enclosure says so, but four ' +
+    'of these knobs do a second job while the Bypass switch is down, and two of them hold a second value ' +
+    'for the Boost. The row above the pedal switches between the three; the knobs relabel themselves and ' +
+    "the path below follows. Loaded here: the Red preset, Walrus's own Fullerton settings.</div>";
+}
+
+/* ---------------- build the matrix ---------------- */
+(function buildMatrix(){
+  const t = $("#mtx");
+  let h = '<thead><tr><th class="amp" style="background:var(--surface-2)"></th>' +
+    '<th class="bank" colspan="3">Front bank &mdash; SM57<br><span style="font-weight:500;text-transform:none;letter-spacing:0">toggle alone</span></th>' +
+    '<th class="bank" colspan="3">Back bank &mdash; Royer 121<br><span style="font-weight:500;text-transform:none;letter-spacing:0">hold Bypass, then move the toggle</span></th></tr><tr><th class="amp"></th>';
+  ["front","back"].forEach(bank => CABS.forEach(c => {
+    h += '<th class="slot">' + c.slot + '<em>' + c.name.replace(/ Replication/,"").replace(/®/g,"") + "</em></th>";
+  }));
+  h += "</tr></thead><tbody>";
+  AMPS.forEach((a,ai) => {
+    h += '<tr><th class="amp">' + a.name + "<span>after the " + a.after.replace(/®/g,"") + "</span></th>";
+    ["front","back"].forEach(bank => CABS.forEach((c,ci) => {
+      const paired = ai === ci;
+      h += '<td><button class="cell' + (paired ? " paired" : "") + '" data-a="' + ai + '" data-b="' + bank +
+        '" data-s="' + ci + '" aria-label="' + a.name + " into " + bank + " " + c.slot + '"><span class="dot"></span></button></td>';
+    }));
+    h += "</tr>";
+  });
+  t.innerHTML = h + "</tbody>";
+
+  t.querySelectorAll(".cell").forEach(b => b.addEventListener("click", () => {
+    const ai = +b.dataset.a, ci = +b.dataset.s, bank = b.dataset.b;
+    chans().forEach(c => { S.ch[c].amp = ai; S.ch[c].slot = ci; S.ch[c].bank = bank; });
+    S.modified = true;
+    say(AMPS[ai].name + " into " + bank + " " + CABS[ci].slot,
+      CABS[ci].name + ", captured with a " + MICS[bank] + ". " + setOn() +
+      (bank === "back" ? '<span class="pos">On the pedal this needs the Bypass switch held while the Cab toggle moves.</span>'
+                       : '<span class="pos">On the pedal this is the Cab toggle on its own.</span>'));
+    render();
+    document.querySelector(".machine").scrollIntoView({ behavior:"smooth", block:"nearest" });
+  }));
+})();
+
+function loadPreset(i, scroll){
+  const p = STOCK[i];
+  const fresh = () => ({
+    amp:p.amp, slot:p.slot, bank:p.bank,
+    k:Object.assign({}, p.k),
+    boost:{ gain:p.boost.gain, vol:p.boost.vol === null ? lead().boost.vol : p.boost.vol }
+  });
+  S.ch.L = fresh(); S.ch.R = fresh();
+  S.saved = JSON.parse(JSON.stringify(S.ch.L));
+  S.preset = i; S.modified = false; S.boostOn = false; S.hold = false;
+  say(p.key + " preset",
+    "Walrus's own settings for " + AMPS[p.amp].name + ", loaded on both channels." +
+    '<span class="pos">' + p.print +
+    (p.boost.vol === null ? " &mdash; the printed settings give no boosted Volume for this preset, so this page leaves the boosted Volume knob where it was."
+                          : "") + "</span>");
+  render();
+  if (scroll) document.querySelector(".machine").scrollIntoView({ behavior:"smooth", block:"nearest" });
+}
+$("#pRed").addEventListener("click", () => loadPreset(0));
+$("#pGreen").addEventListener("click", () => loadPreset(1));
+$("#pBlue").addEventListener("click", () => loadPreset(2));
+
+/* ---------------- knobs ---------------- */
+document.querySelectorAll(".kn").forEach(kn => {
+  const k = kn.dataset.k, btn = kn.querySelector(".knob");
+  const dead = () => S.hold && !ALT[k];
+  const bump = dv => {
+    if (dead()){ sayKnob(k); return; }
+    setKnob(k, knobValue(k) + dv); sayKnob(k); render();
+  };
+  let drag = null;
+  btn.addEventListener("pointerdown", e => {
+    try { btn.setPointerCapture(e.pointerId); } catch (_) {}
+    drag = { y:e.clientY, v:knobValue(k) };
+    kn.classList.add("tweak");
+    sayKnob(k);
+  });
+  btn.addEventListener("pointermove", e => {
+    if (!drag) return;
+    if (dead()) return;
+    setKnob(k, drag.v + (drag.y - e.clientY) / 200);
+    sayKnob(k); render();
+  });
+  const end = () => { drag = null; kn.classList.remove("tweak"); S.crossing = false; render(); };
+  btn.addEventListener("pointerup", end);
+  btn.addEventListener("pointercancel", end);
+  btn.addEventListener("keydown", e => {
+    const step = e.shiftKey ? .01 : .04;
+    if (e.key === "ArrowUp" || e.key === "ArrowRight"){ bump(step); e.preventDefault(); }
+    if (e.key === "ArrowDown" || e.key === "ArrowLeft"){ bump(-step); e.preventDefault(); }
+  });
+});
+
+function sayKnob(k){
+  const v = knobValue(k), pos = '<span class="pos"><b>' + clockOf(v) + "</b> &middot; " + pct(v);
+  if (S.hold){
+    const a = ALT[k];
+    if (!a){
+      say(KNAME[k], "This knob does nothing while the Bypass switch is held. Bass, Mid, Treble and Gain " +
+        "change job, and the Cab toggle moves to the back bank.", true);
+      return;
+    }
+    if (k === "mid"){
+      say("IR block", says("irblock") +
+        '<span class="pos">Mid is at <b>' + clockOf(v) + "</b>, " + (v > .5
+          ? "above noon &mdash; the IRs are in and the Bypass LED blinks green."
+          : "below noon &mdash; the IRs are out and the Bypass LED blinks red.") + "</span>");
+      return;
+    }
+    if (k === "gain"){
+      say("Compression", says("comp") + pos + " of the way up.</span>");
+      return;
+    }
+    say(a.name, says("filters") + pos + " along the printed " + a.span[0] + " to " + a.span[1] +
+      " span &mdash; the manual gives no taper, so that percentage is how far the knob has travelled, " +
+      "not the cutoff frequency.</span>");
+    return;
+  }
+  if (S.boostOn && (k === "gain" || k === "vol")){
+    say("Boosted " + KNAME[k], says("boost") + pos +
+      (k === "gain" ? ". Fully down is where the unboosted gain is set."
+                    : ". Noon is the mid point; turn left to lower volume or right to increase volume.") + "</span>");
+    return;
+  }
+  say(KNAME[k], says(k) + pos + " &middot; " + chLabel() + "</span>");
+}
+
+/* ---------------- toggles ---------------- */
+document.querySelectorAll(".tog").forEach(t => {
+  const which = t.dataset.t;
+  const at = () => which === "lr" ? S.sw : which === "amp" ? lead().amp : lead().slot;
+  const set = i => {
+    if (which === "lr"){
+      S.sw = i;
+      say("L + R switch", says("lr") + '<span class="pos">' + (i === 1
+        ? "Centre. Every control now writes to both channels at once."
+        : "Set to <b>" + (i === 0 ? "L" : "R") + "</b>. The knobs and the other two toggles now affect the " +
+          (i === 0 ? "left" : "right") + " channel only.") + "</span>");
+    } else if (which === "amp"){
+      chans().forEach(c => S.ch[c].amp = i);
+      S.modified = true;
+      say(AMPS[i].name, quote(1, AMPS[i].q) + '<span class="pos">' + setOn() + "</span>");
+    } else {
+      const bank = S.hold ? "back" : "front";
+      chans().forEach(c => { S.ch[c].slot = i; S.ch[c].bank = bank; });
+      S.modified = true;
+      say("Cab " + CABS[i].slot + " &middot; " + (bank === "front" ? "front" : "back"),
+        CABS[i].name + ", captured with a " + MICS[bank] + "." +
+        '<span class="pos">' + (bank === "back"
+          ? "Reached because the Bypass switch is held. Release Bypass and this same toggle position selects the SM57 capture of that cabinet."
+          : "Hold the Bypass switch while you move this toggle to reach the Royer 121 capture of the same cabinet.") +
+        "</span>");
+    }
+    render();
+  };
+  const bat = t.querySelector(".bat"), slot = t.querySelector(".slot");
+  let downX = 0, dragged = false, down = false;
+  bat.addEventListener("pointerdown", e => {
+    try { bat.setPointerCapture(e.pointerId); } catch (_) {}
+    down = true; dragged = false; downX = e.clientX;
+  });
+  bat.addEventListener("pointermove", e => {
+    if (!down) return;
+    if (Math.abs(e.clientX - downX) > 3) dragged = true;
+    const r = slot.getBoundingClientRect();
+    const f = (e.clientX - r.left) / r.width;
+    const i = f < 1/3 ? 0 : f < 2/3 ? 1 : 2;
+    if (i !== at()) set(i);
+  });
+  const rel = () => { down = false; };
+  bat.addEventListener("pointerup", rel);
+  bat.addEventListener("pointercancel", rel);
+  bat.addEventListener("click", e => {
+    if (dragged){ dragged = false; e.preventDefault(); return; }
+    set((at() + 1) % 3);
+  });
+  bat.addEventListener("keydown", e => {
+    if (e.key === "ArrowLeft"){ set(Math.max(0, at() - 1)); e.preventDefault(); }
+    if (e.key === "ArrowRight"){ set(Math.min(2, at() + 1)); e.preventDefault(); }
+  });
+  t.querySelectorAll(".names button").forEach(b =>
+    b.addEventListener("click", () => set(+b.dataset.v)));
+});
+
+/* ---------------- footswitches ---------------- */
+const swBypass = $("#swBypass");
+let holdTimer = null, heldFired = false;
+
+function enterHold(){
+  S.hold = true; heldFired = true;
+  say("Bypass held", "The LED blinks and four knobs change job: <b>Bass</b> becomes the output high-pass, " +
+    "<b>Treble</b> the output low-pass, <b>Mid</b> the IR-block switch and <b>Gain</b> the compressor. " +
+    "Moving the <b>Cab toggle</b> now selects the back bank &mdash; the Royer 121 captures." +
+    '<span class="pos">On the pedal you keep the switch down. Here it latches &mdash; press Bypass again, ' +
+    "or pick another mode above, to let go.</span>");
+  render();
+}
+function exitHold(){
+  S.hold = false;
+  say("Released", "The knobs are back to Bass, Mid, Treble, Volume, Gain and Room, and the Cab toggle is " +
+    "back on the front bank.");
+  render();
+}
+swBypass.addEventListener("pointerdown", () => {
+  heldFired = false;
+  holdTimer = setTimeout(() => { if (!S.hold) enterHold(); }, 550);
+});
+["pointerup","pointerleave","pointercancel"].forEach(ev =>
+  swBypass.addEventListener(ev, () => clearTimeout(holdTimer)));
+swBypass.addEventListener("click", () => {
+  clearTimeout(holdTimer);
+  if (heldFired){ heldFired = false; return; }
+  if (S.hold){ exitHold(); return; }
+  S.engaged = !S.engaged;
+  say("Bypass", S.engaged
+    ? "Engaged. The amp model, the cab IR and the room are in the signal path."
+    : "Bypassed. True bypass — the pedal is out of the path altogether.");
+  render();
+});
+/* The three modes are the page's own framing: one set of six knobs that means
+   something different depending on what your foot is doing. Playing and Setting
+   boost are states the pedal really latches; Bypass held is a switch you keep
+   down, latched here so both hands stay free. */
+const modeOf = () => S.hold ? "hold" : S.boostOn ? "boost" : "play";
+function setMode(m){
+  if (m === modeOf()) return;
+  if (m === "hold"){ S.boostOn = false; enterHold(); return; }
+  if (m === "boost"){
+    if (S.hold) S.hold = false;
+    S.boostOn = true; sayBoostOn(); render(); return;
+  }
+  if (S.hold){ exitHold(); return; }
+  S.boostOn = false;
+  say("Boost off", "Gain and Volume are back to the unboosted pair.");
+  render();
+}
+document.querySelectorAll("#modes button").forEach(btn =>
+  btn.addEventListener("click", () => setMode(btn.dataset.m)));
+
+function sayBoostOn(){
+  say("Setting boost", quote(3, "To set the boost amount, press the boost switch. The LED light will flash " +
+    "showing that the boost is on. Turning the Gain knob to zero is now equal to where the unboosted level " +
+    "is set. Use the Volume and Gain knobs to set boost levels to your liking.") +
+    '<span class="pos"><b>Gain</b> and <b>Volume</b> now hold the boosted pair. Press Boost again to ' +
+    "confirm, then hold Bypass and Boost together to save them into the preset.</span>");
+}
+$("#swBoost").addEventListener("click", () => {
+  if (S.hold) S.hold = false;
+  S.boostOn = !S.boostOn;
+  if (S.boostOn) sayBoostOn();
+  else say("Boost off", "Gain and Volume are back to the unboosted pair.");
+  render();
+});
+
+$("#swPreset").addEventListener("click", () => {
+  loadPreset((S.preset + 1) % 3);
+  say("Both switches", says("preset") +
+    '<span class="pos">Now on the <b>' + STOCK[S.preset].key + "</b> preset.</span>");
+  render();
+});
+
+/* ---------------- render ---------------- */
+const chainEl = $("#chain"), krowsEl = $("#krows"), chipsEl = $("#chips");
+
+function cabOf(c){ return { cab:CABS[c.slot], mic:MICS[c.bank], bank:c.bank }; }
+
+function chainRow(name, c, sel){
+  const o = cabOf(c);
+  return '<div class="crow" data-sel="' + sel + '"><span class="chn">' + name + "</span>" +
+    '<div class="flow">' +
+      '<div class="st"><b>' + AMPS[c.amp].name + "</b><span>amp</span></div>" +
+      '<span class="ar">&rarr;</span>' +
+      '<div class="st' + (S.g.ir > .5 ? "" : " off") + '"><b>' + (S.g.ir > .5
+        ? c.bank + " " + o.cab.slot : "IR block out") + "</b><span>" +
+        (S.g.ir > .5 ? o.cab.name.replace(/ Replication/,"").replace(/®/g,"") : "no cab IR") + "</span></div>" +
+      '<span class="ar">&rarr;</span>' +
+      '<div class="st mic' + (S.g.ir > .5 ? "" : " off") + '"><b>' + o.mic + "</b><span>microphone</span></div>" +
+    "</div></div>";
+}
+
+/* ---------------- amp and cab character, routed off the two toggles ---------------- */
+const voiceEl = $("#voice");
+function renderVoice(){
+  const c = lead(), a = AMPS[c.amp], cab = CABS[c.slot], mic = MICS[c.bank];
+  voiceEl.innerHTML =
+    '<div class="vrow"><div class="vh"><b>' + a.name + '</b>' +
+      '<span class="after">after the ' + a.after + '</span></div>' +
+      '<p>' + quote(1, a.q) + '</p></div>' +
+    '<div class="vrow"><div class="vh"><b>' + c.bank + ' ' + cab.slot + ' &mdash; ' + cab.name + '</b>' +
+      '<span class="after">' + mic + '</span></div>' +
+      '<p>' + quote(2, "The Cab switch lets you select one of six on-board cabinet impulse responses (IRs) " +
+        "to accompany the selected amp model.") + '</p>' +
+      '<p class="gear">' + cab.gear + '</p></div>';
+}
+
+/* ---------------- the signal path ---------------- */
+/* Walrus place compression "before the amp circuit" and the two output filters
+   "at the output, post amp and cab". Room is the one stage they never place;
+   it is marked as this page's reading where it sits. */
+const pathEl = $("#path"), lvlEl = $("#lvlgrid");
+
+const band = v => v < .34 ? "low" : v < .67 ? "middle" : "high";
+
+function renderPath(){
+  const c = lead(), m = modeOf();
+  const irIn = S.g.ir > .5;
+  const st = (cls, name, key, val, ours) =>
+    '<div class="pstage' + (cls ? " " + cls : "") + '"><b>' + name + '</b>' +
+    '<span class="pk">' + key + '</span><span class="pv">' + val + '</span>' +
+    (ours ? '<span class="ours">this page&rsquo;s reading</span>' : '') + '</div>';
+
+  const compOn = S.g.comp > .02;
+  const roomOn = c.k.room > .02;
+  const hpOn = S.g.hpf > .02, lpOn = S.g.lpf < .98;
+
+  pathEl.innerHTML =
+    st(m === "hold" ? "lit" : (compOn ? "" : "off"),
+       "Compression", "held Bypass + Gain",
+       compOn ? clockOf(S.g.comp) : "none added") +
+    st(m === "play" || m === "boost" ? "lit" : "",
+       AMPS[c.amp].name, "Gain &middot; Bass Mid Treble",
+       "Gain " + clockOf(m === "boost" ? c.boost.gain : c.k.gain) +
+       (m === "boost" ? " boosted" : "") + " &middot; stack " + clockOf(c.k.bass) + " / " +
+       clockOf(c.k.mid) + " / " + clockOf(c.k.treble)) +
+    st(m === "hold" ? "lit" : (irIn ? "" : "byp"),
+       "Cab IR", "Cab toggle &middot; held + Mid",
+       irIn ? c.bank + " " + CABS[c.slot].slot + " &middot; " + MICS[c.bank] : "IR block bypassed") +
+    st(roomOn ? (m === "play" ? "lit" : "") : "off",
+       "Room", "Room knob", roomOn ? clockOf(c.k.room) : "disengaged", true) +
+    st(m === "hold" ? "lit" : ((hpOn || lpOn) ? "" : "off"),
+       "Output HPF / LPF", "held Bypass + Bass / Treble",
+       (hpOn || lpOn)
+         ? (hpOn ? pct(S.g.hpf) + " toward 200 Hz" : "20 Hz") + " &middot; " +
+           (lpOn ? pct(1 - S.g.lpf) + " toward 1 kHz" : "20 kHz")
+         : "both transparent") +
+    st(m === "play" || m === "boost" ? "lit" : "",
+       "Volume", m === "boost" ? "boosted Volume" : "Volume knob",
+       clockOf(m === "boost" ? c.boost.vol : c.k.vol));
+}
+
+/* ---------------- the level meters ---------------- */
+function meter(title, val, body, extra){
+  return '<div class="meter"><div class="mt"><b>' + title + '</b><span class="v">' + val + '</span></div>' +
+    '<div class="track">' + (extra || '<div class="fill" style="right:' + (100 - body.f * 100) + '%"></div>') +
+    '</div><div class="cap">' + body.cap + '</div></div>';
+}
+
+function renderLevels(){
+  const c = lead(), m = modeOf();
+
+  if (m === "hold"){
+    const filt = (name, v, travel, rest, ends, dir) => meter(
+      name, clockOf(v),
+      { cap: travel < .02
+          ? "At <b>" + rest + "</b>, where the filter is transparent."
+          : "<b>" + pct(travel) + "</b> along the printed " + ends + " span, " + dir + "." },
+      '<div class="fill" style="right:' + (100 - travel * 100) + '%"></div>');
+    lvlEl.innerHTML =
+      meter("Compression", clockOf(S.g.comp),
+        { cap: (S.g.comp > .02
+            ? "Set to <b>" + clockOf(S.g.comp) + "</b>. "
+            : "") + quote(3, "Add in compression before the amp circuit. Press and hold the Bypass Switch " +
+            "and turn the Gain knob clockwise to increase the amount of compression. At minimum, there is " +
+            "no compression added.") },
+        '<div class="fill" style="right:' + (100 - S.g.comp * 100) + '%"></div>') +
+      filt("Output high-pass", S.g.hpf, S.g.hpf, "20 Hz", "20 Hz to 200 Hz", "cutting lows") +
+      filt("Output low-pass", S.g.lpf, 1 - S.g.lpf, "20 kHz", "1 kHz to 20 kHz", "cutting highs");
+    return;
+  }
+
+  if (m === "boost"){
+    const g0 = c.k.gain, gb = c.boost.gain, vb = c.boost.vol;
+    /* The boosted knob's whole travel starts at the unboosted value, so raising
+       unboosted Gain shrinks the window the boost has left to work in. */
+    const window = 1 - g0;
+    const eff = g0 + gb * window;
+    const above = vb - .5;
+    lvlEl.innerHTML =
+      meter("Boosted Gain", clockOf(gb),
+        { cap: "Unboosted Gain sits at <b>" + clockOf(g0) + "</b>, and this knob starts there. " +
+          (window < .995
+            ? "It has <b>" + pct(window) + "</b> of the sweep left to climb through &mdash; raise the unboosted " +
+              "Gain and the boost has less room, lower it and the boost has more."
+            : "With the unboosted Gain fully down it has the whole sweep to climb through.") +
+          " The top of the range is 4 dB above the pedal&rsquo;s own maximum either way." +
+          "<br>" + quote(3, "The boosted gain control goes from the non-boosted gain value at minimum to " +
+          "the maximum possible gain available with an additional +4db of gain.") },
+        '<div class="span" style="left:' + (g0 * 100) + '%;right:0"></div>' +
+        '<div class="tick" style="left:calc(' + (g0 * 100) + '% - 1px)"></div>' +
+        '<div class="fill" style="left:' + (g0 * 100) + '%;right:' + (100 - eff * 100) + '%"></div>') +
+      meter("Boosted Volume", clockOf(vb),
+        { cap: (Math.abs(above) < .02
+            ? "<b>At noon</b> &mdash; the mid point, so switching the boost in does not move your level."
+            : "<b>" + pct(Math.abs(above) * 2) + " " + (above > 0 ? "above" : "below") + " noon</b> &mdash; the " +
+              "boost comes in " + (above > 0 ? "louder" : "quieter") + " than the unboosted sound.") + " " +
+          quote(3, "While in Boost mode, setting the Volume knob to noon is the mid point. Turn left to " +
+          "lower volume or right to increase volume.") },
+        '<div class="tick mid" style="left:calc(50% - 1px)"></div>' +
+        (above >= 0
+          ? '<div class="fill" style="left:50%;right:' + (100 - vb * 100) + '%"></div>'
+          : '<div class="fill" style="left:' + (vb * 100) + '%;right:50%"></div>'));
+    return;
+  }
+
+  /* playing */
+  const g = c.k.gain, v = c.k.vol, b = band(g);
+  const gcap = {
+    low:    "Low on the sweep. Walrus describe the power amp there as retaining <q>plenty of dynamic warmth " +
+            "and headroom during Class A behavior at low gains</q>.",
+    middle: "Into the middle of the sweep, where Walrus put <q>an increased sensitivity and overdrive in " +
+            "Class AB saturation</q>.",
+    high:   "Near the top, which Walrus take <q>through to complete Valve breakup at maximum</q>."
+  }[b];
+  const vcap = {
+    low:    "Gain is low, which is exactly where Walrus say the level needs making up: <q>The Gain knob also " +
+            "affects the overall volume just like a real amp so you may want to increase the Volume knob at " +
+            "lower gain settings.</q>",
+    middle: "Gain is carrying part of the level now. Moving it will move how loud you are, so a Volume you " +
+            "matched at another Gain setting will not still match.",
+    high:   "Gain is high and doing a lot of the level work, so Volume is mostly trimming back rather than " +
+            "making up."
+  }[b];
+  lvlEl.innerHTML =
+    meter("Gain", clockOf(g),
+      { f:g, cap: quote(3, "The Gain knob controls the amount of gain through the amp \u201Ccircuit\u201D " +
+        "within each model. The amount gain and character changes with each amp.") + "<br>" + gcap +
+        '<a class="src" href="' + sheetHref(1) + '" target="_blank" rel="noopener">Walrus, sheet 1</a>' }) +
+    meter("Volume", clockOf(v),
+      { f:v, cap: quote(3, "The Volume knob controls the overall output level of the pedal. It also controls " +
+        "the volume of the headphone out.") + "<br>" + vcap +
+        '<a class="src" href="' + sheetHref(3) + '" target="_blank" rel="noopener">Walrus, sheet 3</a>' });
+}
+
+
+/* ---------------- unity: the term Walrus use the pedal around and never define ----------------
+   Built once from here rather than written into the markup, and its closing line
+   answers where the reader has actually put Gain and Volume - a definition on its
+   own would not move anything. */
+(function buildGloss(){
+  $("#glossHost").innerHTML =
+  '<details class="gloss">' +
+    '<summary><span class="tag">This page, not the manual</span> Where is unity?</summary>' +
+    '<div class="gbody">' +
+      "<p><b>Unity gain</b> is the setting at which a pedal sends out exactly the level it took in, so " +
+      "switching it on and off does not change how loud you are. On a boost or an overdrive it is the " +
+      "position you hunt for first.</p>" +
+      "<p>Walrus never print one for the ACS1, and the pedal&rsquo;s design is why. The ACS1 is not passing " +
+      "your guitar through &mdash; it is replacing your amp, and what leaves it is the end of a modelled amp, " +
+      "a speaker cabinet and a room. No single Volume position holds across the three amp models, the six " +
+      "cabs and every Gain setting, because " +
+      quote(3, "The Gain knob also affects the overall volume just like a real amp so you may want to " +
+        "increase the Volume knob at lower gain settings.") +
+      " Every time Gain moves, the Volume you matched has to be matched again.</p>" +
+      "<p><b>The one no-change position Walrus do document is inside Boost.</b> " +
+      quote(3, "While in Boost mode, setting the Volume knob to noon is the mid point. Turn left to lower " +
+        "volume or right to increase volume.") +
+      " That is a genuine unity, and a narrow one: noon matches the boosted sound to the unboosted sound. " +
+      "It says nothing about how either of them sits against your dry signal.</p>" +
+      "<p><b>So set it by ear, against bypass.</b> The ACS1 is true bypass, so bypassed you hear your dry " +
+      "signal and engaged you hear the amp model &mdash; stomping between the two is a real comparison. Set " +
+      "Gain first, for the breakup you want, then move Volume until engaged and bypassed match. Walrus&rsquo;s " +
+      "three stock presets all sit <span class=\"mono\">Volume 1</span> with <span class=\"mono\">Gain 1</span>" +
+      '<a class="src" href="' + sheetHref(4) + '" target="_blank" rel="noopener">Walrus, sheet 4</a>' +
+      ", which is the nearest thing to a reference point the manual offers &mdash; a starting position, not a " +
+      "unity mark.</p>" +
+      '<p id="glossLive"></p>' +
+      "<p style=\"font-size:.84rem\">Reading their stock figures as a starting point, and setting the level " +
+      "against bypass, are this page&rsquo;s; the quotations are Walrus&rsquo;s.</p>" +
+    "</div></details>";
+})();
+
+function renderGloss(){
+  const c = lead(), m = modeOf(), el = $("#glossLive");
+  if (!el) return;
+  if (m === "hold"){
+    el.innerHTML = "<b>Right now:</b> Bypass is held, so Volume and Gain are off doing other jobs. " +
+      "Release it before setting the level.";
+    return;
+  }
+  if (m === "boost"){
+    const vb = c.boost.vol, off = vb - .5;
+    el.innerHTML = "<b>Right now:</b> boosted Volume is at <b>" + clockOf(vb) + "</b>" +
+      (Math.abs(off) < .02
+        ? " &mdash; on the mid point, so the boost comes in at the same level as the unboosted sound."
+        : ", <b>" + pct(Math.abs(off) * 2) + "</b> " + (off > 0 ? "above" : "below") + " the mid point, so the " +
+          "boost comes in " + (off > 0 ? "louder" : "quieter") + " than the unboosted sound. Noon is the " +
+          "position that matches them.");
+    return;
+  }
+  const g = c.k.gain, v = c.k.vol;
+  const atStock = Math.abs(g - fromClock(1)) < .03 && Math.abs(v - fromClock(1)) < .03;
+  el.innerHTML = "<b>Right now:</b> Gain <b>" + clockOf(g) + "</b>, Volume <b>" + clockOf(v) + "</b>. " +
+    (atStock
+      ? "That is Walrus&rsquo;s own stock pairing, so it is a sensible place to start the A/B from."
+      : "Stomp Bypass to hear this against your dry signal, then move Volume until the two match &mdash; " +
+        "and match it again if Gain leaves " + clockOf(g) + ".");
+}
+
+function renderBench(){
+  const m = modeOf();
+  $("#benchTitle").textContent =
+    m === "hold"  ? "Bypass held — four knobs have moved down the path"
+  : m === "boost" ? "Setting boost — Gain and Volume hold a second pair of values"
+  : "Where each control acts";
+  $("#benchSub").innerHTML =
+    m === "hold"  ? "The lit stages are the ones the six knobs can reach while the switch is down."
+  : m === "boost" ? "Boost stores its own Gain and Volume; everything else stays where the preset left it."
+  : "Compression sits <q>before the amp circuit</q>; the two filters sit <q>at the output, post amp and cab</q>.";
+  renderPath();
+  renderLevels();
+  renderGloss();
+}
+
+function render(){
+  /* knobs */
+  document.querySelectorAll(".kn").forEach(kn => {
+    const k = kn.dataset.k, a = altOf(k);
+    kn.querySelector(".cap").style.transform = "rotate(" + ang(knobValue(k)) + "deg)";
+    kn.querySelector(".klbl").textContent = a ? a.silk : KSILK[k];
+    kn.classList.toggle("alt", !!a);
+    kn.style.opacity = (S.hold && !a) ? ".55" : "1";
+  });
+  /* toggles */
+  document.querySelector('.tog[data-t="lr"]').dataset.i = S.sw;
+  document.querySelector('.tog[data-t="amp"]').dataset.i = lead().amp;
+  document.querySelector('.tog[data-t="cab"]').dataset.i = lead().slot;
+  document.querySelectorAll(".tog").forEach(t => {
+    const i = +t.dataset.i;
+    t.querySelectorAll(".names button").forEach(b => b.classList.toggle("on", +b.dataset.v === i));
+  });
+  /* LEDs */
+  const lb = $("#ledBypass"), lo = $("#ledBoost");
+  lb.classList.toggle("blink", S.hold);
+  lb.dataset.lit = S.hold ? (S.g.ir > .5 ? "green" : "red") : (S.engaged ? "green" : "off");
+  lo.classList.toggle("blink", S.boostOn);
+  lo.dataset.lit = (S.modified && !S.crossing) ? "purple" : STOCK[S.preset].led;
+  document.querySelectorAll(".fsw").forEach(f => f.classList.toggle("held", S.hold && f.dataset.f === "bypass"));
+  document.querySelectorAll("#modes button").forEach(b =>
+    b.setAttribute("aria-pressed", String(b.dataset.m === modeOf())));
+  document.querySelectorAll(".btn.pr[id]").forEach(b =>
+    b.setAttribute("aria-pressed", String(!S.modified && +b.dataset.p === S.preset)));
+
+  /* the matrix marks whatever either channel is on */
+  document.querySelectorAll("#mtx .cell").forEach(c => {
+    const hits = ch => +c.dataset.a === ch.amp && c.dataset.b === ch.bank && +c.dataset.s === ch.slot;
+    c.classList.toggle("on", hits(S.ch.L) || hits(S.ch.R));
+  });
+
+  /* headline */
+  const L = S.ch.L, R = S.ch.R;
+  const same = L.amp === R.amp && L.slot === R.slot && L.bank === R.bank;
+  $("#headline").innerHTML = same
+    ? AMPS[L.amp].name + " into " + L.bank + " " + CABS[L.slot].slot + " &middot; " + MICS[L.bank]
+    : AMPS[L.amp].name + "/" + CABS[L.slot].slot + " left &middot; " + AMPS[R.amp].name + "/" + CABS[R.slot].slot + " right";
+  $("#headsub").textContent = chLabel() + " · " + (S.engaged ? "engaged" : "bypassed") +
+    (S.boostOn ? " · boost on" : "") + (S.hold ? " · Bypass held" : "") +
+    " · " + STOCK[S.preset].key + (S.modified ? " (modified)" : "");
+
+  /* chain */
+  chainEl.innerHTML = chainRow("L", L, S.sw !== 2) + chainRow("R", R, S.sw !== 0) +
+    (same ? "" : '<div class="crow"><span class="chn"></span><div style="font-size:.84rem;color:var(--ink-2)">' +
+      "The left and right channels are on different amp and cab combinations. Put the middle toggle on " +
+      "<span class=\"mono\">+</span> and the next control you move writes to both.</div></div>");
+
+  /* chips */
+  const irOn = S.g.ir > .5;
+  chipsEl.innerHTML =
+    '<span class="chip' + (S.g.comp > .02 ? " on" : "") + '"><i></i>Compression ' + (S.g.comp > .02 ? clockOf(S.g.comp) : "off") + "</span>" +
+    '<span class="chip' + (irOn ? "" : " warn") + '"><i></i>IR block ' + (irOn ? "in" : "bypassed") + "</span>" +
+    '<span class="chip' + (S.g.hpf > .02 ? " on" : "") + '"><i></i>Out HPF ' + (S.g.hpf > .02 ? pct(S.g.hpf) + " toward 200 Hz" : "at 20 Hz") + "</span>" +
+    '<span class="chip' + (S.g.lpf < .98 ? " on" : "") + '"><i></i>Out LPF ' + (S.g.lpf < .98 ? pct(1 - S.g.lpf) + " toward 1 kHz" : "at 20 kHz") + "</span>" +
+    '<span class="chip' + (S.boostOn ? " on" : "") + '"><i></i>Boost ' + (S.boostOn ? "setting" : "off") + "</span>";
+
+  /* knob rows */
+  krowsEl.innerHTML = KNOBS.map(k => {
+    const a = altOf(k);
+    if (S.hold && !a)
+      return '<div class="krow dead"><div class="kn-name">' + KNAME[k] + "</div>" +
+        '<div class="kn-what">No job while Bypass is held.</div><div class="kn-val">&mdash;</div></div>';
+    const v = knobValue(k);
+    let what, val, sub;
+    if (a && k === "mid"){
+      what = "IR block " + (v > .5 ? "in — LED blinks green" : "out — LED blinks red");
+      val = v > .5 ? "above noon" : "below noon"; sub = "IR block";
+    } else if (a && k === "gain"){
+      what = v < .02 ? "No compression added." : "Compression before the amp circuit.";
+      val = clockOf(v); sub = "compression";
+    } else if (a){
+      const travel = k === "bass" ? v : 1 - v;
+      what = travel < .02
+        ? "Fully " + (k === "bass" ? "down" : "up") + " at " + (k === "bass" ? a.span[0] : a.span[1]) +
+          ", where the filter is transparent."
+        : pct(travel) + " along the printed " + a.span[0] + " to " + a.span[1] + " span, " +
+          (k === "bass" ? "cutting lows." : "cutting highs.");
+      val = clockOf(v); sub = k === "bass" ? "output HPF" : "output LPF";
+    } else if (S.boostOn && (k === "gain" || k === "vol")){
+      what = k === "gain" ? "Boosted gain — fully down is where the unboosted gain is set."
+                          : "Boosted volume — noon is the mid point.";
+      val = clockOf(v); sub = "boosted";
+    } else if (k === "room" && v < .02){
+      what = "Fully down, so the room reverb is disengaged.";
+      val = clockOf(v); sub = "off";
+    } else {
+      what = KWHAT[k];
+      val = clockOf(v); sub = pct(v);
+    }
+    return '<div class="krow"><div class="kn-name">' + (a ? a.name : KNAME[k]) +
+      "<em>" + (a ? "held Bypass + " + KSILK[k] : KSILK[k]) + "</em></div>" +
+      '<div class="kn-what">' + what + "</div>" +
+      '<div class="kn-val">' + val + "<small>" + sub + "</small></div></div>";
+  }).join("");
+
+  renderVoice();
+  renderBench();
+}
+
+/* ---------------- the manual index ---------------- */
+const INDEX = [
+  ["The three amp models, and how they were built", 1],
+  ["Power: isolated 9 V, centre negative, 300 mA", 1],
+  ["The six cab IRs \u2014 which cabinet, which microphone", 2],
+  ["Front bank and back bank, and how to reach the back", 2],
+  ["L + R: setting the two channels together or apart", 2],
+  ["Bass, Mid and Treble", 3],
+  ["Volume and Gain, and how Gain moves the level", 3],
+  ["Room", 3],
+  ["The Cab switch, and loading your own IRs", 3],
+  ["Compression \u2014 held Bypass and Gain", 3],
+  ["Boost: the boosted Gain and Volume ranges, and saving them", 3],
+  ["The Preset LED, purple, and crossing a saved position", 3],
+  ["Recalling a preset, and the three steps to save one", 4],
+  ["The three stock presets, in clock positions", 4],
+  ["Assigning the MIDI channel", 5],
+  ["MIDI In and Thru; recalling presets by Program Change", 5],
+  ["Inputs, outputs and the three cabling configurations", 5],
+  ["The headphone jack", 5],
+  ["Micro-USB, firmware and IR loading", 5],
+  ["MIDI CC numbers and value ranges for every parameter", 6],
+  ["MIDI Program Change numbers for all 128 presets", 6],
+  ["Bypassing the IR block \u2014 held Bypass and Mid", 6],
+  ["Output high-pass and low-pass \u2014 held Bypass, Bass and Treble", 6],
+  ["Factory reset", 7],
+  ["walrusaudio.io, and uploading your own speaker IRs", 7],
+  ["Technical information: response, jacks, size, weight", 8]
+];
+$("#mindex").innerHTML = INDEX.map(([t,n]) =>
+  '<a href="' + sheetHref(n) + '" target="_blank" rel="noopener">' +
+  '<span class="t">' + t + '</span><span class="n">sheet ' + n + "</span></a>").join("");
+
+/* fill in the src links written into the static prose */
+document.querySelectorAll("a.src[data-pg]").forEach(a => {
+  const n = a.dataset.pg;
+  a.href = sheetHref(n);
+  a.target = "_blank"; a.rel = "noopener";
+  a.textContent = "Walrus, sheet " + n;
+});
+
+/* ---------------- boot ---------------- */
+/* start on Red - the first of the three onboard presets, and the only starting
+   point on this page that is Walrus's own rather than an arbitrary set of noons */
+loadPreset(0);
+idle();
+render();
+})();
+</script>

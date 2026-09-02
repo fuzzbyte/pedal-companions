@@ -1,0 +1,2070 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NightSky Section by Section</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232F5E96'/><path d='M16 3.5 L19.1 12.9 L28.5 16 L19.1 19.1 L16 28.5 L12.9 19.1 L3.5 16 L12.9 12.9 Z' fill='%23EAF4FF'/></svg>">
+<script>
+/* Theme: apply the reader's stored pick before first paint, then wire the header toggle. */
+(function(){
+  var root = document.documentElement, KEY = "pedal-theme";
+  try {
+    var saved = localStorage.getItem(KEY);
+    if (saved === "light" || saved === "dark") root.dataset.theme = saved;
+  } catch(e){}
+  var isDark = function(){
+    return root.dataset.theme ? root.dataset.theme === "dark"
+                              : matchMedia("(prefers-color-scheme: dark)").matches;
+  };
+  addEventListener("DOMContentLoaded", function(){
+    var btn = document.querySelector(".themetoggle");
+    if (!btn) return;
+    var sync = function(){
+      var label = "Switch to the " + (isDark() ? "light" : "dark") + " theme";
+      btn.setAttribute("aria-label", label);
+      btn.title = label;
+    };
+    btn.addEventListener("click", function(){
+      root.dataset.theme = isDark() ? "light" : "dark";
+      try { localStorage.setItem(KEY, root.dataset.theme); } catch(e){}
+      sync();
+    });
+    sync();
+  });
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=DM+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap">
+
+<style>
+/* ---------- tokens: light is the bare :root, dark redefines ---------- */
+:root{
+  --bg:#ECEEF3;
+  --surface:#F7F8FB;
+  --surface-2:#E2E6EF;
+  --line:#CBD2DF;
+  --line-soft:#DCE1EA;
+  --ink:#14171E;
+  --ink-2:#4C5464;
+  --ink-3:#818A9C;
+  --tint:#080A0E;
+  --shadow:0 1px 0 rgba(20,23,30,.04), 0 12px 32px -20px rgba(20,23,30,.45);
+
+  --acc:#3C77C4;
+  --acc-text:#2A5F9F;
+  --warn:#B4561B;
+
+  --r:14px;
+  --step:clamp(2.6rem, 5vw, 4.4rem);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1017;
+    --surface:#141821;
+    --surface-2:#1B2130;
+    --line:#2A3244;
+    --line-soft:#212736;
+    --ink:#E6EBF3;
+    --ink-2:#9AA5B8;
+    --ink-3:#6B7488;
+    --tint:#F2F7FF;
+    --shadow:0 1px 0 rgba(255,255,255,.02), 0 16px 40px -24px rgba(0,0,0,.9);
+    --acc:#6BA5E8;
+    --acc-text:#8DBBF0;
+    --warn:#DB9455;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1017; --surface:#141821; --surface-2:#1B2130;
+  --line:#2A3244; --line-soft:#212736;
+  --ink:#E6EBF3; --ink-2:#9AA5B8; --ink-3:#6B7488; --tint:#F2F7FF;
+  --acc:#6BA5E8; --acc-text:#8DBBF0; --warn:#DB9455;
+}
+
+/* constants — sampled from Strymon's own top-down photograph */
+:root{
+  --case-hi:#4A6FA8;
+  --case:#2F5E96;
+  --case-lo:#1B3C65;
+  --silk:#F3FAFF;
+  --silk-2:rgba(243,250,255,.60);
+  --silk-3:rgba(243,250,255,.32);
+  --knob-hi:#43434C;
+  --knob:#2E2E35;
+  --knob-lo:#0E0E12;
+  --led-on:#67CF29;
+  --led-off:#2B5B5B;
+  --led-amber:#F2A73B;
+  --led-red:#E2452F;
+  --led-blue:#4C93E6;
+  --led-white:#EAF2FF;
+  --preset-off:#8C99B9;
+}
+
+/* ---------- base ---------- */
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Newsreader",Georgia,"Times New Roman",serif;
+  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased;
+}
+#app{max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 96px}
+h1,h2,h3,h4,.lbl,.mono,button,th{font-family:"Archivo",system-ui,-apple-system,"Helvetica Neue",sans-serif}
+h1,h2,h3{text-wrap:balance;margin:0}
+.mono,code{font-family:"DM Mono","SFMono-Regular",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+a{color:var(--acc-text)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:3px;border-radius:4px}
+.lbl{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.lbl-a{color:var(--acc-text)}
+
+/* ---------- masthead ---------- */
+header.top{padding:clamp(40px,7vw,84px) 0 clamp(22px,4vw,34px)}
+.backlink{flex:none;display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);text-decoration:none;padding-right:12px;border-right:1px solid var(--line)}
+.backlink:hover{color:var(--ink)}
+.backlink .bk-arrow{font-size:13px;letter-spacing:0;transition:transform .14s ease}
+.backlink:hover .bk-arrow{transform:translateX(-3px)}
+@media (max-width:560px){.brandline{flex-wrap:wrap}.backlink{flex-basis:100%;border-right:0;padding-right:0;margin-bottom:2px}}
+/* The page follows the OS until the reader picks a side; after that [data-theme] on
+   <html> wins, and the pick is remembered. The button is an invitation to swap, so it
+   wears the theme it offers: a moon in dark colours on a light page, a sun in light
+   colours on a dark page. --tt-* is the opposite palette, cross-wired for that reason,
+   and held here rather than beside the tokens it inverts. */
+:root{color-scheme:light;--tt-surface:#141821;--tt-line:#2A3244;--tt-ink:#E6EBF3;--tt-ink-3:#6B7488}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;--tt-surface:#F7F8FB;--tt-line:#CBD2DF;--tt-ink:#14171E;--tt-ink-3:#818A9C}}
+:root[data-theme="dark"]{color-scheme:dark;--tt-surface:#F7F8FB;--tt-line:#CBD2DF;--tt-ink:#14171E;--tt-ink-3:#818A9C}
+.themetoggle{flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;
+  border:1px solid var(--tt-line);border-radius:8px;background:var(--tt-surface);color:var(--tt-ink-3);cursor:pointer;
+  transition:color .15s,border-color .15s}
+.themetoggle:hover{color:var(--tt-ink);border-color:var(--tt-ink-3)}
+.themetoggle svg{display:block;width:15px;height:15px}
+.themetoggle .i-sun{display:none}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .themetoggle .i-moon{display:none}
+  :root:not([data-theme="light"]) .themetoggle .i-sun{display:block}
+}
+:root[data-theme="dark"] .themetoggle .i-moon{display:none}
+:root[data-theme="dark"] .themetoggle .i-sun{display:block}
+.brandline{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.brandline .unoff{font-weight:700;color:var(--acc-text)}
+.brandline .rule{flex:1;height:1px;background:var(--line)}
+h1{font-size:clamp(3rem,11vw,6.8rem);font-weight:700;letter-spacing:-.05em;line-height:.86;text-transform:uppercase}
+h1 .thin{display:block;font-weight:500;font-size:.2em;letter-spacing:.28em;color:var(--ink-3);margin-top:1.2em}
+.dek{max-width:64ch;margin-top:26px;font-size:1.16rem;color:var(--ink-2)}
+.dek strong{color:var(--ink);font-weight:500}
+.dek + .dek{margin-top:14px}
+
+/* ---------- the machine ---------- */
+.machine{
+  --mw:min(1520px, calc(100vw - 48px));
+  width:var(--mw);margin-left:calc((100% - var(--mw)) / 2);
+  border:1px solid var(--line);border-radius:var(--r);background:var(--surface);
+  box-shadow:var(--shadow);overflow:hidden;margin-top:24px;
+}
+.mhead{
+  display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;justify-content:space-between;
+  padding:12px 18px;border-bottom:1px solid var(--line-soft);background:var(--surface-2);
+}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.holdbar{
+  display:flex;gap:8px 10px;flex-wrap:wrap;align-items:center;
+  padding:11px 18px;border-bottom:1px solid var(--line-soft);background:var(--surface);
+}
+.holdbar .lbl{flex:none}
+.holdbar .hb{display:flex;gap:5px;flex-wrap:wrap}
+
+button.btn{
+  font-family:"Archivo",sans-serif;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  padding:7px 11px;border-radius:8px;cursor:pointer;background:var(--surface);color:var(--ink-2);
+  border:1px solid var(--line);transition:background .15s,border-color .15s,color .15s;
+}
+button.btn:hover{border-color:var(--acc);color:var(--acc-text)}
+button.btn[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) button.btn[aria-pressed="true"]{color:#0D1017}
+}
+:root[data-theme="dark"] button.btn[aria-pressed="true"]{color:#0D1017}
+button.btn.sm{font-size:10px;padding:6px 9px;letter-spacing:.06em}
+
+.stage{display:grid;grid-template-columns:minmax(0,1.22fr) minmax(320px,1fr);align-items:stretch}
+@media (max-width:1023px){ .stage{grid-template-columns:1fr} }
+
+/* ---------- the pedal ---------- */
+.pedalwrap{
+  display:flex;flex-direction:column;gap:12px;justify-content:center;
+  padding:clamp(14px,2.2vw,26px);
+  background:repeating-linear-gradient(135deg, transparent 0 9px, rgba(0,0,0,.015) 9px 18px), var(--surface);
+}
+.pedal{
+  position:relative;width:100%;max-width:940px;margin:0 auto;aspect-ratio:860/559;
+  border-radius:1.6%/2.5%;container-type:inline-size;touch-action:none;user-select:none;
+  background:
+    radial-gradient(120% 80% at 50% -10%, #5A7FB8 0%, transparent 58%),
+    linear-gradient(174deg, var(--case-hi) 0%, var(--case) 46%, var(--case-lo) 100%);
+  border:1px solid rgba(10,24,44,.7);
+  box-shadow:0 34px 64px -36px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.32), inset 0 -4px 10px rgba(8,20,38,.45);
+  color:var(--silk);
+}
+.pedal::before{ /* cast-metal speckle */
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:.2;
+  background-image:radial-gradient(rgba(255,255,255,.55) .5px, transparent .5px),radial-gradient(rgba(6,18,36,.5) .5px, transparent .5px);
+  background-size:7px 7px, 11px 11px;background-position:0 0, 3px 5px;
+}
+.pedal.dimmed .dimmable{opacity:.24;transition:opacity .18s}
+.dimmable{transition:opacity .18s}
+
+/* section boxes */
+.box{position:absolute;border:.16cqw solid var(--silk-2);border-radius:.7cqw;pointer-events:none}
+.boxname{
+  position:absolute;transform:translate(0,-50%);padding:0 .55cqw;background:var(--case);
+  font-family:"Archivo",sans-serif;font-size:1.8cqw;font-weight:600;letter-spacing:.05em;line-height:1;
+  color:var(--silk);pointer-events:none;
+}
+
+/* knobs */
+.kn{position:absolute;left:var(--x);top:var(--y);width:8.4cqw;transform:translate(-50%,-50%)}
+.kn .knob{position:relative;display:block;width:100%;aspect-ratio:1;border-radius:50%;padding:0;border:0;background:none;cursor:ns-resize}
+.kn .cap{
+  position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 50% 32%, var(--knob-hi) 0%, var(--knob) 34%, var(--knob-lo) 76%, #000 100%);
+  box-shadow:0 .6cqw 1.3cqw -.3cqw rgba(0,0,0,.9), inset 0 .28cqw .5cqw rgba(255,255,255,.24), inset 0 -.3cqw .6cqw rgba(0,0,0,.6);
+}
+.kn .cap::before{ /* knurled skirt */
+  content:"";position:absolute;inset:0;border-radius:50%;opacity:.5;
+  background:repeating-conic-gradient(from 0deg, rgba(255,255,255,.13) 0deg 1.6deg, transparent 1.6deg 4deg);
+  -webkit-mask:radial-gradient(circle, transparent 68%, #000 71%);mask:radial-gradient(circle, transparent 68%, #000 71%);
+}
+.kn .dome{
+  position:absolute;inset:0;border-radius:50%;transform:rotate(0deg);transition:transform .05s linear;
+}
+.kn .dome::after{ /* the white index line */
+  content:"";position:absolute;left:50%;top:7%;width:1.5cqw;height:34%;margin-left:-.75cqw;border-radius:.8cqw;
+  background:var(--silk);box-shadow:0 0 .3cqw rgba(0,0,0,.4);
+}
+.kn .klbl{
+  position:absolute;left:50%;top:calc(100% + .3cqw);transform:translateX(-50%);white-space:nowrap;
+  font-family:"Archivo",sans-serif;font-size:2cqw;font-weight:600;letter-spacing:.04em;line-height:1;
+  color:var(--silk);pointer-events:none;
+}
+.kn .klbl .alt{color:#FFD98A}
+.kn.hot .cap{box-shadow:0 0 0 .35cqw var(--led-on), 0 .6cqw 1.3cqw -.3cqw rgba(0,0,0,.9)}
+.kn.live .cap{box-shadow:0 0 0 .35cqw #FFD98A, 0 .6cqw 1.3cqw -.3cqw rgba(0,0,0,.9)}
+.kn .knob:focus-visible{outline:none}
+.kn .knob:focus-visible .cap{outline:.3cqw solid #fff;outline-offset:.3cqw}
+
+/* option clusters: header, LEDs, option names */
+.clus{position:absolute;transform:translate(-50%,0);pointer-events:none}
+.clus .chead{
+  position:absolute;left:50%;top:0;transform:translate(-50%,-50%);white-space:nowrap;
+  font-family:"Archivo",sans-serif;font-size:1.95cqw;font-weight:700;letter-spacing:.07em;line-height:1;
+  color:var(--silk);
+}
+.led{
+  position:absolute;left:var(--lx,50%);top:var(--ly);transform:translate(-50%,-50%);
+  width:1.55cqw;aspect-ratio:1;border-radius:50%;background:var(--led-off);
+  box-shadow:inset 0 .1cqw .2cqw rgba(0,0,0,.55);
+}
+.led[data-on="true"]{background:var(--led-on);box-shadow:0 0 1.1cqw var(--led-on), inset 0 0 .2cqw rgba(255,255,255,.8)}
+.led[data-c="amber"][data-on="true"]{background:var(--led-amber);box-shadow:0 0 1.1cqw var(--led-amber)}
+.led[data-c="red"][data-on="true"]{background:var(--led-red);box-shadow:0 0 1.1cqw var(--led-red)}
+.led[data-c="blue"][data-on="true"]{background:var(--led-blue);box-shadow:0 0 1.1cqw var(--led-blue)}
+.led[data-c="white"][data-on="true"]{background:var(--led-white);box-shadow:0 0 1.1cqw var(--led-white)}
+.olbl{
+  position:absolute;top:var(--ly);transform:translateY(-50%);white-space:nowrap;
+  font-family:"Archivo",sans-serif;font-size:1.75cqw;font-weight:500;line-height:1;color:var(--silk-2);
+}
+.olbl[data-side="l"]{right:var(--ox);text-align:right}
+.olbl[data-side="r"]{left:var(--ox)}
+.olbl[data-on="true"]{color:var(--silk)}
+.olbl svg{width:3.4cqw;height:1.6cqw;display:block;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+
+/* the eight push buttons */
+.pb{
+  position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);
+  width:2.05cqw;aspect-ratio:1;border-radius:.28cqw;padding:0;cursor:pointer;
+  background:linear-gradient(180deg,#FDFEFF,#C9D2DC);
+  border:.12cqw solid rgba(0,0,0,.35);
+  box-shadow:0 .25cqw .5cqw -.1cqw rgba(0,0,0,.55), inset 0 .15cqw 0 rgba(255,255,255,.9);
+}
+.pb:active{transform:translate(-50%,-50%) scale(.9)}
+.pb[data-held="true"]{background:linear-gradient(180deg,#FFE9AE,#E9B84B);box-shadow:0 0 0 .32cqw #FFD98A, 0 .25cqw .5cqw -.1cqw rgba(0,0,0,.55)}
+
+/* preset buttons */
+.pre{
+  position:absolute;left:var(--x);top:54.2%;transform:translate(-50%,-50%);
+  width:3.3cqw;aspect-ratio:1;border-radius:50%;padding:0;cursor:pointer;border:.12cqw solid rgba(6,18,36,.55);
+  background:radial-gradient(circle at 38% 30%, rgba(255,255,255,.5), rgba(255,255,255,0) 58%), var(--preset-off);
+}
+.pre[data-c="green"]{background:radial-gradient(circle at 38% 30%, rgba(255,255,255,.65), rgba(255,255,255,0) 55%), var(--led-on);box-shadow:0 0 1.5cqw var(--led-on)}
+.pre[data-c="amber"]{background:radial-gradient(circle at 38% 30%, rgba(255,255,255,.65), rgba(255,255,255,0) 55%), var(--led-amber);box-shadow:0 0 1.5cqw var(--led-amber)}
+.pre[data-c="red"]{background:radial-gradient(circle at 38% 30%, rgba(255,255,255,.6), rgba(255,255,255,0) 55%), var(--led-red);box-shadow:0 0 1.5cqw var(--led-red)}
+.pre[data-c="blue"]{background:radial-gradient(circle at 38% 30%, rgba(255,255,255,.6), rgba(255,255,255,0) 55%), var(--led-blue);box-shadow:0 0 1.5cqw var(--led-blue)}
+.pre[data-flash="true"]{animation:flash .62s steps(1,end) infinite}
+@keyframes flash{0%,49%{opacity:1}50%,100%{opacity:.25}}
+.prenum{
+  position:absolute;left:var(--x);top:50.1%;transform:translate(-50%,-50%);
+  font-family:"Archivo",sans-serif;font-size:1.7cqw;font-weight:600;line-height:1;color:var(--silk-2);pointer-events:none;
+}
+.prelbl{
+  position:absolute;left:var(--x);top:56.4%;transform:translate(-50%,0);white-space:nowrap;
+  font-family:"Archivo",sans-serif;font-size:1.5cqw;font-weight:600;line-height:1;color:#FFD98A;pointer-events:none;
+}
+
+/* footswitches */
+.fsw{
+  position:absolute;left:var(--x);top:77.6%;transform:translate(-50%,-50%);
+  width:8.4cqw;aspect-ratio:1;border-radius:50%;padding:0;cursor:pointer;
+  background:radial-gradient(circle at 36% 28%, #F2F4F7, #8E939B 74%, #5A5F67 100%);
+  border:.12cqw solid rgba(0,0,0,.4);box-shadow:0 .5cqw 1.1cqw -.3cqw rgba(0,0,0,.75), inset 0 .2cqw .3cqw rgba(255,255,255,.7);
+}
+.fsw:active{transform:translate(-50%,-50%) scale(.94)}
+.fsw[data-held="true"]{box-shadow:0 0 0 .35cqw #FFD98A, 0 .5cqw 1.1cqw -.3cqw rgba(0,0,0,.75)}
+.fname{
+  position:absolute;left:var(--x);top:61.3%;transform:translate(-50%,-50%);white-space:nowrap;
+  font-family:"Archivo",sans-serif;font-size:2.2cqw;font-weight:700;letter-spacing:.09em;line-height:1;color:var(--silk);pointer-events:none;
+}
+.fled{
+  position:absolute;left:var(--x);top:64.7%;transform:translate(-50%,-50%);
+  width:1.5cqw;aspect-ratio:1;border-radius:50%;background:var(--led-off);pointer-events:none;
+}
+.falt{
+  position:absolute;left:var(--x);transform:translate(-50%,-50%);white-space:nowrap;
+  font-family:"Archivo",sans-serif;font-size:1.7cqw;font-weight:500;line-height:1;color:var(--silk-2);pointer-events:none;
+}
+.falt.above{top:68.8%} .falt.below{top:86.8%}
+.falt[data-on="true"]{color:#FFD98A}
+
+/* silkscreen brand */
+.wm{position:absolute;left:30%;top:77.5%;transform:translate(-50%,-50%);
+  font-family:"Archivo",sans-serif;font-size:4.2cqw;font-weight:700;letter-spacing:-.02em;line-height:1;color:var(--silk);pointer-events:none}
+.logo{position:absolute;left:69%;top:76.6%;transform:translate(-50%,-50%);
+  font-family:"Archivo",sans-serif;font-size:4.4cqw;font-weight:500;letter-spacing:.08em;line-height:1;color:var(--silk);pointer-events:none}
+.logo small{display:block;font-size:.26em;letter-spacing:.19em;font-weight:500;color:var(--silk-2);text-align:center;margin-top:.5em}
+
+/* interval dial marks */
+.imark{
+  position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);white-space:nowrap;
+  font-family:"Archivo",sans-serif;font-size:1.6cqw;font-weight:500;line-height:1;color:var(--silk-3);pointer-events:none;
+}
+.imark[data-on="true"]{color:var(--silk)}
+
+/* hint bar under the pedal */
+.hint{
+  display:flex;align-items:center;gap:10px;min-height:48px;margin:0 auto;max-width:940px;width:100%;
+  padding:9px 14px;border:1px dashed var(--line);border-radius:10px;background:var(--surface);
+  font-size:.88rem;color:var(--ink-2);line-height:1.45;
+}
+.hint[data-live="true"]{border-style:solid;border-color:var(--acc);color:var(--ink)}
+.hint b{font-family:"Archivo",sans-serif;font-size:.72rem;letter-spacing:.11em;text-transform:uppercase;color:var(--acc-text)}
+
+/* ---------- readout column ---------- */
+.viz{display:flex;flex-direction:column;min-width:0;border-left:1px solid var(--line-soft);background:var(--surface)}
+@media (max-width:1023px){ .viz{border-left:0;border-top:1px solid var(--line-soft)} }
+.vhead{padding:15px 18px 12px;border-bottom:1px solid var(--line-soft);background:var(--surface-2)}
+.vhead h2{font-size:1.24rem;font-weight:700;letter-spacing:-.02em}
+.vhead p{margin:5px 0 0;font-size:.88rem;color:var(--ink-2);max-width:52ch}
+.rows{overflow-y:auto;max-height:min(70vh,760px)}
+@media (max-width:1023px){ .rows{max-height:none} }
+.grouphd{
+  position:sticky;top:0;z-index:2;padding:8px 18px;background:var(--surface-2);
+  border-bottom:1px solid var(--line-soft);border-top:1px solid var(--line-soft);
+  display:flex;justify-content:space-between;gap:12px;align-items:baseline;
+}
+.grouphd .pg{font-family:"DM Mono",monospace;font-size:.74rem;color:var(--ink-3);text-decoration:none;white-space:nowrap}
+.grouphd .pg:hover{color:var(--acc-text)}
+.crow{
+  display:grid;grid-template-columns:1fr auto;gap:4px 14px;padding:11px 18px;
+  border-bottom:1px solid var(--line-soft);cursor:pointer;transition:background .15s;
+}
+.crow:hover{background:var(--surface-2)}
+.crow[data-active="true"]{background:color-mix(in oklab, var(--acc) 12%, transparent)}
+.crow[data-off="true"] .cname,.crow[data-off="true"] .cval{opacity:.5}
+.cname{font-family:"Archivo",sans-serif;font-weight:600;font-size:.95rem;letter-spacing:-.01em}
+.cname .tag{
+  font-family:"DM Mono",monospace;font-size:.68rem;font-weight:400;color:var(--ink-3);
+  margin-left:7px;letter-spacing:0;text-transform:none;
+}
+.cval{text-align:right;font-family:"DM Mono",monospace;font-size:.84rem;color:var(--ink);white-space:nowrap}
+.cval i{display:block;font-style:normal;font-size:.74rem;color:var(--ink-3)}
+.cdesc{grid-column:1/-1;font-size:.9rem;color:var(--ink-2);line-height:1.5;margin-top:2px}
+.crow[data-active="false"] .cdesc{display:none}
+.cdesc q{quotes:"\201C" "\201D";font-style:italic;color:var(--ink)}
+.cdesc .src{
+  display:inline-block;margin-left:6px;font-family:"Archivo",sans-serif;font-size:.64rem;
+  font-weight:600;letter-spacing:.09em;text-transform:uppercase;white-space:nowrap;
+  color:var(--acc-text);text-decoration:none;border-bottom:1px solid currentColor;
+}
+.cdesc .ours{
+  display:block;margin-top:5px;font-size:.82rem;color:var(--ink-3);
+  border-left:2px solid var(--line);padding-left:9px;
+}
+.cdesc .ours b{color:var(--ink-2);font-weight:500}
+
+/* ---------- readout strip ---------- */
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));border-top:1px solid var(--line-soft)}
+.cell{padding:11px 16px;border-right:1px solid var(--line-soft)}
+.cell:last-child{border-right:0}
+.cell .k{display:block;font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
+.cell .v{display:block;font-family:"DM Mono",monospace;font-size:1.02rem;color:var(--ink);line-height:1.45}
+.cell .s{display:block;font-size:.78rem;color:var(--ink-3);line-height:1.35}
+
+.disclaim{margin:0;padding:14px 18px 16px;background:var(--surface-2);font-size:.8rem;line-height:1.55;color:var(--ink-3);max-width:96ch}
+.disclaim em{font-style:italic;color:var(--ink-2)}
+
+/* ---------- generic sections ---------- */
+section{padding-top:var(--step)}
+.shead{display:flex;align-items:baseline;gap:14px;margin-bottom:20px}
+.shead h2{font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:700;letter-spacing:-.03em}
+.shead .rule{flex:1;height:1px;background:var(--line)}
+.sdek{max-width:68ch;color:var(--ink-2);margin:-6px 0 26px}
+.sdek + .sdek{margin-top:-16px}
+
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.card{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:17px 19px;box-shadow:var(--shadow)}
+.card h3{font-size:1.04rem;font-weight:600;letter-spacing:-.01em;margin-bottom:6px;display:flex;gap:10px;align-items:baseline;justify-content:space-between}
+.card h3 .pg{font-family:"DM Mono",monospace;font-size:.72rem;font-weight:400;color:var(--ink-3);text-decoration:none;white-space:nowrap;flex:none}
+.card h3 .pg:hover{color:var(--acc-text)}
+.card p{margin:0;color:var(--ink-2);font-size:.94rem}
+.card p + p{margin-top:9px}
+.card b{font-weight:500;color:var(--ink)}
+.card q{quotes:"\201C" "\201D";font-style:italic;color:var(--ink)}
+.card .who{font-family:"Archivo",sans-serif;font-size:.64rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);margin-left:5px}
+
+.note{display:block;padding:13px 16px;border-radius:10px;font-size:.9rem;line-height:1.55;
+  background:color-mix(in oklab, var(--acc) 10%, var(--surface));
+  border:1px solid color-mix(in oklab, var(--acc) 34%, transparent);color:var(--ink-2)}
+.note + .note{margin-top:10px}
+.note.ours{background:var(--surface);border-color:var(--line);border-left:3px solid var(--warn)}
+.note h4{font-family:"Archivo",sans-serif;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--acc-text);margin:0 0 5px;font-weight:600}
+.note.ours h4{color:var(--warn)}
+.note b{color:var(--ink);font-weight:500}
+.note q{quotes:"\201C" "\201D";font-style:italic;color:var(--ink)}
+.note .src{display:inline-block;margin-left:6px;font-family:"Archivo",sans-serif;font-size:.64rem;
+  font-weight:600;letter-spacing:.09em;text-transform:uppercase;white-space:nowrap;
+  color:var(--acc-text);text-decoration:none;border-bottom:1px solid currentColor}
+
+/* tables */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:600px}
+th,td{text-align:left;padding:10px 15px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+th{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);background:var(--surface-2);position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+td.mono,th.mono{font-family:"DM Mono",monospace;font-variant-numeric:tabular-nums}
+td b{font-weight:500}
+td .sub{display:block;font-size:.8rem;color:var(--ink-3)}
+td a.pg{font-family:"DM Mono",monospace;font-size:.76rem;white-space:nowrap;text-decoration:none;border-bottom:1px solid currentColor}
+.hold{display:inline-flex;gap:5px;align-items:center;flex-wrap:wrap}
+.key{font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+  padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink-2);white-space:nowrap}
+.key.live{border-color:var(--acc);color:var(--acc-text)}
+.key.warm{border-color:#C9922B;color:#A9761A}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .key.warm{border-color:#E9B84B;color:#E9B84B}}
+:root[data-theme="dark"] .key.warm{border-color:#E9B84B;color:#E9B84B}
+.plus{color:var(--ink-3);font-size:11px}
+
+/* signal path */
+.pathwrap{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
+.pathwrap .inner{overflow-x:auto;padding:20px 18px}
+.pathwrap svg{display:block;min-width:820px;width:100%;height:auto}
+.pathwrap .pcap{padding:11px 18px;border-top:1px solid var(--line-soft);background:var(--surface-2);
+  font-size:.82rem;color:var(--ink-3);line-height:1.5}
+svg .blk{fill:var(--surface-2);stroke:var(--line);stroke-width:1}
+svg .blk.on{fill:color-mix(in oklab, var(--acc) 20%, var(--surface));stroke:var(--acc)}
+svg .blk.off{opacity:.4;stroke-dasharray:4 3}
+svg .core{fill:color-mix(in oklab, var(--acc) 7%, var(--surface));stroke:var(--line);stroke-dasharray:5 4}
+svg text{font-family:"Archivo",sans-serif;font-size:11px;font-weight:600;fill:var(--ink)}
+svg text.sm{font-size:9px;font-weight:500;fill:var(--ink-3);letter-spacing:.06em}
+svg text.dim{fill:var(--ink-3)}
+svg .wire{stroke:var(--ink-3);stroke-width:1.4;fill:none}
+svg .wire.dry{stroke-dasharray:5 4}
+svg .arrow{fill:var(--ink-3)}
+
+/* sequencer */
+.seqwrap{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
+.seqtop{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;justify-content:space-between;
+  padding:12px 16px;border-bottom:1px solid var(--line-soft);background:var(--surface-2)}
+.steps{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;padding:16px}
+@media (max-width:640px){ .steps{grid-template-columns:repeat(4,1fr)} }
+.step{display:flex;flex-direction:column;gap:7px;align-items:center;border:1px solid var(--line);
+  border-radius:10px;padding:9px 6px;background:var(--bg)}
+.step[data-on="false"]{opacity:.45}
+.step[data-cur="true"]{border-color:var(--led-red);box-shadow:0 0 0 1px var(--led-red)}
+.step .num{font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;letter-spacing:.1em;color:var(--ink-3)}
+.step .dot{width:16px;height:16px;border-radius:50%;background:var(--preset-off);border:0;padding:0;cursor:pointer}
+.step[data-on="true"] .dot{background:var(--led-amber);box-shadow:0 0 8px var(--led-amber)}
+.step[data-cur="true"] .dot{background:var(--led-red);box-shadow:0 0 8px var(--led-red)}
+.step .bar{width:100%;height:66px;border-radius:5px;background:var(--surface-2);position:relative;cursor:ns-resize;overflow:hidden}
+.step .bar i{position:absolute;left:0;right:0;height:3px;background:var(--acc);border-radius:2px}
+.step .st{font-family:"DM Mono",monospace;font-size:.74rem;color:var(--ink-2)}
+.seqfoot{padding:11px 16px;border-top:1px solid var(--line-soft);background:var(--surface-2);font-size:.82rem;color:var(--ink-3);line-height:1.5}
+
+/* the manual index */
+.mindex{display:grid;grid-template-columns:repeat(auto-fit,minmax(262px,1fr));gap:10px 22px}
+.mindex a{display:flex;align-items:baseline;gap:10px;text-decoration:none;color:var(--ink-2);
+  padding:7px 11px;border:1px solid var(--line-soft);border-radius:9px;background:var(--surface);
+  transition:border-color .15s,color .15s,background .15s}
+.mindex a:hover{border-color:var(--acc);color:var(--ink);background:var(--surface-2)}
+.mindex a .t{flex:1;font-family:"Archivo",sans-serif;font-size:.88rem;font-weight:600}
+.mindex a .n{font-family:"DM Mono",monospace;font-size:.78rem;color:var(--ink-3);white-space:nowrap}
+.mindex a:hover .n{color:var(--acc-text)}
+.mindex .grp{grid-column:1/-1;margin:12px 0 2px}
+.mindex .grp:first-child{margin-top:0}
+
+footer.end{margin-top:var(--step);padding-top:22px;border-top:1px solid var(--line);color:var(--ink-3);
+  font-size:.88rem;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+}
+/* ---------- work in progress ---------- */
+/* The page is unfinished, so it says so above everything else on it. Its own colours
+   rather than the pedal's or the theme's accent - a warning that borrows the palette
+   stops reading as one - and every value carries its [data-theme] twin, so a reader
+   who has forced a theme gets the same warning as one following the OS. */
+:root{--wip-bg:#FBF1D9;--wip-line:#E7D4A4;--wip-edge:#A0700F;--wip-ink:#5A4520}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--wip-bg:#231C11;--wip-line:#3C3120;--wip-edge:#D9A441;--wip-ink:#CDBB9A}
+}
+:root[data-theme="dark"]{--wip-bg:#231C11;--wip-line:#3C3120;--wip-edge:#D9A441;--wip-ink:#CDBB9A}
+.wipbar{
+  display:flex;align-items:baseline;gap:6px 14px;flex-wrap:wrap;
+  margin:18px 0 0;padding:14px 18px;
+  background:var(--wip-bg);color:var(--wip-ink);
+  border:1px solid var(--wip-line);border-left:5px solid var(--wip-edge);
+  border-radius:11px;
+}
+.wipbar b{
+  font-family:"Archivo",system-ui,sans-serif;font-weight:700;font-size:12px;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--wip-edge);
+}
+.wipbar p{margin:0;flex:1 1 24ch;font-size:.95rem;line-height:1.55}
+.wipbar a{color:var(--wip-edge)}
+</style>
+
+<div id="app">
+<div class="wipbar" role="note">
+  <b>Work in progress</b>
+  <p>This page is unfinished and has not been checked against <a href="https://www.strymon.net/manuals/Nightsky_UserManual_RevF.pdf" target="_blank" rel="noopener">Strymon's manual</a>. Some of what it says may be wrong; where the two differ, the manual is right.</p>
+</div>
+
+<header class="top">
+  <div class="brandline">
+    <a class="backlink" href="index.html"><span class="bk-arrow" aria-hidden="true">&#8592;</span>All manuals</a>
+    <span class="lbl">Strymon</span>
+    <span class="rule"></span>
+    <span class="lbl unoff">Unofficial companion to the manual · not affiliated with Strymon</span>
+    <button class="themetoggle" type="button" aria-label="Switch theme"><svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg><svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2M12 19.4v2M4.6 4.6 6 6M18 18l1.4 1.4M2.6 12h2M19.4 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg></button>
+  </div>
+  <h1>NightSky<span class="thin">Time-Warped Reverberator</span></h1>
+
+  <p class="dek">Ten knobs and eight buttons, grouped into five labelled sections —
+  <strong>TONE</strong>, <strong>DECAY</strong>, <strong>VOICE</strong>, <strong>MOD</strong> and
+  <strong>MIX</strong> — plus eight preset buttons and three footswitches. That much is printed on the
+  enclosure.</p>
+  <p class="dek">Holding a control changes what the other controls do, and none of that is printed on the
+  enclosure. Hold one of the eight buttons and the <strong>REVERB</strong> knob stops setting the wet output level and
+  starts adjusting a parameter with no knob of its own. Hold the <strong>INFINITE</strong> footswitch and
+  the eight preset buttons become sequencer steps. Hold <strong>INFINITE</strong> while the power comes on
+  and five preset buttons and three knobs set global options instead. The panel below relabels itself for
+  each of those; pick a mode, pick a button to hold, and the drawing follows.</p>
+</header>
+
+<div class="machine">
+  <div class="mhead">
+    <div class="tabs" id="modeTabs"></div>
+    <span class="lbl" id="modeHow"></span>
+  </div>
+
+  <div class="holdbar" id="holdBar">
+    <span class="lbl">Hold</span>
+    <div class="hb" id="holdBtns"></div>
+  </div>
+
+  <div class="stage">
+    <div class="pedalwrap">
+      <div class="pedal" id="pedal"></div>
+      <div class="hint" id="hint" data-live="false"></div>
+    </div>
+
+    <div class="viz">
+      <div class="vhead">
+        <h2 id="vTitle">Reverb mode</h2>
+        <p id="vDek"></p>
+      </div>
+      <div class="rows" id="rows"></div>
+    </div>
+  </div>
+
+  <div class="strip" id="strip"></div>
+
+  <p class="disclaim">This panel relabels itself; none of the knobs make a sound. What every control <em>does</em> is quoted from the manual and attributed to the printed
+  page it is on. The value beside it is computed here from the drawn knob position. Three of those values are
+  worked out rather than read straight off the knob, and each says so where it appears: the <em>SIZE/PITCH</em>
+  offset in semitones is derived from the pitch range table on printed page 6; the <em>SPEED</em> rate in
+  hertz is interpolated between the two endpoints the manual publishes; and the <em>INTERVAL</em> knob is
+  divided into ten equal segments, one per printed mark plus the two detune settings, because the manual
+  names the marks but not the angles between them. Where the manual gives no numbers at all —
+  <em>LENGTH</em>, <em>LOW CUT</em>, <em>HIGH CUT</em>, <em>SHIMMER</em>, <em>DEPTH</em>, the Live Edit
+  parameters — the value is a clock position and a percentage.</p>
+</div>
+
+<section id="sections">
+  <div class="shead"><h2>The five sections</h2><span class="rule"></span></div>
+  <p class="sdek">Four of the five boxes on the enclosure open with a one-line summary in the manual,
+  quoted below. Page 12 gives MIX no summary line and goes straight to its two knobs.</p>
+  <div class="grid g2" id="sectionCards"></div>
+</section>
+
+<section id="second">
+  <div class="shead"><h2>Hold a button, turn REVERB</h2><span class="rule"></span></div>
+  <p class="sdek">Seven of the eight buttons have a second job. Press and hold one and turn the REVERB
+  knob; the exception is QUANTIZE, which is held while you press a preset button instead. Strymon call
+  these Live Edit functions.</p>
+  <div class="note" style="margin-bottom:18px">
+    <h4>The manual on Live Edit</h4>
+    <q>NightSky provides a way to adjust several settings that do not have a dedicated knob or button.
+    Live Edit Functions are saved per preset.</q>
+    <a class="src" id="srcLive" href="#">Strymon, pg. 25</a>
+  </div>
+  <div class="tw"><table id="liveTable"><thead><tr>
+    <th>Hold</th><th>Then turn</th><th>You are adjusting</th><th>Read it on</th><th class="mono">Manual</th>
+  </tr></thead><tbody></tbody></table></div>
+  <p class="sdek" style="margin-top:18px">The SHIMMER button is the eighth, and it has no Live Edit
+  function. Three rows in the table are held on something other than a button: Morph speed is held on the
+  ON footswitch, and Respond to MIDI clock and MIDI expression are held on preset buttons 1 and 4
+  together.</p>
+</section>
+
+<section id="pitch">
+  <div class="shead"><h2>SIZE/PITCH, QUANTIZE and the scales</h2><span class="rule"></span></div>
+  <p class="sdek">SIZE/PITCH is the knob the sequencer drives and the knob MIDI notes play. Of QUANTIZE, the
+  manual says: <q>Selects the response and range of the SIZE/PITCH knob.</q></p>
+  <div class="grid g2">
+    <div class="card">
+      <h3>SIZE/PITCH and the pitch range table<a class="pg" data-pg="6">pg. 6</a></h3>
+      <p><q>Increases the size of the reverb core to create a larger &ldquo;space&rdquo; for reflections as
+      the knob is turned clockwise.</q><span class="who">Strymon</span></p>
+      <p>The same page prints a pitch range table. Under <b>For smooth mode</b> it gives three lines:
+      <q>12 o&rsquo;clock = middle of range</q>, <q>minimum = 1.25 octaves up</q> and <q>maximum = 1.25
+      octaves down</q>.<span class="who">Strymon</span></p>
+    </div>
+    <div class="card">
+      <h3>The three QUANTIZE settings<a class="pg" data-pg="6">pg. 6</a></h3>
+      <p><b>smooth</b> — <q>SIZE/PITCH varies smoothly and continuously over a 2.5 octave pitch
+      range.</q></p>
+      <p><b>half step</b> — <q>SIZE/PITCH is quantized into half-step intervals over a two octave
+      range.</q></p>
+      <p><b>scale</b> — <q>SIZE/PITCH is quantized into selectable scales over a two octave
+      range.</q><span class="who">Strymon</span></p>
+    </div>
+    <div class="card">
+      <h3>Turning SIZE/PITCH with audio already in the buffer<a class="pg" data-pg="6">pg. 6</a></h3>
+      <p>Strymon's note: <q>When there is audio in the reverb buffer or held by engaging INFINITE, adjusting
+      SIZE/PITCH will change the pitch of the reverberated audio.</q><span class="who">Strymon</span></p>
+    </div>
+    <div class="card">
+      <h3>Playing SIZE/PITCH from MIDI<a class="pg" data-pg="6">pg. 6</a></h3>
+      <p>Strymon's tip: <q>You can &ldquo;play&rdquo; the SIZE/PITCH knob using MIDI notes C-2 to C0.
+      Sending a MIDI note in this range will automatically set the QUANTIZE mode to half step.</q><span class="who">Strymon</span></p>
+    </div>
+  </div>
+
+  <div class="note ours" style="margin-top:16px">
+    <h4>Not the manual — a reading of an apparent misprint</h4>
+    Under <b>For half-step and scale modes</b>, the pitch range table prints
+    <q>minimum = 1 octave up</q> on one line and <q>maximum = 1 octave up</q> on the next. An octave up at
+    each end of the knob leaves no range at all, and the QUANTIZE entry on the same page says half step is
+    <q>quantized into half-step intervals over a two octave range</q>. This page therefore reads the second
+    line as an octave <b>down</b>, which is also the direction smooth mode runs in. The semitone figures in
+    the panel above follow that reading. The manual does not print it.
+  </div>
+
+  <h3 style="margin:26px 0 12px;font-size:1.1rem">The eight scales</h3>
+  <p class="sdek" style="margin-bottom:14px"><q>Press and hold the QUANTIZE button and press the PRESET
+  BUTTON that corresponds with the scales noted below. The status will be shown by illuminated PRESET
+  BUTTON.</q>
+  <a class="pg" data-pg="26" style="font-family:'DM Mono',monospace;font-size:.8rem">Strymon, pg. 26</a></p>
+  <div class="tw"><table id="scaleTable"><thead><tr>
+    <th class="mono">Preset button</th><th>Scale</th><th class="mono">MIDI CC 27 value</th><th class="mono">Semitones from the root</th>
+  </tr></thead><tbody></tbody></table></div>
+  <div class="note ours" style="margin-top:12px">
+    <h4>Not the manual</h4>
+    The manual names the eight scales and gives their CC values but does not print their intervals. The
+    semitone sets in the last column are the standard ones and are this page's addition. <b>diminished</b>
+    is given here as the whole&ndash;half form; the manual does not say which of the two diminished scales
+    NightSky uses.
+  </div>
+</section>
+
+<section id="path">
+  <div class="shead"><h2>Where each block sits</h2><span class="rule"></span></div>
+  <p class="sdek">The DRIVE, SHIMMER and FILTER buttons each choose between two positions in the signal
+  path. Strymon's caption to the diagram: <q>Keep in mind that DRIVE, SHIMMER, and FILTER blocks can be
+  located in only one of the shown locations.</q> Change any of the three buttons in the panel above and
+  the diagram follows.</p>
+  <div class="pathwrap">
+    <div class="inner" id="pathInner"></div>
+    <p class="pcap">Redrawn from the signal flow diagram Strymon print on page 50; open that page for the
+    exact block order. Lit blocks are the ones your current settings put in the path. Strymon list among
+    the features an <q>Analog dry path for a zero latency dry signal that is never converted to digital</q>
+    (<a class="pg" data-pg="51">pg. 51</a>).
+    <a class="pg" data-pg="50">Open the manual's diagram, pg. 50</a></p>
+  </div>
+  <div class="grid g3" style="margin-top:16px" id="pathCards"></div>
+  <div class="note" style="margin-top:12px">
+    <h4>SIZE/PITCH and LENGTH feed the pitch regeneration</h4>
+    <q>Smaller SIZE/PITCH settings and higher LENGTH settings will result in more intense pitch
+    regeneration.</q>
+    <a class="src" data-pg="8">Strymon, pg. 8</a>
+  </div>
+  <div class="note ours" style="margin-top:10px">
+    <h4>Not the manual — which SHIMMER setting that sentence covers</h4>
+    Strymon print that sentence under the <b>regen</b> description on page 8, and describe <b>input</b> as
+    a shimmer that <q>does not regenerate</q>. On that basis this page treats SIZE/PITCH and LENGTH as
+    changing the intensity of <b>regen</b> shimmer only; the manual never says which of the two settings
+    the sentence belongs to.
+  </div>
+</section>
+
+<section id="seq">
+  <div class="shead"><h2>Sequence mode</h2><span class="rule"></span></div>
+  <p class="sdek"><q>NightSky has a built-in eight step sequencer where each step can have an independent
+  SIZE/PITCH parameter setting for creating rhythmical pitch patterns with the currently loaded reverb
+  settings.</q> <q>Sequences are saved per preset.</q>
+  <a class="pg" data-pg="21" style="font-family:'DM Mono',monospace;font-size:.8rem">Strymon, pg. 21</a></p>
+
+  <div class="grid g2" style="margin-bottom:20px">
+    <div class="card">
+      <h3>Entering and leaving Sequence mode<a class="pg" data-pg="21">pg. 21</a></h3>
+      <p><q>To enter Sequence mode, press and hold the INFINITE (sequence) footswitch until the ON LED turns
+      RED.</q> <q>PRESET BUTTONS now become sequence steps 1 through 8 with an AMBER button indicating that
+      the step is active.</q><span class="who">Strymon</span></p>
+      <p>Holding INFINITE again leaves Sequence mode: <q>Press and hold to toggle in and out of Sequence
+      mode.</q><span class="who">Strymon, pg. 18</span></p>
+      <p>Strymon's note: <q>An unlit PRESET BUTTON will be skipped over and does not indicate a
+      rest.</q><span class="who">Strymon</span></p>
+    </div>
+    <div class="card">
+      <h3>Programming a step<a class="pg" data-pg="22">pg. 22</a></h3>
+      <p><q>Press a PRESET BUTTON to enable (AMBER button LED) or disable (button LED OFF) the sequence
+      step.</q> <q>Press and hold a PRESET BUTTON and turn the SIZE/PITCH knob to set the desired pitch for
+      each sequence step.</q> <q>A minimum of two active steps are required for the sequence to
+      run.</q><span class="who">Strymon</span></p>
+      <p>Strymon's tips: <q>It is helpful to have audio in the reverb buffer while you program the
+      sequence. This can be done by playing audio through the pedal or holding the audio using the INFINITE
+      footswitch.</q> and <q>Try setting QUANTIZE to half step or scale for more harmonious
+      sequences.</q><span class="who">Strymon</span></p>
+    </div>
+    <div class="card">
+      <h3>Running the sequence<a class="pg" data-pg="23">pg. 23</a></h3>
+      <p><q>Tap a tempo using the FAVORITE (sequence tap) footswitch to run the sequencer at the rate of the
+      tapped tempo. A PRESET BUTTON LED will illuminate RED to indicate the current step. The maximum step
+      length is 2000ms and the sequence will automatically run if a second tap is not entered before the
+      maximum step length.</q><span class="who">Strymon</span></p>
+      <p><q>A single press of the FAVORITE (sequence tap) footswitch resets the sequencer to run from step 1
+      if the sequencer is already running. If NightSky is receiving MIDI clock, a single press will run the
+      sequence.</q><span class="who">Strymon</span></p>
+    </div>
+    <div class="card">
+      <h3>Stepping the sequence by foot<a class="pg" data-pg="24">pg. 24</a></h3>
+      <p><q>Press the ON (sequence step) footswitch to advance the sequence to the next step with each
+      press. A PRESET BUTTON LED will illuminate RED to indicate the current step.</q><span class="who">Strymon</span></p>
+      <p>Strymon's note: <q>If the sequencer is running, pressing the ON (sequence step) footswitch once
+      will stop the sequence and return to the first step.</q><span class="who">Strymon</span></p>
+      <p><q>Sequence Glide can be adjusted to add portamento to smooth the changes between the sequence
+      steps.</q> <q>Press and hold the SHAPE button and turn the REVERB knob to adjust the amount of
+      Sequence Glide.</q><span class="who">Strymon, pg. 23</span></p>
+    </div>
+  </div>
+
+  <div class="seqwrap">
+    <div class="seqtop">
+      <span class="lbl">Eight steps &middot; each one a SIZE/PITCH setting</span>
+      <div class="tabs">
+        <button class="btn sm" id="seqRun" aria-pressed="false">Run</button>
+        <button class="btn sm" id="seqStep">Step</button>
+        <button class="btn sm" id="seqRand">Scatter the pitches</button>
+      </div>
+    </div>
+    <div class="steps" id="seqSteps"></div>
+    <p class="seqfoot" id="seqFoot"></p>
+  </div>
+</section>
+
+<section id="foot">
+  <div class="shead"><h2>The three footswitches</h2><span class="rule"></span></div>
+  <p class="sdek">Each footswitch does one thing tapped and another held. The silkscreen above a switch
+  names its Sequence-mode job; ON and INFINITE also print what holding them does, below.</p>
+  <div class="tw"><table><thead><tr>
+    <th>Switch</th><th>Tap</th><th>Hold</th><th>In Sequence mode</th><th class="mono">Manual</th>
+  </tr></thead><tbody>
+    <tr>
+      <td><b>ON</b></td>
+      <td><q>Press to engage (GREEN LED ON) or bypass (LED OFF) the effect.</q></td>
+      <td><q>Press and hold to sweep between the current sound and a set of &ldquo;morph&rdquo; knob settings.</q></td>
+      <td><q>Press the ON (sequence step) footswitch to advance the sequence to the next step with each press.</q> Pressing once while the sequencer runs stops it and returns to the first step.</td>
+      <td><a class="pg" data-pg="17">pg. 17</a></td>
+    </tr>
+    <tr>
+      <td><b>INFINITE</b></td>
+      <td><q>Holds the input to the reverb core while also allowing new audio to be processed by the reverb on top of the &ldquo;frozen&rdquo; audio.</q> The Infinite input Live Edit function decides whether that new audio is processed.</td>
+      <td><q>Press and hold to toggle in and out of Sequence mode.</q> Held while power is connected, it opens Power Up mode instead (pg. 29).</td>
+      <td>Hold to leave Sequence mode.</td>
+      <td><a class="pg" data-pg="18">pg. 18</a></td>
+    </tr>
+    <tr>
+      <td><b>FAVORITE</b></td>
+      <td><q>Press the FAVORITE footswitch to engage the active onboard preset.</q> Compare mode: <q>As the knob and button settings are adjusted with the FAVORITE engaged, the FAVORITE LED temporarily changes from GREEN to RED when the current position is identical to the selected preset.</q></td>
+      <td><q>Press and hold the FAVORITE footswitch until the LED flashes BLUE to enter SAVE mode, then release the footswitch.</q></td>
+      <td><q>Tap a tempo using the FAVORITE (sequence tap) footswitch to run the sequencer at the rate of the tapped tempo.</q> One press while it runs resets it to step 1.</td>
+      <td><a class="pg" data-pg="19">pg. 19</a></td>
+    </tr>
+  </tbody></table></div>
+  <div class="note" style="margin-top:14px">
+    <h4>Infinite input</h4>
+    <q>Determines whether new audio received at the inputs will continue to be processed by the reverb
+    while INFINITE is active. Press and hold the TARGET button and turn the REVERB knob. The status will be
+    shown on PRESET BUTTON 1.</q> Green is <q>New audio is processed by the reverb while INFINITE is
+    ON</q>; red is <q>New audio is not processed by the reverb while INFINITE is ON</q>.
+    <a class="src" data-pg="27">Strymon, pg. 27</a>
+  </div>
+</section>
+
+<section id="morph">
+  <div class="shead"><h2>Morph</h2><span class="rule"></span></div>
+  <p class="sdek"><q>The Morph function allows NightSky to sweep between the current sound of the pedal and
+  a set of alternate knob settings and back by holding down the ON footswitch. Morph parameter settings are
+  saved per preset.</q>
+  <a class="pg" data-pg="28" style="font-family:'DM Mono',monospace;font-size:.8rem">Strymon, pg. 28</a></p>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Setting up Morph parameters<a class="pg" data-pg="28">pg. 28</a></h3>
+      <p>Strymon's six steps, in their words:</p>
+      <ol style="margin:6px 0 0;padding-left:20px;color:var(--ink-2);font-size:.94rem">
+        <li><q>Press and hold PRESET BUTTONS 2 &amp; 7 together to enter MORPH setup mode. When PRESET BUTTONS 1-8 all flash GREEN, release the buttons.</q></li>
+        <li><q>Adjust the knobs to the desired MORPH setting.</q></li>
+        <li><q>Press any PRESET BUTTON to exit MORPH setup mode.</q></li>
+        <li><q>Adjust the knobs back to the desired sound.</q></li>
+        <li><q>Press and hold ON footswitch to sweep between the current setting and the Morph setting.</q></li>
+        <li><q>Release ON footswitch to return to the current setting of the pedal.</q></li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Morph speed<a class="pg" data-pg="28">pg. 28</a></h3>
+      <p><q>Sets the amount of time it takes to arrive at the MORPH setting. Press and hold the ON
+      footswitch and turn the REVERB knob to adjust the Morph Speed.</q><span class="who">Strymon</span></p>
+    </div>
+  </div>
+</section>
+
+<section id="presets">
+  <div class="shead"><h2>Presets</h2><span class="rule"></span></div>
+  <p class="sdek"><q>There are 16 onboard presets that are accessible by using the 8 PRESET BUTTONS on
+  NightSky. They are arranged in 2 banks of 8 presets with different PRESET BUTTON colors indicating the
+  selected bank.</q> Over MIDI there are more: <q>NightSky contains 300 preset locations, numbered
+  sequentially from 0-299.</q> (pg. 36)
+  <a class="pg" data-pg="19" style="font-family:'DM Mono',monospace;font-size:.8rem">Strymon, pg. 19</a></p>
+  <div class="grid g3">
+    <div class="card">
+      <h3>Selecting a preset<a class="pg" data-pg="19">pg. 19</a></h3>
+      <p><q>PRESET BUTTONS 1-8 select the active onboard preset and engage the FAVORITE footswitch if not
+      already engaged.</q> <q>Press the lit PRESET BUTTON to switch between two banks. GREEN LED indicates
+      presets 1-8, AMBER indicates presets 9-16.</q><span class="who">Strymon</span></p>
+    </div>
+    <div class="card">
+      <h3>Saving a preset<a class="pg" data-pg="20">pg. 20</a></h3>
+      <p><q>Press and hold the FAVORITE footswitch until the LED flashes BLUE to enter SAVE mode, then
+      release the footswitch.</q> Then press FAVORITE again to save to the currently selected location, or
+      <q>Press one of the eight PRESET BUTTONS to select a new preset location, and then press the FAVORITE
+      footswitch to save to that location. Press the same PRESET BUTTON twice before pressing the FAVORITE
+      footswitch to save to a different preset bank.</q><span class="who">Strymon</span></p>
+      <p><q>To exit without saving, press the INFINITE footswitch.</q><span class="who">Strymon</span></p>
+    </div>
+    <div class="card">
+      <h3>What a preset holds<a class="pg" data-pg="20">pg. 20</a></h3>
+      <p><q>Saving a preset saves all knob, switch, and button settings, as well as all Live Edit functions,
+      expression control settings, morph settings, and the current sequence.</q><span class="who">Strymon</span></p>
+      <p><q>The onboard presets 1-16 are assigned to MIDI Program Changes 0-15.</q><span class="who">Strymon</span></p>
+    </div>
+  </div>
+</section>
+
+<section id="power">
+  <div class="shead"><h2>Power Up mode: the global settings</h2><span class="rule"></span></div>
+  <p class="sdek"><q>Global parameters and functions can be accessed via a power up procedure. All power up
+  functions persist through power cycles.</q> <q>Press and hold the INFINITE footswitch while connecting
+  power to the pedal. Once the three footswitch LEDs light up, release the footswitch.</q> <q>Press any
+  footswitch to exit power up mode.</q>
+  <a class="pg" data-pg="29" style="font-family:'DM Mono',monospace;font-size:.8rem">Strymon, pg. 29</a></p>
+  <div class="tw"><table id="powerTable"><thead><tr>
+    <th>Control</th><th>Sets</th><th>Options</th><th>Shown on</th><th class="mono">Manual</th>
+  </tr></thead><tbody></tbody></table></div>
+  <div class="note ours" style="margin-top:14px">
+    <h4>Not the manual — where on the knob</h4>
+    For the SPEED, LENGTH and REVERB knobs the manual gives the options and their LED colours but no knob
+    positions. Two endpoints are documented: <q>Turn the SPEED knob all the way counter-clockwise to set
+    the MIDI channel to Channel 1</q> and <q>Turn the LENGTH knob all the way counter-clockwise to set the
+    TRS MIDI OUT mode to ON</q> (<a class="src" data-pg="34">Strymon, pg. 34</a>). Everywhere else, the
+    panel at the top of this page divides each knob into equal segments in the order the manual lists the
+    options. Strymon do not print that division.
+  </div>
+  <div class="note" style="margin-top:10px">
+    <h4>Factory reset</h4>
+    <q>Restore the pedal to factory power up modes and Live Edit Functions.</q> <q>Press and hold the ON
+    footswitch while powering up the pedal. Once the ON LED starts flashing, release the footswitch.</q>
+    <q>Turn LENGTH knob from 0-100% and back two (2) times. The FAVORITE LED will change colors at the
+    extremes of the knob range and blink RED to indicate when the reset is taking place.</q> Strymon list
+    the colours turn by turn: amber, red, amber, then <q>All three footswitch LEDs flash RED, NightSky
+    resets and restarts.</q>
+    <a class="src" data-pg="40">Strymon, pg. 40</a>
+  </div>
+</section>
+
+<section id="ext">
+  <div class="shead"><h2>The EXP jack and external control</h2><span class="rule"></span></div>
+  <p class="sdek">The EXP jack runs in one of four modes, chosen in Power Up mode:
+  <q>Turn the REVERB knob to select the mode (see below). The current mode will be displayed on the
+  INFINITE LED.</q>
+  <a class="pg" data-pg="15" style="font-family:'DM Mono',monospace;font-size:.8rem">Strymon, pg. 15</a></p>
+  <div class="tw" style="margin-bottom:18px"><table id="expTable"><thead><tr>
+    <th>INFINITE LED</th><th>Mode</th><th>The manual's description</th><th class="mono">Manual</th>
+  </tr></thead><tbody></tbody></table></div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>Expression pedal setup<a class="pg" data-pg="32">pg. 32</a></h3>
+      <p>With the EXP jack in Expression mode and a TRS pedal connected: <q>Press and hold the PRESET
+      BUTTONS 1 &amp; 8 together for one second until all the PRESET BUTTONS are flashing GREEN.</q> Rock
+      the pedal to the heel position, where buttons 1&ndash;4 flash green, and <q>Set the knobs the way you
+      would like them to be in the HEEL position. Once a knob is turned, PRESET BUTTONS 1-4 will flash
+      RED.</q> Repeat toe down with buttons 5&ndash;8, then <q>Press any PRESET BUTTON to store and exit
+      setup.</q><span class="who">Strymon</span></p>
+      <p><q>We recommend using an expression pedal with a 25k Ohm minimum potentiometer.</q> <q>Expression
+      pedal settings are saved and recalled as part of the onboard favorite setting and MIDI accessible
+      presets.</q><span class="who">Strymon, pg. 33</span></p>
+    </div>
+    <div class="card">
+      <h3>MultiSwitch Plus<a class="pg" data-pg="34">pg. 34</a></h3>
+      <p>Enter Power Up mode, then: <q>Turn the SPEED knob all the way counter-clockwise to set the MIDI
+      channel to Channel 1. The ON LED should be GREEN.</q> <q>Turn the LENGTH knob all the way
+      counter-clockwise to set the TRS MIDI OUT mode to ON. The FAVORITE LED should be GREEN.</q> <q>Turn
+      the REVERB knob to the desired MultiSwitch Plus function.</q> Press INFINITE to store, then connect a
+      TRS cable to the EXP jack.<span class="who">Strymon</span></p>
+      <p><q>Press and hold the A footswitch on Multiswitch Plus when connecting the TRS cable to
+      MultiSwitch Plus for Preset mode.</q> <q>Press and hold the C footswitch on MultiSwitch Plus when
+      connecting the TRS cable to MultiSwitch Plus for Preset Scroll mode or MOD/TONE/VOICE Bypass
+      Mode.</q> Strymon's note: <q>If NightSky is in Sequence mode, loading a new preset will stop the
+      sequence and cause the pedal to switch to Reverb mode.</q><span class="who">Strymon, pg. 35</span></p>
+    </div>
+    <div class="card">
+      <h3>MIDI in<a class="pg" data-pg="14">pg. 14</a></h3>
+      <p>The 5-pin DIN input receives <q>MIDI Program Change (PC): Recall up to 300 presets.</q> <q>MIDI
+      Continuous Controller (CC): Control the individual parameters of NightSky including all knobs,
+      switches, buttons, and Live Edit functions.</q> <q>MIDI Clock: Syncs the sequencer tempo with an
+      external MIDI Clock source.</q><span class="who">Strymon</span></p>
+      <p>Strymon's note: <q>NightSky can respond to MIDI messages received at the MIDI IN, USB port, or the
+      EXP jack.</q><span class="who">Strymon</span></p>
+      <p>The 300 locations are grouped into three MIDI patch banks — presets 0&ndash;127, 128&ndash;255 and
+      256&ndash;299 — and <q>NightSky always powers up in MIDI Patch Bank 0</q>. <q>Selecting bank 0, patch
+      127 will put NightSky into Manual mode. In this mode, the pedal will be set to the current knob and
+      button settings. No preset data can be stored at this preset
+      location.</q><span class="who">Strymon, pg. 36</span></p>
+    </div>
+    <div class="card">
+      <h3>Two MIDI settings held on preset buttons 1 &amp; 4<a class="pg" data-pg="26">pg. 26</a></h3>
+      <p><b>Respond to MIDI clock</b> — <q>Determines whether NightSky&rsquo;s sequencer will respond to
+      MIDI Clock. Press and hold PRESET BUTTONS 1 &amp; 4, turn the SPEED knob. ON LED color will indicate
+      the status.</q> <q>MIDI Clock Off = RED LED (default)</q><span class="who">Strymon</span></p>
+      <p><b>MIDI expression</b> — <q>Allows you to send MIDI CC# 100 as a MIDI expression pedal. Press and
+      hold PRESET BUTTONS 1 &amp; 4, turn the LOW CUT knob. ON LED color will indicate the
+      status.</q><span class="who">Strymon</span></p>
+    </div>
+  </div>
+</section>
+
+<section id="factory">
+  <div class="shead"><h2>Factory settings and sample settings</h2><span class="rule"></span></div>
+  <p class="sdek">Printed page 41 lists the power up defaults and the Manual mode Live Edit defaults.
+  Pages 42 to 49 then give the sixteen sample settings, two to a page.</p>
+  <div class="grid g2" style="margin-bottom:18px">
+    <div class="card">
+      <h3>Power up defaults<a class="pg" data-pg="41">pg. 41</a></h3>
+      <p class="mono" style="font-size:.86rem;line-height:1.8;color:var(--ink-2)">
+      Bypass Mode: True Bypass<br>MIDI Channel: 1<br>Persist: Off<br>EXP Jack Options: Expression<br>
+      Send MIDI CC: Off<br>MIDI Program Change: Off<br>TRS MIDI Output Mode: On<br>DIN MIDI Thru Mode: On</p>
+    </div>
+    <div class="card">
+      <h3>Manual mode Live Edit defaults<a class="pg" data-pg="41">pg. 41</a></h3>
+      <p class="mono" style="font-size:.86rem;line-height:1.8;color:var(--ink-2)">
+      MIDI clock / MIDI exp: Off<br>Glimmer Gain: max<br>Drive Gain: max<br>Pre-Delay: min<br>
+      Infinite Input: on<br>Scale Select: major pentatonic<br>Low Pass Resonance: 12 o'clock<br>
+      Sequence Glide: min</p>
+    </div>
+  </div>
+
+  <h3 style="margin:0 0 12px;font-size:1.1rem">The sixteen sample settings</h3>
+  <p class="sdek" style="margin-bottom:14px">Each sample setting is printed as a drawing of the panel plus
+  a short list of Live Edit values. The columns below carry the listed values only; the knob and button
+  positions exist in the manual as artwork, so open the page to see them.</p>
+  <div class="tw"><table id="sampleTable"><thead><tr>
+    <th class="mono">#</th><th>Name</th><th>Scale select</th><th class="mono">Low pass res.</th>
+    <th class="mono">Pre-delay</th><th class="mono">Glimmer gain</th><th class="mono">Drive gain</th>
+    <th class="mono">Glide</th><th>Inf. input</th><th class="mono">Manual</th>
+  </tr></thead><tbody></tbody></table></div>
+</section>
+
+<section id="manual">
+  <div class="shead"><h2>Find it in the manual</h2><span class="rule"></span></div>
+  <p class="sdek">This page is a companion, not a replacement — when you want Strymon's own words, or want
+  to check something here against the source, these open the manual at the right page. NightSky's manual
+  prints its page number on every page and the PDF has one cover sheet ahead of them, so the printed number
+  and the PDF page are the same throughout; the numbers below are the ones printed on the page.</p>
+  <div class="mindex" id="mindex"></div>
+</section>
+
+<footer class="end">
+  <span>NightSky user manual, Rev F &middot; 10.22.2020</span>
+  <span><a href="https://www.strymon.net/product/nightsky/" target="_blank" rel="noopener">strymon.net/product/nightsky</a></span>
+</footer>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = s => document.querySelector(s);
+const clamp = (v,a=0,b=1) => Math.min(b, Math.max(a,v));
+const ang = v => -150 + v*300;
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+
+/* NightSky prints "pg N" on printed page N, and the PDF carries exactly one
+   unnumbered cover sheet before page 2 — so printed page N is PDF page N and the
+   fragment needs no arithmetic. Checked by extracting every page's own printed
+   number and comparing it with its index: all 52 numbered pages agree.          */
+const MANUAL = "https://www.strymon.net/manuals/Nightsky_UserManual_RevF.pdf";
+const pdfPage = p => p;
+const href = p => MANUAL + "#page=" + pdfPage(p);
+const quote = (pg, text) =>
+  '<q>' + text + '</q><a class="src" href="' + href(pg) + '" target="_blank" rel="noopener">Strymon, pg. ' + pg + '</a>';
+
+/* fill in every data-pg link on the static prose */
+document.querySelectorAll("[data-pg]").forEach(a => {
+  a.setAttribute("href", href(+a.dataset.pg));
+  a.setAttribute("target","_blank"); a.setAttribute("rel","noopener");
+});
+$("#srcLive").setAttribute("href", href(25));
+$("#srcLive").setAttribute("target","_blank"); $("#srcLive").setAttribute("rel","noopener");
+
+/* ================= panel geometry ================= */
+/* Percentages measured off Strymon's own top-down product photograph: the knob,
+   button and preset centres are where they are on the enclosure, not invented.  */
+const KROW1 = 16.0, KROW2 = 38.6;        /* knob centre lines */
+const BROW1 = 25.3, BROW2 = 45.1;        /* push button centre lines */
+const LROW1 = [11.2, 15.6, 20.0];        /* option LED rows, upper half */
+const LROW2 = [35.2, 39.3];              /* option LED rows, lower half */
+const PRE_X = i => 25.6 + i * 6.88;      /* the eight preset buttons */
+
+/* ================= what the manual says ================= */
+/* Everything inside `m` is Strymon's own wording, transcribed from the printed
+   page named in `pg`. The readout that follows it is computed here and is the
+   only part of a control's entry that is ours.                                  */
+
+const KNOBS = {
+  speed:{ name:"SPEED", sec:"mod", x:8.00, y:KROW1, pg:10, m:
+    "Adjusts the rate of modulation from 0.06Hz (16 second sweep) to 12Hz (0.08 second sweep)." },
+  depth:{ name:"DEPTH", sec:"mod", x:25.93, y:KROW1, pg:11, m:
+    "With the exception of the env shape, adjusts the amount of modulation. Modulation is off at the fully counterclockwise position. When env is selected, modulation is off at 12 o’clock." },
+  length:{ name:"LENGTH", sec:"decay", x:53.75, y:KROW1, pg:5, m:
+    "Adjusts the reverb decay time from less than one second to nearly infinite sustain. At higher LENGTH settings, decay time may be impacted by the TONE settings." },
+  size:{ name:"SIZE / PITCH", sec:"decay", x:71.14, y:KROW1, pg:6, m:
+    "Increases the size of the reverb core to create a larger “space” for reflections as the knob is turned clockwise." },
+  reverb:{ name:"REVERB", sec:"mix", x:91.50, y:KROW1, pg:12, m:
+    "Sets the output level of the reverberated signal." },
+  lowcut:{ name:"LOW CUT", sec:"tone", x:8.07, y:KROW2, pg:4, m:
+    "Removes low end content both at the output and in the regenerating core portion of the reverb as the knob is turned clockwise." },
+  highcut:{ name:"HIGH CUT", sec:"tone", x:25.93, y:KROW2, pg:4, m:
+    "Removes high frequency content from the reverb as the knob is turned clockwise. Location and characteristics determined by the FILTER section." },
+  interval:{ name:"INTERVAL", sec:"voice", x:41.07, y:KROW2, pg:8, m:
+    "Selects the pitch interval of the shimmer effect. Two octaves of total range from -1 octave to +1 octave. Two additional INTERVAL options (-detune and +detune) are available around the 12 o’clock position of the knob." },
+  shimmer:{ name:"SHIMMER", sec:"voice", x:63.57, y:KROW2, pg:8, m:
+    "Sets the amount of the shimmer effect. Shimmer effect is off when set to minimum." },
+  dry:{ name:"DRY", sec:"mix", x:91.39, y:KROW2, pg:12, m:
+    "Sets the output level of the dry signal. No dry signal at minimum, unity gain at 12 o’clock, and +3dB boost of the dry signal at maximum." }
+};
+
+/* wave glyphs for the six SHAPE options, drawn the way the enclosure prints them */
+const WAVE = {
+  triangle:"M1 11 L6 3 L11 11 L16 3 L21 11",
+  square:"M1 11 L1 3 L7 3 L7 11 L13 11 L13 3 L19 3 L19 11 L21 11",
+  ramp:"M1 11 L7 3 L7 11 L13 3 L13 11 L19 3 L19 11",
+  saw:"M1 3 L7 11 L7 3 L13 11 L13 3 L19 11 L19 3"
+};
+const waveSVG = k => '<svg viewBox="0 0 22 14" aria-hidden="true"><path d="' + WAVE[k] + '"/></svg>';
+
+const BUTTONS = {
+  target:{ name:"TARGET", sec:"mod", x:17.93, y:BROW1, lx:19.70, rows:LROW1, side:"l", ox:2.2, pg:10,
+    m:"Selects the process that the modulation is applied to.",
+    opts:[["verb","Modulates the delay lines within the reverb core."],
+          ["pitch","Modulates the SIZE/PITCH control position."],
+          ["filter","Modulates the HIGH CUT tone control position."]] },
+  shape:{ name:"SHAPE", sec:"mod", x:37.14, y:BROW1, lx:37.2, rows:LROW1, side:"split", ox:2.2, pg:11,
+    m:"Selects the shape of the modulating waveform.",
+    opts:[["triangle","The modulation wave rises and falls evenly.",waveSVG("triangle")],
+          ["square","The modulation wave jumps between two fixed values.",waveSVG("square")],
+          ["ramp","The modulation wave rises gradually and falls abruptly.",waveSVG("ramp")],
+          ["saw","The modulation wave falls gradually and rises abruptly.",waveSVG("saw")],
+          ["rand","The modulation wave jumps between random values."],
+          ["env","The modulation responds to playing dynamics with the input sensitivity set by the DEPTH knob. The sensitivity increases as the DEPTH knob is turned further from the 12 o’clock position. With the DEPTH knob set to the LEFT of 12 o’clock, the envelope starts at a higher value and goes to a lower value with an input signal (negative modulation). With the DEPTH knob set to the RIGHT of 12 o’clock, the envelope starts at a lower values and goes to a higher value with an input signal (positive modulation)."]] },
+  texture:{ name:"TEXTURE", sec:"decay", x:62.00, y:BROW1, lx:59.95, rows:LROW1, side:"r", ox:2.2, pg:5,
+    m:"Selects one of three different reverb types.",
+    opts:[["sparse","Granular-sounding reverb that can create interesting effects with staccato inputs, or produce a clean reverb with sustained inputs."],
+          ["dense","Plate-like reverb with a fast response and dense reflections that can venture into ambient territory at high decay times."],
+          ["diffuse","Slow-building, atmospheric wash that excels at ambient, swell, and even reverse-like textures."]] },
+  quantize:{ name:"QUANTIZE", sec:"decay", x:79.14, y:BROW1, lx:76.75, rows:LROW1, side:"r", ox:2.2, pg:6,
+    m:"Selects the response and range of the SIZE/PITCH knob.",
+    opts:[["smooth","SIZE/PITCH varies smoothly and continuously over a 2.5 octave pitch range."],
+          ["half step","SIZE/PITCH is quantized into half-step intervals over a two octave range."],
+          ["scale","SIZE/PITCH is quantized into selectable scales over a two octave range."]] },
+  filter:{ name:"FILTER", sec:"tone", x:18.00, y:BROW2, lx:19.98, rows:LROW2, side:"l", ox:2.2, pg:4,
+    m:"Selects the response of the HIGH CUT knob.",
+    opts:[["regen","Removes high frequencies from the regenerating core, creating a reverb that gets darker as it decays."],
+          ["low pass","Applies a synth-style peaking, high frequency roll-off to the reverb output, selectively shaping the frequency content."]] },
+  shim:{ name:"SHIMMER", sec:"voice", x:53.71, y:BROW2, lx:55.80, rows:LROW2, side:"l", ox:2.2, pg:8,
+    m:"Selects the type of shimmer effect.",
+    opts:[["input","Shimmer effect is applied to the input of the reverb core and does not regenerate."],
+          ["regen","Shimmer effect is applied within the reverb core and the effect is regenerative, resulting in continuously ascending or descending pitches as the reverb decays."]] },
+  glimmer:{ name:"GLIMMER", sec:"voice", x:72.14, y:BROW2, lx:70.82, rows:LROW2, side:"r", ox:2.2, pg:9, offable:true,
+    m:"Dynamically enhances aspects of the input signal’s harmonic spectrum.",
+    opts:[["high","Higher frequency harmonics are accentuated, creating a washy, dreamy top end."],
+          ["low","Lower frequency harmonics are enhanced, creating mysterious and synth-like textures."]],
+    off:"GLIMMER is disabled." },
+  drive:{ name:"DRIVE", sec:"voice", x:80.79, y:BROW2, lx:79.27, rows:LROW2, side:"r", ox:2.2, pg:9, offable:true,
+    m:"Adds saturated overdriven harmonics with a soft clipping characteristic to the reverb.",
+    opts:[["pre","Applies drive to the signal before the reverb core."],
+          ["post","Applies drive after the reverb core, allowing the reverb tail to dynamically go into and out of saturation as the reverb decays."]],
+    off:"DRIVE is disabled." }
+};
+
+const SECTIONS = {
+  mod:  { name:"MOD",   pg:10, m:"Applies modulation of the selected waveshape to the selected target.",
+          box:[3.4,6.2,45.2,27.2] },
+  decay:{ name:"DECAY", pg:5,  m:"Selects the reverb type and sets the tail characteristics.",
+          box:[46.1,6.2,85.2,27.2] },
+  mix:  { name:"MIX",   pg:12, m:"Page 12 prints no summary line for this section and goes straight to the two knobs.",
+          box:[86.0,6.2,96.3,48.6], noQuote:true },
+  tone: { name:"TONE",  pg:4,  m:"Applies filtering to the high and low frequency portions of the reverb.",
+          box:[3.4,28.4,32.8,48.6] },
+  voice:{ name:"VOICE", pg:8,  m:"Adds pitch, harmonics, and distortion to the reverberated signal.",
+          box:[33.8,28.4,85.2,48.6] }
+};
+const SECORDER = ["mod","decay","tone","voice","mix"];
+
+/* The panel prints eight interval marks; the manual adds -detune and +detune
+   around 12 o'clock. Ten settings, and the manual does not say where one ends
+   and the next begins, so this page divides the sweep evenly and says so.      */
+const INTERVALS = ["-8va","-5th","-4th","-2nd","-detune","+detune","+2nd","+4th","+5th","+8va"];
+const IMARKS = [ /* label, x%, y% — read off the enclosure */
+  ["-2nd",36.0,33.6],["-4th",35.6,37.0],["-5th",35.6,40.1],["-8va",35.7,43.5],
+  ["+2nd",46.4,33.6],["+4th",46.6,37.0],["+5th",46.6,40.1],["+8va",46.5,43.5]
+];
+
+const SCALES = [
+  ["minor pentatonic",[0,3,5,7,10]], ["major pentatonic",[0,2,4,7,9]],
+  ["major",[0,2,4,5,7,9,11]],        ["dorian",[0,2,3,5,7,9,10]],
+  ["minor blues",[0,3,5,6,7,10]],    ["harmonic minor",[0,2,3,5,7,8,11]],
+  ["whole tone",[0,2,4,6,8,10]],     ["diminished",[0,2,3,5,6,8,9,11]]
+];
+
+const LIVE = [
+  { id:"predelay", hold:"texture", kind:"btn", knob:"reverb", name:"Pre-delay", pg:25,
+    m:"Adjusts the time between the dry signal and the onset of the reverb.",
+    extraQ:"counter-clockwise = shorter, clockwise = longer", read:"—" },
+  { id:"glide", hold:"shape", kind:"btn", knob:"reverb", name:"Sequence glide", pg:23,
+    m:"Sequence Glide can be adjusted to add portamento to smooth the changes between the sequence steps.",
+    read:"—" },
+  { id:"lpq", hold:"filter", kind:"btn", knob:"reverb", name:"Low pass resonance", pg:25,
+    m:"Adjusts the filter Q, or sharpness of the resonant frequency. Press and hold the FILTER button and turn the REVERB knob to adjust. Higher values result in a peaking response. Lower values create a gradual roll-off.",
+    extraOurs:"page 4 introduces this control under the FILTER button’s low pass option, so this page takes it to do nothing while FILTER is on regen. Strymon do not say so.", read:"—" },
+  { id:"glimgain", hold:"glimmer", kind:"btn", knob:"reverb", name:"Glimmer gain", pg:25,
+    m:"Adjusts the sensitivity of the glimmer effect to the input signal.", read:"—" },
+  { id:"drivegain", hold:"drive", kind:"btn", knob:"reverb", name:"Drive gain", pg:25,
+    m:"Adjusts the sensitivity of the drive effect.", read:"—" },
+  { id:"infin", hold:"target", kind:"btn", knob:"reverb", name:"Infinite input", pg:27, twostate:true,
+    m:"Determines whether new audio received at the inputs will continue to be processed by the reverb while INFINITE is active.",
+    read:"Preset button 1 — green on, red off" },
+  { id:"scale", hold:"quantize", kind:"btn", presets:true, name:"Scale select", pg:26,
+    m:"Selects one of eight scales that determine the quantization intervals of the SIZE/PITCH knob when QUANTIZE is set to scale mode.",
+    read:"The lit preset button" },
+  { id:"morphspeed", hold:"on", kind:"fsw", knob:"reverb", name:"Morph speed", pg:28,
+    m:"Sets the amount of time it takes to arrive at the MORPH setting.", read:"—" },
+  { id:"midiclock", hold:"p14", kind:"pair", knob:"speed", name:"Respond to MIDI clock", pg:26, twostate:true,
+    m:"Determines whether NightSky’s sequencer will respond to MIDI Clock.",
+    read:"ON LED — red off (default), green on" },
+  { id:"midiexp", hold:"p14", kind:"pair", knob:"lowcut", name:"MIDI expression", pg:26, twostate:true,
+    m:"Allows you to send MIDI CC# 100 as a MIDI expression pedal.",
+    read:"ON LED — red off, green on" }
+];
+const HOLDNAME = { texture:"TEXTURE", shape:"SHAPE", filter:"FILTER", glimmer:"GLIMMER", drive:"DRIVE",
+  target:"TARGET", quantize:"QUANTIZE", shim:"SHIMMER", on:"ON footswitch", p14:"Presets 1 & 4" };
+
+/* Power Up mode. Each option is [name, LED colour, Strymon's own description of it,
+   is it the factory default]. The descriptions are transcribed from the printed page
+   named in `pg`; where Strymon give none, the string is empty. The manual gives no
+   knob angles, so the knob rows are divided evenly in listing order and say so.  */
+const POWER = [
+  { ctrl:"preset1", name:"Preset button 1", sets:"Bypass mode", led:"Preset button 1", pg:29,
+    opts:[["True Bypass","green","",true],["Buffered Bypass","red","Preserves the high frequency response of your guitar signal through your pedal chain and long cable runs."]] },
+  { ctrl:"preset2", name:"Preset button 2", sets:"Persist", led:"Preset button 2", pg:29,
+    opts:[["Persist off","red","Reverb in the buffer will stop when the pedal is bypassed or a new preset is loaded.",true],["Persist on","green","Reverb in the buffer will persist when the pedal is bypassed or a new preset is loaded. Enabling Spillover automatically puts NightSky into Buffered Bypass mode."]] },
+  { ctrl:"preset4", name:"Preset button 4", sets:"Send MIDI CC", led:"Preset button 4", pg:31,
+    opts:[["Off","red","",true],["On","green",""]] },
+  { ctrl:"preset5", name:"Preset button 5", sets:"Send MIDI Program Change", led:"Preset button 5", pg:31,
+    opts:[["Off","red","",true],["On","green",""]] },
+  { ctrl:"preset6", name:"Preset button 6", sets:"5-pin DIN MIDI Through", led:"Preset button 6", pg:31,
+    opts:[["On","green","Only messages generated by NightSky’s UI are sent out of the MIDI OUT port.",true],["Through","red","MIDI messages sent to NightSky are echoed to the MIDI OUT port without adding messages generated by the UI."]] },
+  { ctrl:"speed", name:"SPEED knob", sets:"MIDI channel", led:"ON LED", pg:30, knob:"speed",
+    opts:[["Channel 1","green","",true],["Channel 2","amber",""],["Channel 3","red",""],["Channels 4–16","blue","channel set by next MIDI message"]] },
+  { ctrl:"length", name:"LENGTH knob", sets:"TRS MIDI output", led:"FAVORITE LED", pg:30, knob:"length",
+    opts:[["On","green","Only NightSky UI messages are sent out of NightSky."],["Through","amber","Incoming MIDI messages are sent to the MIDI OUTPUT without additional MIDI messages generated by NightSky."],["Off","red","No MIDI Messages are sent out of NightSky.",true]] },
+  { ctrl:"reverb", name:"REVERB knob", sets:"EXP jack mode", led:"INFINITE LED", pg:15, knob:"reverb",
+    opts:[["Expression pedal","green","Allows continuous control over any of the knobs in any direction with a standard TRS expression pedal."],["MIDI","blue","Allows for the selection of up to three presets using a Strymon MultiSwitch Plus or for full MIDI functionality including access to 300 presets by sending MIDI Program Change messages via 1/4” TRS MIDI connection."],["Preset Up/Down","red","Scroll up or down through the 16 on-board presets and toggle bypass with MultiSwitch Plus."],["MOD/TONE/VOICE bypass","white","Use MultiSwitch Plus to independently bypass the MOD, TONE, and VOICE sections of NightSky."]] }
+];
+
+const SAMPLES = [
+  [1,"Look Up","minor pentatonic","min","10 o'clock","12 o'clock","max","min","on",42],
+  [2,"New Moon","whole tone","12 o'clock","min","12 o'clock","max","min","on",42],
+  [3,"Pulsar","harmonic minor","12 o'clock","min","12 o'clock","1 o'clock","min","on",43],
+  [4,"Solar Wind","minor pentatonic","11 o'clock","min","12 o'clock","max","11 o'clock","on",43],
+  [5,"Rings of Saturn","major","11 o'clock","min","12 o'clock","max","12 o'clock","on",44],
+  [6,"Zenith","major","12 o'clock","12 o'clock","12 o'clock","max","min","on",44],
+  [7,"Omega Nebula","dorian","12 o'clock","min","12 o'clock","max","min","on",45],
+  [8,"Safe Landing","major","12 o'clock","min","12 o'clock","max","min","off",45],
+  [9,"Aperture","minor pentatonic","min","min","12 o'clock","max","min","on",46],
+  [10,"Spiral Galaxy","dorian","12 o'clock","min","12 o'clock","max","11 o'clock","on",46],
+  [11,"Northern Lights","minor blues","11 o'clock","min","12 o'clock","max","min","on",47],
+  [12,"Magnetic Field","harmonic minor","10 o'clock","min","12 o'clock","max","min","on",47],
+  [13,"Space Walk","dorian","12 o'clock","min","12 o'clock","max","min","on",48],
+  [14,"Retrograde","major pentatonic","10 o'clock","min","12 o'clock","max","11 o'clock","on",48],
+  [15,"Celestial Memory","minor blues","12 o'clock","min","12 o'clock","max","min","on",49],
+  [16,"Are You There?","dorian","12 o'clock","min","12 o'clock","max","min","on",49]
+];
+
+/* ================= state ================= */
+const S = {
+  mode:"reverb",
+  hold:null,
+  k:{ speed:.32, depth:.30, length:.62, size:.5, reverb:.66, lowcut:.12, highcut:.44, interval:.85, shimmer:.30, dry:.5 },
+  b:{ target:0, shape:0, texture:1, quantize:0, filter:0, shim:0, glimmer:0, drive:0 },
+  live:{ predelay:0, glide:0, lpq:.5, glimgain:1, drivegain:1, infin:1, scale:1, morphspeed:.4, midiclock:0, midiexp:0 },
+  pu:{ preset1:0, preset2:0, preset4:0, preset5:0, preset6:0 },
+  fs:{ on:true, infinite:false, favorite:false },
+  preset:0,
+  seq:{ steps:[0,3,5,7,10,7,5,3].map(st => ({on:true, v:.5 - st/24})), cur:0, running:false },
+  active:"size"
+};
+/* GLIMMER and DRIVE are three-state: 0 = off, then the two named options. */
+S.b.glimmer = 1; S.b.drive = 0;
+
+/* ================= readouts ================= */
+function clockOf(v){
+  let h = 7 + v*10;                    /* 7 o'clock fully left, 5 o'clock fully right */
+  h = Math.round(h*2)/2;
+  if (h > 12) h -= 12;
+  const hr = Math.floor(h), mn = h - hr === .5 ? ":30" : "";
+  return (mn ? hr + mn : hr + " o'clock");
+}
+const pct = v => Math.round(v*100) + "%";
+const posOf = v => v <= .001 ? "fully counter-clockwise" : v >= .999 ? "fully clockwise" : clockOf(v);
+const readPos = v => posOf(v) + (v > .001 && v < .999 ? " · " + pct(v) : "");
+
+const NOTE = ["unison","minor 2nd","major 2nd","minor 3rd","major 3rd","perfect 4th","tritone",
+  "perfect 5th","minor 6th","major 6th","minor 7th","major 7th","octave"];
+function noteName(st){
+  const a = Math.abs(st);
+  if (a === 0) return "unison";
+  const oct = Math.floor(a/12), rem = a%12;
+  let s = oct === 1 && rem === 0 ? "octave" : oct >= 1 ? (oct + " oct" + (rem ? " + " + NOTE[rem] : "")) : NOTE[rem];
+  return s + (st > 0 ? " up" : " down");
+}
+function snapScale(st){
+  const set = SCALES[S.live.scale][1];
+  let best = 0, bd = 99;
+  for (let o = -2; o <= 2; o++) for (const d of set){
+    const c = o*12 + d, dd = Math.abs(c - st);
+    if (dd < bd){ bd = dd; best = c; }
+  }
+  return best;
+}
+/* Pitch offsets come from the range table on printed page 6: 12 o'clock is the
+   middle, and clockwise goes DOWN. smooth is +/-15 semitones, the quantized
+   modes +/-12 (see the misprint note in the page body).                         */
+function pitchOf(){
+  const v = S.k.size, q = S.b.quantize;
+  if (q === 0) return { st:(0.5 - v)*30, exact:false };
+  let st = Math.round((0.5 - v)*24);
+  if (q === 2) st = snapScale(st);
+  return { st, exact:true };
+}
+function pitchText(){
+  const p = pitchOf();
+  const n = p.exact ? p.st : Math.round(p.st*10)/10;
+  const sign = n > 0 ? "+" : "";
+  return { v: sign + n + " st", s: Math.abs(p.st) < .05 ? "no shift" : noteName(p.exact ? p.st : Math.round(p.st)) };
+}
+/* Interpolated between the only two rates the manual publishes. */
+function modHz(){ return 0.06 * Math.pow(200, S.k.speed); }
+function depthText(){
+  const v = S.k.depth;
+  if (BUTTONS.shape.opts[S.b.shape][0] === "env"){
+    const d = Math.abs(v - .5) * 2;
+    if (d < .02) return { v:"off", s:"env: modulation is off at 12 o'clock" };
+    return { v:(v < .5 ? "negative" : "positive") + " · " + pct(d),
+             s:"env: sensitivity rises away from noon" };
+  }
+  return { v: v <= .001 ? "off" : pct(v), s: v <= .001 ? "fully counter-clockwise" : posOf(v) };
+}
+function dryText(){
+  const v = S.k.dry;
+  if (v <= .001) return { v:"no dry signal", s:"fully counter-clockwise" };
+  if (v >= .999) return { v:"+3 dB", s:"fully clockwise" };
+  if (Math.abs(v - .5) < .015) return { v:"unity gain", s:"12 o'clock" };
+  return { v: posOf(v), s: v < .5 ? "between no dry and unity" : "between unity and +3 dB" };
+}
+const intervalIdx = () => Math.min(9, Math.floor(S.k.interval * 10));
+
+/* value + subvalue for any control, in the current mode */
+function readout(id){
+  const v = S.k[id];
+  switch(id){
+    case "size": return pitchText();
+    case "speed": {
+      const hz = modHz();
+      return { v:(hz < 1 ? hz.toFixed(2) : hz.toFixed(1)) + " Hz",
+               s:(1/hz < 1 ? (1000/hz).toFixed(0) + " ms" : (1/hz).toFixed(1) + " s") + " sweep · interpolated" };
+    }
+    case "depth": return depthText();
+    case "dry": return dryText();
+    case "interval": return { v:INTERVALS[intervalIdx()], s:posOf(v) };
+    case "shimmer": return v <= .001 ? { v:"off", s:"fully counter-clockwise" } : { v:pct(v), s:posOf(v) };
+    default: return { v:pct(v), s:posOf(v) };
+  }
+}
+
+/* ================= modes ================= */
+const MODES = {
+  reverb:{ name:"Reverb mode", how:"The panel as printed", pg:null,
+    dek:"Every control doing the job printed beside it. Tap a button to change its setting; press and hold one to see its second job." },
+  sequence:{ name:"Sequence mode", how:"Hold INFINITE until the ON LED turns red", pg:21,
+    dek:"The eight preset buttons become sequencer steps. Amber means the step is active; red is the step currently playing. Hold a step and turn SIZE/PITCH to tune it." },
+  powerup:{ name:"Power Up mode", how:"Hold INFINITE while connecting power", pg:29,
+    dek:"Global settings. Three knobs and five preset buttons take on configuration jobs, and the footswitch LEDs become the display. Press any footswitch to exit." },
+  morphset:{ name:"Morph setup", how:"Hold presets 2 & 7 until all eight flash green", pg:28,
+    dek:"Every knob is live, and the position you leave it in is stored as the Morph setting. Press any preset button to exit, then adjust the knobs back to the sound you want." },
+  expset:{ name:"Expression setup", how:"Hold presets 1 & 8 for one second", pg:32,
+    dek:"Every knob is set twice: once for where you want it with the pedal heeled back, once for where you want it toed forward. Preset buttons 1–4 flash during the heel pass, 5–8 during the toe pass." }
+};
+const MODEORDER = ["reverb","sequence","powerup","morphset","expset"];
+
+/* which knobs mean something in each mode */
+function knobRole(id){
+  if (S.mode === "powerup"){
+    const p = POWER.find(r => r.knob === id);
+    return p ? { live:true, label:p.sets, opts:p.opts } : { live:false };
+  }
+  if (S.mode === "morphset" || S.mode === "expset") return { live:true };
+  if (S.hold){
+    const rows = LIVE.filter(l => l.hold === S.hold && l.knob === id);
+    if (rows.length) return { live:true, label:rows[0].name, live_id:rows[0].id };
+    if (S.mode === "sequence" && S.hold.startsWith("step") && id === "size")
+      return { live:true, label:"Step " + (+S.hold.slice(4) + 1) + " pitch" };
+    return { live:false };
+  }
+  return { live:null };
+}
+function powerSeg(id){
+  const p = POWER.find(r => r.knob === id); if (!p) return 0;
+  return Math.min(p.opts.length - 1, Math.floor(S.k[id] * p.opts.length));
+}
+
+/* ================= build the pedal ================= */
+const pedal = $("#pedal");
+function buildPedal(){
+  let h = "";
+  /* section boxes */
+  for (const key of SECORDER){
+    const b = SECTIONS[key].box;
+    h += '<div class="box dimmable" data-sec="' + key + '" style="left:' + b[0] + '%;top:' + b[1] +
+      '%;width:' + (b[2]-b[0]) + '%;height:' + (b[3]-b[1]) + '%"></div>';
+    h += '<span class="boxname dimmable" data-sec="' + key + '" style="left:' + (b[0]+1.0) + '%;top:' + b[1] + '%">' +
+      SECTIONS[key].name + '</span>';
+  }
+  /* option clusters */
+  for (const id in BUTTONS){
+    const B = BUTTONS[id];
+    const span = B.rows[B.rows.length-1] - B.rows[0];
+    h += '<div class="clus dimmable" data-clus="' + id + '" style="left:' + B.lx + '%;top:' + (B.rows[0]-3.7) + '%;height:' + (span+8) + '%">' +
+      '<span class="chead">' + B.name + '</span></div>';
+    const list = B.offable ? [null].concat(B.opts) : B.opts;
+    const slots = B.name === "SHAPE" ? 6 : B.opts.length;
+    for (let i = 0; i < slots; i++){
+      const o = B.opts[i]; if (!o) continue;
+      let lx = B.lx, ly, side = B.side, ox = B.ox;
+      if (B.side === "split"){            /* SHAPE: two columns of three */
+        const col = i < 3 ? 0 : 1;
+        lx = B.lx + (col ? 1.85 : -1.85);
+        ly = B.rows[i % 3];
+        side = col ? "r" : "l";
+      } else ly = B.rows[i];
+      h += '<span class="led dimmable" data-led="' + id + '" data-i="' + i + '" style="left:' + lx + '%;--ly:' + ly + '%"></span>';
+      const inner = o[2] ? o[2] : o[0];
+      const style = side === "l" ? 'right:' + (100 - lx + ox) + '%;' : 'left:' + (lx + ox) + '%;';
+      h += '<span class="olbl dimmable" data-olbl="' + id + '" data-i="' + i + '" data-side="' + side +
+        '" style="' + style + '--ly:' + ly + '%">' + inner + '</span>';
+    }
+    h += '<button class="pb" data-btn="' + id + '" style="--x:' + B.x + '%;--y:' + B.y + '%" ' +
+      'aria-label="' + B.name + ' button" title="Tap to change · press and hold for its second job"></button>';
+  }
+  /* interval dial marks */
+  for (const [t,x,y] of IMARKS)
+    h += '<span class="imark dimmable" data-im="' + t + '" style="--x:' + x + '%;--y:' + y + '%">' + t + '</span>';
+  /* knobs */
+  for (const id in KNOBS){
+    const K = KNOBS[id];
+    h += '<div class="kn" data-k="' + id + '" style="--x:' + K.x + '%;--y:' + K.y + '%">' +
+      '<button class="knob" aria-label="' + K.name + ' knob"><span class="cap"></span><span class="dome"></span></button>' +
+      '<span class="klbl">' + K.name + '</span></div>';
+  }
+  /* preset buttons */
+  for (let i = 0; i < 8; i++){
+    h += '<span class="prenum dimmable" style="--x:' + PRE_X(i) + '%">' + (i+1) + '</span>';
+    h += '<button class="pre" data-pre="' + i + '" style="--x:' + PRE_X(i) + '%" aria-label="Preset button ' + (i+1) + '"></button>';
+    h += '<span class="prelbl" data-prelbl="' + i + '" style="--x:' + PRE_X(i) + '%"></span>';
+  }
+  /* footswitches */
+  const FS = [["on","ON",11.6,"sequence step","hold (morph)"],
+              ["favorite","FAVORITE",50.0,"sequence tap",""],
+              ["infinite","INFINITE",88.6,"","hold (sequence)"]];
+  for (const [id,nm,x,above,below] of FS){
+    h += '<span class="fname" style="--x:' + x + '%">' + nm + '</span>';
+    h += '<span class="fled" data-fled="' + id + '" style="--x:' + x + '%"></span>';
+    if (above) h += '<span class="falt above" data-falt="' + id + '" style="--x:' + x + '%">' + above + '</span>';
+    if (below) h += '<span class="falt below" data-fbelow="' + id + '" style="--x:' + x + '%">' + below + '</span>';
+    h += '<button class="fsw" data-fsw="' + id + '" style="--x:' + x + '%" aria-label="' + nm + ' footswitch"></button>';
+  }
+  h += '<span class="wm dimmable">strymon</span>';
+  h += '<span class="logo dimmable">NIGHTSKY<small>time-warped reverberator</small></span>';
+  pedal.innerHTML = h;
+}
+buildPedal();
+
+/* ================= render ================= */
+const hintEl = $("#hint");
+function setHint(t, live){
+  hintEl.innerHTML = (live ? "<b>On the pedal</b> " : "") + (t || "Drag any knob up and down, or focus it and use the arrow keys. Tap a button to change its setting; press and hold a button to see its second job.");
+  hintEl.dataset.live = String(!!live);
+}
+
+function render(){
+  const held = S.hold, mode = S.mode;
+  pedal.classList.toggle("dimmed", !!held || mode === "powerup");
+
+  /* knobs */
+  for (const id in KNOBS){
+    const el = pedal.querySelector('.kn[data-k="' + id + '"]');
+    el.querySelector(".dome").style.transform = "rotate(" + ang(S.k[id]) + "deg)";
+    const role = knobRole(id);
+    el.classList.toggle("live", role.live === true);
+    el.style.opacity = role.live === false ? ".3" : "1";
+    const lbl = el.querySelector(".klbl");
+    lbl.innerHTML = role.live === true && role.label
+      ? '<span class="alt">' + esc(role.label) + '</span>' : KNOBS[id].name;
+  }
+  /* option LEDs + labels */
+  for (const id in BUTTONS){
+    const B = BUTTONS[id], sel = S.b[id];
+    const onIdx = B.offable ? sel - 1 : sel;
+    pedal.querySelectorAll('[data-led="' + id + '"]').forEach(l =>
+      l.dataset.on = String(+l.dataset.i === onIdx));
+    pedal.querySelectorAll('[data-olbl="' + id + '"]').forEach(l =>
+      l.dataset.on = String(+l.dataset.i === onIdx));
+    const pb = pedal.querySelector('.pb[data-btn="' + id + '"]');
+    pb.dataset.held = String(held === id);
+    pb.style.opacity = (held && held !== id && !(mode === "powerup")) ? ".35" : "1";
+  }
+  /* interval marks */
+  const iv = INTERVALS[intervalIdx()];
+  pedal.querySelectorAll("[data-im]").forEach(m => m.dataset.on = String(m.dataset.im === iv));
+  /* preset buttons */
+  const scaleHold = held === "quantize";
+  const p14 = held === "p14";
+  for (let i = 0; i < 8; i++){
+    const btn = pedal.querySelector('.pre[data-pre="' + i + '"]');
+    const lbl = pedal.querySelector('[data-prelbl="' + i + '"]');
+    let c = "", flash = false, txt = "", dim = false;
+    if (mode === "sequence"){
+      const st = S.seq.steps[i];
+      c = (S.seq.running && S.seq.cur === i) ? "red" : (st.on ? "amber" : "");
+      txt = st.on ? fmtStepPitch(i) : "";
+    } else if (mode === "powerup"){
+      const row = POWER.find(r => r.ctrl === "preset" + (i+1));
+      if (row){ c = row.opts[S.pu["preset" + (i+1)]][1]; txt = row.sets; }
+      else dim = true;
+    } else if (mode === "morphset"){ c = "green"; flash = true; }
+    else if (mode === "expset"){ c = "green"; flash = true; txt = i < 4 ? "heel" : "toe"; }
+    else if (scaleHold){ c = i === S.live.scale ? "green" : ""; txt = SCALES[i][0]; }
+    else if (p14){ c = (i === 0 || i === 3) ? "green" : ""; dim = !(i === 0 || i === 3); }
+    else if (held === "target"){ c = i === 0 ? (S.live.infin ? "green" : "red") : ""; txt = i === 0 ? (S.live.infin ? "input on" : "input off") : ""; dim = i !== 0; }
+    else { c = i === S.preset ? "green" : ""; }
+    btn.dataset.c = c; btn.dataset.flash = String(flash);
+    btn.style.opacity = dim ? ".3" : "1";
+    lbl.textContent = txt;
+  }
+  /* footswitch LEDs */
+  const fl = id => pedal.querySelector('[data-fled="' + id + '"]');
+  const setLed = (id, colour) => {
+    const e = fl(id);
+    e.style.background = colour || "var(--led-off)";
+    e.style.boxShadow = colour ? "0 0 1.2cqw " + colour : "none";
+  };
+  const C = { green:"var(--led-on)", amber:"var(--led-amber)", red:"var(--led-red)", blue:"var(--led-blue)", white:"var(--led-white)" };
+  if (mode === "powerup"){
+    setLed("on", C[POWER.find(r=>r.knob==="speed").opts[powerSeg("speed")][1]]);
+    setLed("favorite", C[POWER.find(r=>r.knob==="length").opts[powerSeg("length")][1]]);
+    setLed("infinite", C[POWER.find(r=>r.knob==="reverb").opts[powerSeg("reverb")][1]]);
+  } else {
+    setLed("on", mode === "sequence" ? C.red : (S.fs.on ? C.green : null));
+    setLed("favorite", S.fs.favorite ? C.green : null);
+    setLed("infinite", S.fs.infinite ? C.green : null);
+  }
+  pedal.querySelectorAll("[data-fsw]").forEach(f => {
+    f.dataset.held = String(held === f.dataset.fsw);
+    f.style.opacity = (held && held !== f.dataset.fsw) ? ".4" : "1";
+  });
+  pedal.querySelectorAll("[data-falt],[data-fbelow]").forEach(e =>
+    e.dataset.on = String(mode === "sequence" && e.hasAttribute("data-falt")));
+
+  renderRows();
+  renderStrip();
+  renderPath();
+  renderTabs();
+}
+
+function fmtStepPitch(i){
+  const v = S.seq.steps[i].v, q = S.b.quantize;
+  if (q === 0) return (Math.round((0.5 - v)*30*10)/10 > 0 ? "+" : "") + Math.round((0.5 - v)*30*10)/10;
+  let st = Math.round((0.5 - v)*24);
+  if (q === 2) st = snapScale(st);
+  return (st > 0 ? "+" : "") + st;
+}
+
+/* ---- the readout rows ---- */
+function rowHTML(id, kind){
+  const active = S.active === id;
+  let name, tag, val, sub, desc, pg;
+  if (kind === "knob"){
+    const K = KNOBS[id], r = readout(id), role = knobRole(id);
+    name = K.name; tag = SECTIONS[K.sec].name; pg = K.pg;
+    if (role.live === true && role.label){
+      name = role.label; tag = "held: " + (HOLDNAME[S.hold] || S.hold);
+      const L = LIVE.find(l => l.id === role.live_id);
+      if (L){
+        pg = L.pg;
+        val = L.twostate ? (S.live[L.id] ? "on" : "off") : readPos(S.live[L.id]);
+        sub = L.read !== "—" ? L.read : "";
+        desc = quote(L.pg, L.m)
+          + (L.extraQ ? ' <span class="ours"><b>Also on that page:</b> <q>' + esc(L.extraQ) + "</q></span>" : "")
+          + (L.extraOurs ? ' <span class="ours"><b>Not the manual:</b> ' + esc(L.extraOurs) + "</span>" : "");
+      } else if (S.mode === "powerup"){
+        const p = POWER.find(r2 => r2.knob === id), seg = powerSeg(id);
+        pg = p.pg; val = p.opts[seg][0]; sub = p.opts[seg][1].toUpperCase() + " LED on " + p.led.replace(" LED","");
+        desc = ['<b>' + esc(p.sets) + ".</b>",
+          p.opts[seg][2] ? '<q>' + esc(p.opts[seg][2]) + '</q>' : "",
+          p.opts[seg][3] ? "Strymon mark this one the factory default." : ""].filter(Boolean).join(" ") +
+          ' <a class="src" href="' + href(p.pg) + '" target="_blank" rel="noopener">Strymon, pg. ' + p.pg + '</a>' +
+          '<span class="ours">The manual names the options and their LED colours but not the knob positions, so this page divides the knob into ' +
+          p.opts.length + ' equal segments in the order the options are listed.</span>';
+      } else {
+        val = readPos(S.k[id]); sub = "";
+        desc = '<span class="ours">Live in this mode — the position you leave it in is what gets stored.</span>';
+      }
+    } else {
+      const r2 = readout(id);
+      val = r2.v; sub = r2.s;
+      desc = quote(K.pg, K.m);
+      if (id === "size"){
+        const q = BUTTONS.quantize.opts[S.b.quantize][0];
+        desc += '<span class="ours"><b>Ours:</b> the semitone figure is derived from the pitch range table on printed page 6 — 12 o’clock is the middle and clockwise goes <b>down</b>. QUANTIZE is on <b>' +
+          esc(q) + '</b>' + (S.b.quantize === 2 ? ", snapping to " + esc(SCALES[S.live.scale][0]) : "") + '.</span>';
+      }
+      if (id === "speed") desc += '<span class="ours"><b>Ours:</b> the rate is interpolated logarithmically between the only two rates the manual publishes, 0.06&nbsp;Hz and 12&nbsp;Hz.</span>';
+      if (id === "interval") desc += '<span class="ours"><b>Ours:</b> the sweep is divided into ten equal segments, one per printed mark plus the two detune settings. The manual names the ten settings but not the angles between them.</span>';
+      if (id === "depth" && BUTTONS.shape.opts[S.b.shape][0] === "env") desc += '<span class="ours"><b>Note:</b> SHAPE is on <b>env</b>. Strymon describe what DEPTH does under that setting in the SHAPE entry on printed page 11.</span>';
+      if (id === "highcut") desc += '<span class="ours"><b>Note:</b> FILTER is on <b>' + esc(BUTTONS.filter.opts[S.b.filter][0]) + '</b>.</span>';
+    }
+  } else {
+    const B = BUTTONS[id], sel = S.b[id];
+    const isOff = B.offable && sel === 0;
+    const opt = isOff ? null : B.opts[B.offable ? sel-1 : sel];
+    name = B.name + (id === "shim" ? " (button)" : ""); tag = SECTIONS[B.sec].name; pg = B.pg;
+    val = isOff ? "off" : opt[0]; sub = isOff ? "LED off" : "";
+    desc = '<q>' + B.m + '</q> <b>' + esc(isOff ? "LED off" : opt[0]) + '</b> — <q>' +
+      (isOff ? B.off : opt[1]) + '</q>' +
+      '<a class="src" href="' + href(B.pg) + '" target="_blank" rel="noopener">Strymon, pg. ' + B.pg + '</a>';
+    const L = LIVE.find(l => l.hold === id);
+    if (L) desc += '<span class="ours"><b>Held:</b> ' + esc(L.name) + ' — ' +
+      (L.presets ? "press a preset button" : "turn the " + KNOBS[L.knob].name + " knob") + '.</span>';
+    else if (id === "shim") desc += '<span class="ours"><b>Held:</b> nothing. The SHIMMER button is the only one on the panel without a Live Edit function.</span>';
+  }
+  return '<div class="crow" data-row="' + id + '" data-kind="' + kind + '" data-active="' + active +
+    '" data-off="' + (val === "off") + '">' +
+    '<span class="cname">' + esc(name) + '<span class="tag">' + esc(tag) + '</span></span>' +
+    '<span class="cval">' + esc(val) + (sub ? '<i>' + esc(sub) + '</i>' : '') + '</span>' +
+    '<span class="cdesc">' + desc + '</span></div>';
+}
+
+function renderRows(){
+  const M = MODES[S.mode];
+  $("#vTitle").textContent = S.hold ? "Holding " + (HOLDNAME[S.hold] || S.hold) : M.name;
+  $("#vDek").innerHTML = S.hold
+    ? holdDek()
+    : esc(M.dek) + (M.pg ? ' <a class="pg" href="' + href(M.pg) + '" target="_blank" rel="noopener" style="font-family:\'DM Mono\',monospace;font-size:.8rem">pg. ' + M.pg + '</a>' : "");
+
+  let h = "";
+  for (const key of SECORDER){
+    const sec = SECTIONS[key];
+    const knobs = Object.keys(KNOBS).filter(k => KNOBS[k].sec === key);
+    const btns  = Object.keys(BUTTONS).filter(b => BUTTONS[b].sec === key);
+    h += '<div class="grouphd"><span class="lbl">' + sec.name + '</span>' +
+      '<a class="pg" href="' + href(sec.pg) + '" target="_blank" rel="noopener">pg. ' + sec.pg + '</a></div>';
+    for (const k of knobs) h += rowHTML(k, "knob");
+    for (const b of btns)  h += rowHTML(b, "btn");
+  }
+  $("#rows").innerHTML = h;
+}
+function holdDek(){
+  const rows = LIVE.filter(l => l.hold === S.hold);
+  if (!rows.length && S.hold && S.hold.startsWith("step"))
+    return "Holding step " + (+S.hold.slice(4) + 1) + " — turn SIZE/PITCH to tune this step. " +
+      '<a class="pg" href="' + href(22) + '" target="_blank" rel="noopener" style="font-family:\'DM Mono\',monospace;font-size:.8rem">pg. 22</a>';
+  if (!rows.length) return "The SHIMMER button is the only one on the panel with no Live Edit function behind it.";
+  return rows.map(r => "<b>" + esc(r.name) + "</b> — " +
+    (r.presets ? "press a preset button" : "turn " + KNOBS[r.knob].name) +
+    '. <a class="pg" href="' + href(r.pg) + '" target="_blank" rel="noopener" style="font-family:\'DM Mono\',monospace;font-size:.78rem">pg. ' + r.pg + "</a>").join("<br>");
+}
+
+/* ---- the summary strip ---- */
+function cell(k,v,s){
+  return '<div class="cell"><span class="k">' + k + '</span><span class="v">' + esc(v) +
+    '</span><span class="s">' + esc(s) + '</span></div>';
+}
+function renderStrip(){
+  const p = pitchText();
+  const shp = BUTTONS.shape.opts[S.b.shape][0];
+  const d = depthText();
+  const glim = S.b.glimmer === 0 ? "off" : BUTTONS.glimmer.opts[S.b.glimmer-1][0];
+  const drv  = S.b.drive === 0 ? "off" : BUTTONS.drive.opts[S.b.drive-1][0];
+  const sh = S.k.shimmer <= .001 ? "off" : pct(S.k.shimmer) + " " + BUTTONS.shim.opts[S.b.shim][0];
+  $("#strip").innerHTML =
+    cell("Reverb", BUTTONS.texture.opts[S.b.texture][0], "length " + posOf(S.k.length)) +
+    cell("Size / pitch", p.v, BUTTONS.quantize.opts[S.b.quantize][0] + " · " + p.s) +
+    cell("Tone", BUTTONS.filter.opts[S.b.filter][0], "low cut " + pct(S.k.lowcut) + " · high cut " + pct(S.k.highcut)) +
+    cell("Voice", sh, INTERVALS[intervalIdx()] + " · glimmer " + glim + " · drive " + drv) +
+    cell("Mod", shp + " → " + BUTTONS.target.opts[S.b.target][0], readout("speed").v + " · depth " + d.v) +
+    cell("Mix", "reverb " + pct(S.k.reverb), "dry " + dryText().v);
+}
+
+/* ================= the signal path ================= */
+function renderPath(){
+  const pre = S.b.drive === 1, post = S.b.drive === 2, driveOff = S.b.drive === 0;
+  const shIn = S.b.shim === 0, shRe = S.b.shim === 1, shOff = S.k.shimmer <= .001;
+  const fRegen = S.b.filter === 0, fLP = S.b.filter === 1;
+  const glimOff = S.b.glimmer === 0;
+  const W = 980, H = 250;
+  const box = (x,y,w,h,label,sub,state) => {
+    const cls = "blk" + (state === "on" ? " on" : state === "off" ? " off" : "");
+    return '<rect class="' + cls + '" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="6"/>' +
+      '<text x="' + (x+w/2) + '" y="' + (y + (sub ? h/2 - 2 : h/2 + 4)) + '" text-anchor="middle"' +
+      (state === "off" ? ' class="dim"' : '') + '>' + label + '</text>' +
+      (sub ? '<text class="sm" x="' + (x+w/2) + '" y="' + (y + h/2 + 12) + '" text-anchor="middle">' + sub + '</text>' : '');
+  };
+  const wire = (x1,y1,x2,y2,dry) =>
+    '<path class="wire' + (dry ? " dry" : "") + '" d="M' + x1 + ' ' + y1 + ' L' + x2 + ' ' + y2 + '"/>';
+  const arrow = (x,y) => '<path class="arrow" d="M' + x + ' ' + (y-3.5) + ' L' + (x+6) + ' ' + y + ' L' + x + ' ' + (y+3.5) + ' Z"/>';
+
+  const yM = 104, hB = 40;                       /* main chain */
+  const seq = [
+    [10, 62, "INPUT", "", "plain"],
+    [84, 74, "GLIMMER", glimOff ? "off" : BUTTONS.glimmer.opts[S.b.glimmer-1][0], glimOff ? "off" : "on"],
+    [170, 74, "SHIMMER", "input", (shIn && !shOff) ? "on" : "off"],
+    [256, 74, "DRIVE", "pre", pre ? "on" : "off"],
+    [342, 74, "PRE-DELAY", "", "plain"],
+    [428, 86, "INPUT DIFFUSION", "", "plain"]
+  ];
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="NightSky signal path">';
+  /* the core */
+  s += '<rect class="core" x="524" y="42" width="212" height="150" rx="10"/>';
+  s += '<text class="sm" x="630" y="58" text-anchor="middle">REVERB CORE · VARIABLE PROCESSING RATE</text>';
+  s += box(538, 70, 184, 30, "DELAY NETWORK", "", "plain");
+  s += box(538, 106, 88, 30, "LOW CUT", "", "plain");
+  s += box(634, 106, 88, 30, "INFINITE", "", S.fs.infinite ? "on" : "plain");
+  s += box(538, 142, 88, 30, "SHIMMER", "regen", (shRe && !shOff) ? "on" : "off");
+  s += box(634, 142, 88, 30, "FILTER", "regen", fRegen ? "on" : "off");
+  /* chain in */
+  let prevX = null;
+  for (const [x,w,l,sub,st] of seq){
+    s += box(x, yM - hB/2, w, hB, l, sub, st);
+    if (prevX !== null){ s += wire(prevX, yM, x, yM) + arrow(x - 7, yM); }
+    prevX = x + w;
+  }
+  s += wire(prevX, yM, 524, yM) + arrow(517, yM);
+  /* chain out */
+  s += box(772, yM - hB/2, 74, hB, "DRIVE", "post", post ? "on" : "off");
+  s += box(864, yM - hB/2, 74, hB, "FILTER", "low pass", fLP ? "on" : "off");
+  s += wire(736, yM, 772, yM) + arrow(765, yM);
+  s += wire(846, yM, 864, yM) + arrow(857, yM);
+  s += wire(938, yM, 956, yM) + wire(956, yM, 956, 210) + wire(956, 210, 900, 210) + arrow(894, 210);
+  /* dry path */
+  s += box(806, 192, 88, 36, "OUTPUT", "", "plain");
+  s += wire(40, yM + 20, 40, 210, true) + wire(40, 210, 806, 210, true) + arrow(799, 210);
+  s += '<text class="sm" x="300" y="204">DRY SIGNAL · ANALOG, NEVER CONVERTED</text>';
+  s += "</svg>";
+  $("#pathInner").innerHTML = s;
+}
+
+/* ================= tabs ================= */
+function renderTabs(){
+  $("#modeTabs").innerHTML = MODEORDER.map(m =>
+    '<button class="btn" data-mode="' + m + '" aria-pressed="' + (S.mode === m) + '">' + MODES[m].name + "</button>").join("");
+  const M = MODES[S.mode];
+  $("#modeHow").innerHTML = esc(M.how) + (M.pg ? ' · <a href="' + href(M.pg) + '" target="_blank" rel="noopener">pg. ' + M.pg + "</a>" : "");
+
+  const showHold = S.mode === "reverb" || S.mode === "sequence";
+  $("#holdBar").style.display = showHold ? "" : "none";
+  if (showHold){
+    const list = ["target","shape","texture","quantize","filter","glimmer","drive","on","p14"];
+    $("#holdBtns").innerHTML =
+      '<button class="btn sm" data-hold="" aria-pressed="' + (!S.hold) + '">Nothing held</button>' +
+      list.map(k => '<button class="btn sm" data-hold="' + k + '" aria-pressed="' + (S.hold === k) + '">' +
+        HOLDNAME[k] + "</button>").join("") +
+      '<button class="btn sm" data-hold="shim" aria-pressed="' + (S.hold === "shim") + '">SHIMMER</button>';
+  }
+}
+
+/* ================= interaction ================= */
+/* knob dragging */
+let drag = null;
+function knobTarget(id){
+  const role = knobRole(id);
+  if (role.live === true && role.live_id) return { set:v => S.live[role.live_id] = v, get:() => S.live[role.live_id] };
+  if (S.mode === "sequence" && S.hold && S.hold.startsWith("step") && id === "size"){
+    const i = +S.hold.slice(4);
+    return { set:v => S.seq.steps[i].v = v, get:() => S.seq.steps[i].v };
+  }
+  return { set:v => S.k[id] = v, get:() => S.k[id] };
+}
+pedal.addEventListener("pointerdown", e => {
+  const kn = e.target.closest(".kn");
+  if (!kn) return;
+  const id = kn.dataset.k;
+  if (knobRole(id).live === false) return;
+  const t = knobTarget(id);
+  drag = { id, t, y:e.clientY, v:t.get() };
+  S.active = id;
+  kn.querySelector(".knob").setPointerCapture(e.pointerId);
+  kn.classList.add("hot");
+  render(); scrollToRow(id);
+});
+window.addEventListener("pointermove", e => {
+  if (!drag) return;
+  const v = clamp(drag.v + (drag.y - e.clientY) / 240);
+  drag.t.set(v);
+  render();
+});
+window.addEventListener("pointerup", () => {
+  if (!drag) return;
+  pedal.querySelectorAll(".kn.hot").forEach(k => k.classList.remove("hot"));
+  drag = null; render();
+});
+pedal.addEventListener("keydown", e => {
+  const kn = e.target.closest(".kn"); if (!kn) return;
+  const id = kn.dataset.k;
+  if (knobRole(id).live === false) return;
+  const step = e.shiftKey ? .01 : .05;
+  let d = 0;
+  if (e.key === "ArrowUp" || e.key === "ArrowRight") d = step;
+  else if (e.key === "ArrowDown" || e.key === "ArrowLeft") d = -step;
+  else if (e.key === "Home") d = -2; else if (e.key === "End") d = 2;
+  else return;
+  e.preventDefault();
+  const t = knobTarget(id);
+  t.set(clamp(d === -2 ? 0 : d === 2 ? 1 : t.get() + d));
+  S.active = id; render(); scrollToRow(id);
+});
+pedal.addEventListener("focusin", e => {
+  const kn = e.target.closest(".kn");
+  if (kn){ S.active = kn.dataset.k; render(); }
+});
+
+/* buttons: tap cycles, press-and-hold latches the second job */
+let holdTimer = null, holdFired = false;
+pedal.addEventListener("pointerdown", e => {
+  const pb = e.target.closest(".pb"), fs = e.target.closest(".fsw"), pr = e.target.closest(".pre");
+  const id = pb ? pb.dataset.btn : fs ? fs.dataset.fsw : pr ? "step" + pr.dataset.pre : null;
+  if (!id) return;
+  holdFired = false;
+  const canHold = pb || (fs && fs.dataset.fsw === "on") || (pr && S.mode === "sequence");
+  if (!canHold) return;
+  holdTimer = setTimeout(() => {
+    holdFired = true;
+    S.hold = (pb ? id : fs ? "on" : id);
+    if (LIVE.some(l => l.hold === S.hold) || S.hold.startsWith("step")) S.active = "reverb";
+    setHint("Holding <b>" + (HOLDNAME[S.hold] || "step " + (+S.hold.slice(4)+1)) + "</b>. " +
+      "Release is not automatic here — pick “Nothing held”, or press Escape, to let go.", true);
+    render();
+  }, 340);
+});
+window.addEventListener("pointerup", () => { clearTimeout(holdTimer); });
+pedal.addEventListener("click", e => {
+  if (holdFired){ holdFired = false; return; }
+  const pb = e.target.closest(".pb");
+  if (pb){
+    const id = pb.dataset.btn, B = BUTTONS[id];
+    const n = B.offable ? B.opts.length + 1 : B.opts.length;
+    S.b[id] = (S.b[id] + 1) % n;
+    S.active = id; render(); scrollToRow(id);
+    return;
+  }
+  const pr = e.target.closest(".pre");
+  if (pr){
+    const i = +pr.dataset.pre;
+    if (S.mode === "sequence") S.seq.steps[i].on = !S.seq.steps[i].on;
+    else if (S.hold === "quantize") S.live.scale = i;
+    else if (S.mode === "powerup"){ const k = "preset" + (i+1); if (k in S.pu) S.pu[k] ^= 1; }
+    else { S.preset = i; S.fs.favorite = true; }
+    render(); syncSeq();
+    return;
+  }
+  const fs = e.target.closest(".fsw");
+  if (fs){
+    const id = fs.dataset.fsw;
+    if (id === "on") S.fs.on = !S.fs.on;
+    else if (id === "infinite") S.fs.infinite = !S.fs.infinite;
+    else S.fs.favorite = !S.fs.favorite;
+    render();
+  }
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape" && S.hold){ S.hold = null; setHint(""); render(); } });
+
+/* readout rows select a control */
+$("#rows").addEventListener("click", e => {
+  const r = e.target.closest(".crow"); if (!r) return;
+  if (e.target.closest("a")) return;
+  S.active = S.active === r.dataset.row ? null : r.dataset.row;
+  render();
+});
+function scrollToRow(id){
+  const r = $('.crow[data-row="' + id + '"]');
+  if (r) r.scrollIntoView({ block:"nearest" });
+}
+
+/* tabs */
+$("#modeTabs").addEventListener("click", e => {
+  const b = e.target.closest("[data-mode]"); if (!b) return;
+  S.mode = b.dataset.mode; S.hold = null;
+  setHint(S.mode === "reverb" ? "" : MODES[S.mode].how + ".", S.mode !== "reverb");
+  render();
+});
+$("#holdBtns").addEventListener("click", e => {
+  const b = e.target.closest("[data-hold]"); if (!b) return;
+  S.hold = b.dataset.hold || null;
+  if (S.hold && (LIVE.some(l => l.hold === S.hold))) S.active = LIVE.find(l => l.hold === S.hold).knob || "reverb";
+  setHint(S.hold ? "" : "", false);
+  render();
+});
+
+/* ================= static tables ================= */
+/* section cards */
+$("#sectionCards").innerHTML = SECORDER.map(k => {
+  const s = SECTIONS[k];
+  const knobs = Object.keys(KNOBS).filter(x => KNOBS[x].sec === k).map(x => KNOBS[x].name);
+  const btns  = Object.keys(BUTTONS).filter(x => BUTTONS[x].sec === k).map(x => BUTTONS[x].name);
+  return '<div class="card"><h3>' + s.name +
+    '<a class="pg" href="' + href(s.pg) + '" target="_blank" rel="noopener">pg. ' + s.pg + '</a></h3>' +
+    '<p>' + (s.noQuote ? esc(s.m) : '<q>' + esc(s.m) + '</q><span class="who">Strymon</span>') + '</p>' +
+    '<p><b>Knobs</b> ' + knobs.join(", ") + (btns.length ? '<br><b>Buttons</b> ' + btns.join(", ") : "") + '</p></div>';
+}).join("");
+
+/* the three relocatable blocks */
+$("#pathCards").innerHTML = [
+  ["drive", BUTTONS.drive, S.b.drive],
+  ["shim",  BUTTONS.shim,  S.b.shim],
+  ["filter",BUTTONS.filter,S.b.filter]
+].map(([id,B]) =>
+  '<div class="card"><h3>' + B.name + (id === "shim" ? " (button)" : "") +
+  '<a class="pg" href="' + href(B.pg) + '" target="_blank" rel="noopener">pg. ' + B.pg + '</a></h3>' +
+  '<p><q>' + esc(B.m) + '</q><span class="who">Strymon</span></p>' +
+  B.opts.map(o => '<p><b>' + esc(o[0]) + '</b> — <q>' + esc(o[1]) + '</q></p>').join("") +
+  (B.off ? '<p><b>LED off</b> — <q>' + esc(B.off) + '</q></p>' : "") +
+  '</div>').join("");
+
+/* Live Edit table */
+$("#liveTable").querySelector("tbody").innerHTML = LIVE.map(l => {
+  const holdKey = l.kind === "pair"
+    ? '<span class="key warm">Preset 1</span><span class="plus">+</span><span class="key warm">Preset 4</span>'
+    : '<span class="key warm">' + HOLDNAME[l.hold] + "</span>";
+  const turn = l.presets
+    ? '<span class="key live">Preset 1–8</span>'
+    : '<span class="key live">' + KNOBS[l.knob].name + "</span>";
+  return "<tr><td><span class='hold'>" + holdKey + "</span></td><td><span class='hold'>" + turn + "</span></td>" +
+    "<td><b>" + esc(l.name) + "</b><span class='sub'><q>" + esc(l.m) + "</q></span></td>" +
+    "<td>" + esc(l.read) + "</td>" +
+    '<td><a class="pg" href="' + href(l.pg) + '" target="_blank" rel="noopener">pg. ' + l.pg + "</a></td></tr>";
+}).join("");
+
+/* scales */
+$("#scaleTable").querySelector("tbody").innerHTML = SCALES.map((s,i) =>
+  "<tr><td class='mono'>" + (i+1) + "</td><td><b>" + esc(s[0]) + "</b></td><td class='mono'>" + i +
+  "</td><td class='mono'>" + s[1].join(" · ") + "</td></tr>").join("");
+
+/* power up */
+$("#powerTable").querySelector("tbody").innerHTML = POWER.map(r =>
+  "<tr><td><b>" + esc(r.name) + "</b></td><td>" + esc(r.sets) + "</td><td>" +
+  r.opts.map(o => "<b>" + esc(o[0]) + "</b> — " + esc(o[1]) + " LED" +
+    (o[3] ? " <span class='sub' style='display:inline'>(default)</span>" : "") +
+    (o[2] ? " <q>" + esc(o[2]) + "</q>" : "")).join("<br>") +
+  "</td><td>" + esc(r.led) + '</td><td><a class="pg" href="' + href(r.pg) + '" target="_blank" rel="noopener">pg. ' + r.pg + "</a></td></tr>").join("");
+
+/* EXP jack */
+const EXPROWS = POWER.find(r => r.knob === "reverb").opts;
+$("#expTable").querySelector("tbody").innerHTML = EXPROWS.map(o =>
+  "<tr><td><b>" + o[1].toUpperCase() + "</b></td><td><b>" + esc(o[0]) + "</b></td><td><q>" + esc(o[2]) + "</q>" +
+  '</td><td><a class="pg" href="' + href(15) + '" target="_blank" rel="noopener">pg. 15</a></td></tr>').join("");
+
+/* sample settings */
+$("#sampleTable").querySelector("tbody").innerHTML = SAMPLES.map(r =>
+  "<tr><td class='mono'>" + r[0] + "</td><td><b>" + esc(r[1]) + "</b></td><td>" + esc(r[2]) +
+  "</td><td class='mono'>" + esc(r[3]) + "</td><td class='mono'>" + esc(r[4]) + "</td><td class='mono'>" + esc(r[5]) +
+  "</td><td class='mono'>" + esc(r[6]) + "</td><td class='mono'>" + esc(r[7]) + "</td><td>" + esc(r[8]) +
+  '</td><td><a class="pg" href="' + href(r[9]) + '" target="_blank" rel="noopener">pg. ' + r[9] + "</a></td></tr>").join("");
+
+/* ================= the sequencer ================= */
+/* Built once and then patched in place. Replacing the innerHTML on every change
+   would detach the very bar element a pointer drag has captured. */
+let seqBuilt = false;
+function renderSeq(){
+  const q = BUTTONS.quantize.opts[S.b.quantize][0], host = $("#seqSteps");
+  if (!seqBuilt){
+    host.innerHTML = S.seq.steps.map((st,i) =>
+      '<div class="step" data-i="' + i + '">' +
+      '<span class="num">' + (i+1) + '</span>' +
+      '<button class="dot" data-dot="' + i + '" aria-label="Toggle step ' + (i+1) + '"></button>' +
+      '<div class="bar" data-bar="' + i + '"><i></i></div>' +
+      '<span class="st"></span></div>').join("");
+    seqBuilt = true;
+  }
+  S.seq.steps.forEach((st,i) => {
+    const el = host.children[i];
+    el.dataset.on = String(st.on);
+    el.dataset.cur = String(S.seq.running && S.seq.cur === i);
+    el.querySelector(".bar i").style.top = (st.v*100).toFixed(1) + "%";
+    el.querySelector(".st").textContent = fmtStepPitch(i);
+  });
+  const n = S.seq.steps.filter(s => s.on).length;
+  $("#seqFoot").innerHTML = "QUANTIZE is on <b>" + esc(q) + "</b>" +
+    (S.b.quantize === 2 ? ", snapping to <b>" + esc(SCALES[S.live.scale][0]) + "</b>" : "") +
+    ". " + n + " of 8 steps active" +
+    (n < 2 ? " — <b>Strymon, pg. 22: <q>A minimum of two active steps are required for the sequence to run.</q></b>" : ".") +
+    " Semitone figures follow the same page 6 range as the panel above. Each bar is a SIZE/PITCH knob " +
+    "position; because clockwise on that knob goes down, the highest pitch sits at the top of the bar.";
+}
+function syncSeq(){ renderSeq(); }
+$("#seqSteps").addEventListener("click", e => {
+  const d = e.target.closest("[data-dot]"); if (!d) return;
+  const i = +d.dataset.dot; S.seq.steps[i].on = !S.seq.steps[i].on; renderSeq(); render();
+});
+let sdrag = null;
+$("#seqSteps").addEventListener("pointerdown", e => {
+  const b = e.target.closest("[data-bar]"); if (!b) return;
+  const i = +b.dataset.bar;
+  const set = ev => {
+    const r = b.getBoundingClientRect();
+    S.seq.steps[i].v = clamp((ev.clientY - r.top) / r.height);
+    renderSeq(); render();
+  };
+  sdrag = set; set(e); b.setPointerCapture(e.pointerId);
+});
+window.addEventListener("pointermove", e => { if (sdrag) sdrag(e); });
+window.addEventListener("pointerup", () => { sdrag = null; });
+let seqTimer = null;
+$("#seqRun").addEventListener("click", () => {
+  S.seq.running = !S.seq.running;
+  $("#seqRun").setAttribute("aria-pressed", String(S.seq.running));
+  $("#seqRun").textContent = S.seq.running ? "Stop" : "Run";
+  clearInterval(seqTimer);
+  if (S.seq.running){
+    if (S.seq.steps.filter(s => s.on).length < 2){
+      S.seq.running = false;
+      $("#seqRun").setAttribute("aria-pressed","false"); $("#seqRun").textContent = "Run";
+      renderSeq(); return;
+    }
+    S.seq.cur = -1;
+    seqTimer = setInterval(advance, 420);
+  } else { S.seq.cur = 0; }
+  renderSeq(); render();
+});
+function advance(){
+  for (let n = 0; n < 8; n++){
+    S.seq.cur = (S.seq.cur + 1) % 8;
+    if (S.seq.steps[S.seq.cur].on) break;
+  }
+  S.k.size = S.seq.steps[S.seq.cur].v;
+  renderSeq(); render();
+}
+$("#seqStep").addEventListener("click", () => {
+  if (S.seq.running){ $("#seqRun").click(); return; }
+  S.seq.running = true; advance(); S.seq.running = false; renderSeq(); render();
+});
+$("#seqRand").addEventListener("click", () => {
+  S.seq.steps.forEach(s => { s.v = .5 - (Math.floor(Math.random()*17) - 8) / 24; });
+  renderSeq(); render();
+});
+
+/* ================= the manual index ================= */
+const MANUAL_INDEX = [
+  ["Front panel", [
+    ["Introduction",3],["TONE — low cut, high cut, filter",4],["DECAY — length, texture",5],
+    ["DECAY — size/pitch, quantize",6],["Scale select",7],["VOICE — interval, shimmer",8],
+    ["VOICE — glimmer, drive",9],["MOD — target, speed",10],["MOD — shape, depth",11],
+    ["MIX — dry, reverb",12]
+  ]],
+  ["Rear panel and footswitches", [
+    ["Inputs, outputs, input mode",13],["MIDI in and out",14],["EXP jack modes",15],["USB and power",16],
+    ["ON footswitch",17],["INFINITE footswitch",18],["FAVORITE and preset selection",19],["Saving a preset",20]
+  ]],
+  ["Sequencer, Live Edit, Morph", [
+    ["Entering Sequence mode",21],["Programming a sequence",22],["Running it, sequence glide",23],
+    ["Manual step mode",24],["Live Edit functions",25],["Scale select, MIDI clock, MIDI expression",26],
+    ["Infinite input",27],["Morph",28]
+  ]],
+  ["Setup and reference", [
+    ["Power Up mode — bypass, persist",29],["Power Up mode — MIDI channel, TRS out",30],
+    ["Power Up mode — MIDI send, DIN thru",31],["Expression pedal setup",32],
+    ["Expression pedal setup (cont.)",33],["MultiSwitch Plus",34],["MultiSwitch Plus functions",35],
+    ["MIDI program changes",36],["MIDI CC numbers",37],["MIDI CC numbers (cont.)",38],
+    ["MIDI CC — the 26 shimmer intervals",39],["Factory reset",40],["Factory settings",41],
+    ["Sample settings, presets 1–16",42],["Signal flow diagram",50],["Features",51],["Specifications",52]
+  ]]
+];
+$("#mindex").innerHTML = MANUAL_INDEX.map(([grp, rows]) =>
+  '<div class="grp lbl">' + grp + "</div>" +
+  rows.map(([t,p]) =>
+    '<a href="' + href(p) + '" target="_blank" rel="noopener">' +
+    '<span class="t">' + t + '</span><span class="n">pg. ' + p + "</span></a>").join("")
+).join("");
+
+/* ================= go ================= */
+setHint("");
+render();
+renderSeq();
+})();
+</script>

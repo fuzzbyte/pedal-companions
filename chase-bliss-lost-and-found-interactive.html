@@ -43,13 +43,20 @@
 
 const CSS = [
 ".sharewrap{flex:none;position:relative;display:inline-flex}",
+/* This sits beside .themetoggle, which wears the inverted palette and so carries real
+   contrast. Drawn in --line and --ink-3 the button disappeared next to it, so it takes
+   the same weight instead: filled in the page's own ink, which lands on the same side of
+   the palette as --tt-surface in both themes. Those --tt-* values are not defined on
+   every companion, so this uses tokens every page has. */
 ".sharebtn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;",
-"  border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink-3);cursor:pointer;",
-"  transition:color .15s,border-color .15s}",
-".sharebtn:hover{color:var(--ink);border-color:var(--ink-3)}",
+"  border:1px solid transparent;border-radius:8px;background:var(--ink);color:var(--bg);cursor:pointer;",
+"  transition:opacity .15s}",
+".sharebtn:hover{opacity:.82}",
 ".sharebtn svg{display:block;width:15px;height:15px}",
-".sharebtn[data-mod='1']::after{content:'';position:absolute;top:2px;right:2px;width:5px;height:5px;border-radius:50%;",
-"  background:var(--acc-text,var(--accent-text));box-shadow:0 0 0 2px var(--surface)}",
+/* Outside the corner, so the dot sits on --bg and keeps the accent's normal contrast
+   rather than fighting the filled button behind it. */
+".sharebtn[data-mod='1']::after{content:'';position:absolute;top:-3px;right:-3px;width:7px;height:7px;border-radius:50%;",
+"  background:var(--acc-text,var(--accent-text));box-shadow:0 0 0 2px var(--bg)}",
 ".sharepop{position:absolute;top:38px;right:0;z-index:60;width:min(330px,calc(100vw - 32px));",
 "  background:var(--surface);border:1px solid var(--line);border-radius:var(--r,12px);box-shadow:var(--shadow);",
 "  padding:14px;font-family:'Archivo',system-ui,sans-serif;font-size:13px;line-height:1.45;color:var(--ink);",
@@ -328,6 +335,9 @@ function init(cfg){
           '<input type="text" placeholder="Name it to save" maxlength="60" aria-label="Name for this setting">' +
           '<button class="sp-b" data-act="save">Save</button>' +
         '</div>' +
+        /* Where a page holds something a link cannot carry, it says so here rather than
+           letting the reader find out by sending one. */
+        (cfg.caveat ? '<p class="sp-note">' + esc(cfg.caveat) + '</p>' : '') +
         (now === DEFAULT ? ''
           : '<p class="sp-note">Not the setting the page opens on. ' +
             '<button class="sp-b" style="padding:1px 7px;font-size:11.5px;vertical-align:1px" data-act="reset">Reset</button></p>') +
@@ -741,7 +751,11 @@ h1 .thin{display:block;font-weight:500;font-size:.24em;letter-spacing:.22em;colo
 .dip:hover .sw{border-color:var(--faceCream)}
 
 /* the enclosure — 503:946, measured off the product shot. Lit from the upper left,
-   the way Chase Bliss photograph it, so the lower right falls away. */
+   the way Chase Bliss photograph it, so the lower right falls away.
+   No touch-action here: the pedal is most of a phone screen, and blocking the
+   gesture on the whole face leaves a reader unable to scroll past it. It sits on
+   the three controls that drag instead — .knob, .tog, .fsw — so a touch that
+   lands on the enclosure still scrolls the page. */
 .pedal{
   position:relative;width:100%;aspect-ratio:503/946;
   background:
@@ -750,7 +764,7 @@ h1 .thin{display:block;font-weight:500;font-size:.24em;letter-spacing:.22em;colo
     linear-gradient(177deg, var(--faceTop) 0%, var(--faceMid) 44%, var(--faceBot) 100%);
   border:1px solid var(--faceEdge);border-radius:18px;
   box-shadow:0 34px 64px -32px rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.22);
-  container-type:inline-size;touch-action:none;user-select:none;
+  container-type:inline-size;user-select:none;
 }
 
 /* face graphics: confetti + the scrabble-tile logotype */
@@ -779,7 +793,7 @@ h1 .thin{display:block;font-weight:500;font-size:.24em;letter-spacing:.22em;colo
 
 /* knobs */
 .knob{position:absolute;width:21.8cqw;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;
-  cursor:ns-resize;background:none;border:0;padding:0;--ptr:var(--faceCream)}
+  cursor:ns-resize;background:none;border:0;padding:0;touch-action:none;--ptr:var(--faceCream)}
 .knob[data-ch="L"]{--ptr:var(--faceL)} .knob[data-ch="R"]{--ptr:var(--faceR)}
 .knob .cap{position:absolute;inset:0;border-radius:50%;
   background:radial-gradient(70% 70% at 40% 28%, #3B3A38, #17181A 72%);
@@ -855,7 +869,7 @@ h1 .thin{display:block;font-weight:500;font-size:.24em;letter-spacing:.22em;colo
   font-size:3.4cqw;pointer-events:none}
 .chbadge[data-ch="L"]{color:var(--faceL)} .chbadge[data-ch="R"]{color:var(--faceR)}
 .fsw{position:absolute;width:23.6cqw;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);
-  cursor:pointer;padding:0;border:0;
+  cursor:pointer;padding:0;border:0;touch-action:none;
   background:radial-gradient(circle at 40% 30%, #E4E6E5, #9BA2A0 55%, #6C7371 100%);
   box-shadow:0 7px 15px -7px rgba(0,0,0,.85)}
 .fsw::after{content:"";position:absolute;inset:22%;border-radius:50%;
@@ -1421,8 +1435,8 @@ footer.end{margin-top:var(--step);padding-top:22px;border-top:1px solid var(--li
 
 <!-- ============ the manual index ============ -->
 <section id="manual">
-  <div class="shead"><h2>Find it in the manual</h2><span class="rule"></span></div>
-  <p class="sdek">This page is a companion, not a replacement — when you want the maker's own words, or want to check something here against the source, these open the manual at the right page. Page numbers are the ones printed in the manual.</p>
+  <div class="shead"><h2>Find it in the manuals</h2><span class="rule"></span></div>
+  <p class="sdek">This page is a companion, not a replacement — when you want the maker's own words, or want to check something here against the source, these open Chase Bliss's own documents at the right page. The manual's numbers are the ones it prints; the quick start card and the MIDI manual print none, so those count from the front.</p>
   <div class="mindex" id="mindex"></div>
 </section>
 
@@ -1750,6 +1764,11 @@ const ROUTE_D = [
    which is what a #page= link wants. Printed numbers are what the reader sees. */
 const MANUAL = "https://cb2k22.squarespace.com/s/Lost-Found_Manual_Pedal_Chase-Bliss.pdf";
 const pdfPage = p => Math.floor(p/2) + 2;
+/* The other two documents Chase Bliss publish for the pedal. Neither prints a page
+   number and neither is two-up, so a row's number is the page itself. */
+const QUICKSTART = "https://cb2k22.squarespace.com/s/Lost-Found_Quick-Start-guide_Pedal_Chase-Bliss.pdf";
+const MIDIMANUAL = "https://www.chasebliss.com/s/Lost-Found_MIDI-Manual_Pedal_Chase-Bliss.pdf";
+const asIs = p => p;
 
 /* ---------------- build the panel ---------------- */
 const pedal = $("#pedal");
@@ -2137,19 +2156,33 @@ function arcPath(cx,cy,r,d0,d1){
 
 
 /* ---------------- the manual index ---------------- */
+/* Each group names the document it indexes, how its printed numbers map onto PDF
+   pages, and how the number reads on the row. */
 const MANUAL_INDEX = [
-  ["Sections", [
+  {grp:"Manual — sections", doc:MANUAL, page:pdfPage, n:p => "pg. " + p, rows:[
     ["Overview",2],["Setup",4],["Getting Started",6],["Controls",8],["Hidden Options",12],
     ["Presets",16],["Modes",18],["Blend",32],["Swap",34],["Combos",36],["Glue",38],
     ["Customize — the dip switches",40],["Ramping",42],["External Control — MIDI, CV, expression",44]
-  ]],
-  ["The twelve modes", MODES.map(m => [m.code + " · " + m.name, m.pg])]
+  ]},
+  {grp:"Manual — the twelve modes", doc:MANUAL, page:pdfPage, n:p => "pg. " + p,
+   rows: MODES.map(m => [m.code + " · " + m.name, m.pg])},
+  {grp:"Quick start card", doc:QUICKSTART, page:asIs, n:p => "sheet " + p, rows:[
+    ["The panel, control by control",1],
+    ["The twelve modes and their three knobs",2],
+    ["Dip switches and hidden options",3]
+  ]},
+  {grp:"MIDI manual", doc:MIDIMANUAL, page:asIs, n:p => "pg. " + p, rows:[
+    ["Getting started — TRS, channel, saving and recalling presets",2],
+    ["CC — footswitches, knobs, hidden options",3],
+    ["CC — dip switches",4],
+    ["CC — subdivisions",5]
+  ]}
 ];
-$("#mindex").innerHTML = MANUAL_INDEX.map(([grp, rows]) =>
-  '<div class="grp lbl">' + grp + '</div>' +
-  rows.map(([t,p]) =>
-    '<a href="' + MANUAL + '#page=' + pdfPage(p) + '" target="_blank" rel="noopener">' +
-    '<span class="t">' + t + '</span><span class="n">pg. ' + p + '</span></a>').join("")
+$("#mindex").innerHTML = MANUAL_INDEX.map(g =>
+  '<div class="grp lbl">' + g.grp + '</div>' +
+  g.rows.map(([t,p]) =>
+    '<a href="' + g.doc + '#page=' + g.page(p) + '" target="_blank" rel="noopener">' +
+    '<span class="t">' + t + '</span><span class="n">' + g.n(p) + '</span></a>').join("")
 ).join("");
 
 /* ---------------- the 144 matrix ---------------- */

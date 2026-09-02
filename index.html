@@ -202,10 +202,33 @@ h1 .thin{display:block;font-weight:500;font-size:.2em;letter-spacing:.24em;color
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 .chip[aria-pressed="true"] .n{color:var(--bg);opacity:.6}
 
+/* The WIP shelf's warning. Its own colours rather than the theme's accent: it has
+   to read as a warning in both palettes, so every value gets its [data-theme] twin. */
+:root{--wip-bg:#FBF1D9;--wip-line:#E7D4A4;--wip-edge:#A0700F;--wip-ink:#5A4520}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--wip-bg:#231C11;--wip-line:#3C3120;--wip-edge:#D9A441;--wip-ink:#CDBB9A}
+}
+:root[data-theme="dark"]{--wip-bg:#231C11;--wip-line:#3C3120;--wip-edge:#D9A441;--wip-ink:#CDBB9A}
+
+/* ---------- shelves ---------- */
+.shelf{margin-top:clamp(26px,4vw,38px)}
+.shelfhead{display:flex;align-items:center;gap:12px;font-size:11px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.shelfhead .n{font-family:"DM Mono",monospace;font-size:10.5px;letter-spacing:0}
+.shelfhead .rule{flex:1;height:1px;background:var(--line)}
+.shelfnote{
+  margin:14px 0 0;padding:13px 16px;
+  background:var(--wip-bg);color:var(--wip-ink);
+  border:1px solid var(--wip-line);border-left:4px solid var(--wip-edge);
+  border-radius:10px;font-size:.94rem;line-height:1.55;
+}
+.shelfnote b{font-family:"Archivo",sans-serif;font-weight:700;font-size:12px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--wip-edge)}
+
 /* ---------- grid ---------- */
 .grid{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(288px,1fr));
-  gap:clamp(16px,2.2vw,24px);margin-top:clamp(22px,3.5vw,32px);
+  gap:clamp(16px,2.2vw,24px);margin-top:clamp(15px,2.2vw,20px);
 }
 
 .card{
@@ -270,18 +293,6 @@ h1 .thin{display:block;font-weight:500;font-size:.2em;letter-spacing:.24em;color
 .card h3 .stretch{color:inherit;text-decoration:none}
 .stretch::after{content:"";position:absolute;inset:0;z-index:1}
 
-.also{
-  display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;
-  margin-top:11px;padding-top:11px;border-top:1px solid var(--line-soft);
-  position:relative;z-index:2;
-}
-.also a{
-  font-family:"Archivo",sans-serif;font-size:.79rem;font-weight:500;
-  color:var(--ink-3);text-decoration:none;border-bottom:1px solid transparent;
-}
-.also a:hover{color:var(--ink);border-bottom-color:var(--line)}
-.also .src{margin-left:auto}
-
 /* empty state */
 .empty{
   grid-column:1/-1;padding:56px 20px;text-align:center;color:var(--ink-3);
@@ -315,7 +326,7 @@ footer.end a:hover{color:var(--ink)}
     <button class="themetoggle" type="button" aria-label="Switch theme"><svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg><svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2M12 19.4v2M4.6 4.6 6 6M18 18l1.4 1.4M2.6 12h2M19.4 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg></button>
   </div>
   <h1>Manuals<span class="thin">Pick a pedal</span></h1>
-  <p class="dek">Every pedal on the board, with the best document each one has. A few have an <b>interactive companion</b> — the manual rebuilt as something you can turn knobs on. The rest link straight to the manufacturer's PDF, or to a transcription where the maker never published one.</p>
+  <p class="dek">Every pedal on the board, with the best document each one has and an <b>interactive companion</b> for each — the manual rebuilt as something you can turn knobs on. Five are finished. The other nine are still being built and have not been checked against the manuals, so treat what they say as unverified.</p>
 </header>
 
 <div class="pickbar">
@@ -330,7 +341,7 @@ footer.end a:hover{color:var(--ink)}
   <div class="chips" id="chips" role="group" aria-label="Filter by category"></div>
 </div>
 
-<div class="grid" id="grid"></div>
+<div id="shelf"></div>
 
 <footer class="end">
   <span>Manuals collected from the makers' own sites. Nothing here is official or affiliated with them — <a href="https://github.com/fuzzbyte/pedal-companions/issues" rel="noreferrer">open an issue</a> to have something taken down.</span>
@@ -347,19 +358,26 @@ footer.end a:hover{color:var(--ink)}
    status: "live"  → interactive companion is finished, card links to it
            "soon"  → interactive companion is being built; card falls back to the doc
            "doc"   → no interactive companion planned; card links to the doc
-   Flipping "soon" → "live" is the only edit needed when a companion lands. */
+   Flipping "soon" → "live" is the only edit needed when a companion lands.
+
+   ready:  true    → the companion is finished; the card sits under "Available".
+                     Everything without it falls under "WIP", behind a warning that
+                     it has not been checked against the manual. Every companion is
+                     published and openable, so status cannot draw that line - this
+                     flag is set by hand when a page is done. */
 const PEDALS = [
   {
     brand:"Kinotone", name:"Ribbons", img:"kinotone-ribbons.webp", cat:"tape",
     blurb:"Four knobs across four pages of tape effects, seven touch modes and a four-track looper, on two footswitches.",
-    status:"soon",
+    status:"live",
+    interactive:"kinotone-ribbons-interactive.html",
     docs:[{label:"Manual (web page)", href:"https://kinotoneaudio.com/ribbons-manual/"}],
     src:{label:"kinotoneaudio.com", href:"https://kinotoneaudio.com/ribbons-manual/"}
   },
   {
     brand:"Strymon", name:"Volante", img:"strymon-volante.webp", cat:"tape",
     blurb:"Magnetic echo machine — drum, tape and studio echo with four playback heads and a looper.",
-    status:"live",
+    status:"live", ready:true,
     interactive:"strymon-volante-interactive.html",
     doc:{label:"Manual (PDF, Rev E)", href:"https://www.strymon.net/manuals/Volante_UserManual_RevE.pdf"},
     src:{label:"strymon.net", href:"https://www.strymon.net/manuals/Volante_UserManual_RevE.pdf"}
@@ -367,7 +385,7 @@ const PEDALS = [
   {
     brand:"Chase Bliss", name:"Lost + Found", img:"chase-bliss-lost-and-found.webp", cat:"multi",
     blurb:"Twelve modes of the rare and strange, two blended at a time, with a bidirectional Modify knob that does nothing at noon.",
-    status:"live",
+    status:"live", ready:true,
     interactive:"chase-bliss-lost-and-found-interactive.html",
     doc:{label:"Manual (PDF)", href:"https://cb2k22.squarespace.com/s/Lost-Found_Manual_Pedal_Chase-Bliss.pdf"},
     docs:[
@@ -379,21 +397,24 @@ const PEDALS = [
   {
     brand:"Strymon", name:"BigSky", img:"strymon-bigsky.webp", cat:"reverb",
     blurb:"Twelve reverb machines, from plate and hall out to shimmer, bloom and cloud.",
-    status:"soon",
+    status:"live",
+    interactive:"strymon-bigsky-interactive.html",
     doc:{label:"Manual (PDF, Rev D)", href:"https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf"},
     src:{label:"strymon.net", href:"https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf"}
   },
   {
     brand:"Strymon", name:"NightSky", img:"strymon-nightsky.webp", cat:"reverb",
     blurb:"Time-warped reverberator — pitch, voice and glimmer stacked on top of the tank, with a step sequencer driving it.",
-    status:"soon",
+    status:"live",
+    interactive:"strymon-nightsky-interactive.html",
     doc:{label:"Manual (PDF, Rev F)", href:"https://www.strymon.net/manuals/Nightsky_UserManual_RevF.pdf"},
     src:{label:"strymon.net", href:"https://www.strymon.net/manuals/Nightsky_UserManual_RevF.pdf"}
   },
   {
     brand:"Walrus Audio", name:"M1", img:"walrus-m1.webp", cat:"mod",
     blurb:"Six modulation programs — chorus, phaser, tremolo, vibrato, rotary and filter — each with a dedicated lo-fi knob and nine onboard presets.",
-    status:"soon",
+    status:"live",
+    interactive:"walrus-audio-m1-interactive.html",
     doc:{label:"Manual (PDF, firmware 2.0)", href:"https://cdn.shopify.com/s/files/1/0906/8480/files/M1_manual_2.0_firmware.pdf"},
     docs:[
       {label:"Original manual", href:"https://cdn.shopify.com/s/files/1/0906/8480/files/M1_manual_web.pdf"},
@@ -405,7 +426,8 @@ const PEDALS = [
   {
     brand:"Walrus Audio", name:"ACS1", img:"walrus-acs1.webp", cat:"amp",
     blurb:"Three amp models — Fullerton, London, Dartford — into six cab IRs: a '66 Deluxe, a JTM50 Bluesbreaker and an AC30 6TB, each captured with an SM57 and a Royer 121.",
-    status:"soon",
+    status:"live",
+    interactive:"walrus-audio-acs1-interactive.html",
     doc:{label:"Manual (PDF, firmware 2.03)", href:"https://cdn.shopify.com/s/files/1/0906/8480/files/ACS1_2.03_Digital_Manual.pdf"},
     docs:[
       {label:"MKII manual", href:"https://cdn.shopify.com/s/files/1/0906/8480/files/ACS1_MKII_Digital_Manual.pdf"},
@@ -416,14 +438,14 @@ const PEDALS = [
   {
     brand:"JHS", name:"PackRat", img:"jhs-packrat.webp", cat:"dirt",
     blurb:"Nine Rat-style distortions on a rotary, from the 1979 \"Big Box\" original through the LED-clipping Turbo, the grunge-era BRAT and JHS's own.",
-    status:"live",
+    status:"live", ready:true,
     interactive:"jhs-packrat-interactive.html",
     src:{label:"jhspedals.info", href:"https://jhspedals.info/products/packrat"}
   },
   {
     brand:"JHS", name:"Muffuletta", img:"jhs-muffuletta.webp", cat:"dirt",
     blurb:"Six Big Muff circuits — Triangle, Rams Head, Pi, Civil War, Russian — plus JHS's own, on one selector.",
-    status:"live",
+    status:"live", ready:true,
     interactive:"jhs-muffuletta-interactive.html",
     doc:{label:"Manual (web page)", href:"https://jhspedals.info/products/muffuletta"},
     docs:[],
@@ -432,21 +454,23 @@ const PEDALS = [
   {
     brand:"Electro-Harmonix", name:"Op-Amp Big Muff", img:"electro-harmonix-op-amp-big-muff.webp", cat:"dirt",
     blurb:"Reissue of the late-'70s V4 circuit, built on op-amps rather than the transistor stages of every other Big Muff, with a switch that takes the tone control out of the circuit.",
-    status:"soon",
+    status:"live",
+    interactive:"electro-harmonix-op-amp-big-muff-interactive.html",
     doc:{label:"Manual (PDF)", href:"https://www.ehx.com/wp-content/uploads/2021/01/op-amp-big-muff-pi-manual.pdf"},
     src:{label:"ehx.com", href:"https://www.ehx.com/products/op-amp-big-muff-pi/"}
   },
   {
     brand:"JAM Pedals", name:"Eureka!", img:"jam-eureka.webp", cat:"dirt",
     blurb:"Silicon fuzz aiming at germanium midrange with Muff-style body, and a three-way toggle that adds low end — or gates it.",
-    status:"soon",
+    status:"live",
+    interactive:"jam-pedals-eureka-interactive.html",
     doc:{label:"Manual (PDF)", href:"https://jampedals.com/wp-content/uploads/2024/09/Eureka_MANUAL.pdf"},
     src:{label:"jampedals.com", href:"https://jampedals.com/shop/eureka/"}
   },
   {
     brand:"Fulltone", name:"OCD-Germanium", img:"fulltone-ocd-germanium.webp", cat:"dirt",
     blurb:"The Custom Shop OCD rebuilt around germanium diodes — softer clipping, same HP/LP mode switch.",
-    status:"live",
+    status:"live", ready:true,
     interactive:"fulltone-ocd-germanium-interactive.html",
     doc:{label:"Manual (PDF)", href:"https://cdn.shopify.com/s/files/1/0845/8652/9070/files/CS-OCD-Ge_manual_USA.pdf"},
     src:{label:"fulltoneusa.com", href:"https://www.fulltoneusa.com/pages/manuals"}
@@ -454,7 +478,8 @@ const PEDALS = [
   {
     brand:"Keeley", name:"Compressor Plus", img:"keeley-compressor-plus.webp", cat:"amp",
     blurb:"Compressor and sustainer with a blend knob and a single-coil / humbucker release switch. Keeley publishes it as a photo, so it's transcribed here.",
-    status:"soon",
+    status:"live",
+    interactive:"keeley-compressor-plus-interactive.html",
     doc:{label:"Manual (web page)", href:"https://robertkeeley.com/product/keeley-compressor-plus"},
     docs:[{label:"Instructions (web page)", href:"https://robertkeeley.com/product/keeley-compressor-plus"}],
     src:{label:"robertkeeley.com", href:"https://robertkeeley.com/product/keeley-compressor-plus"}
@@ -462,7 +487,8 @@ const PEDALS = [
   {
     brand:"Gamechanger Audio", name:"PLUS Pedal", img:"gamechanger-plus.webp", cat:"amp",
     blurb:"Piano-style sustain on a treadle: it samples the ringing half of the note or chord under your foot and loops it underneath while you keep playing. Blend, Sustain, Rise and Tail.",
-    status:"soon",
+    status:"live",
+    interactive:"gamechanger-audio-plus-interactive.html",
     doc:{label:"Manual (PDF)", href:"https://gamechangeraudio.com/wp-content/uploads/2020/09/PLUS_manual_download.pdf"},
     src:{label:"gamechangeraudio.com", href:"https://gamechangeraudio.com/support/plus-pedal/"}
   }
@@ -489,7 +515,7 @@ const FILTERS = [
 ];
 
 /* ---------------- render ---------------- */
-const grid   = document.getElementById("grid");
+const shelfE = document.getElementById("shelf");
 const chipsE = document.getElementById("chips");
 const countE = document.getElementById("count");
 const qE     = document.getElementById("q");
@@ -517,25 +543,17 @@ function cardHTML(p){
   const fmt   = /\.pdf$/i.test(main.href) ? "PDF"
               : /\.md$/i.test(main.href)  ? "Transcribed"
               : /\.(jpe?g|png)$/i.test(main.href) ? "Image" : "Document";
-  const badge = p.status === "live" ? '<span class="badge live">Interactive</span>'
+  const badge = p.status === "live"
+              ? (p.ready ? '<span class="badge live">Interactive</span>'
+                         : '<span class="badge soon">Interactive · WIP</span>')
               : p.status === "soon" ? '<span class="badge soon">Interactive · building</span>'
               : `<span class="badge">${fmt}</span>`;
 
-  // secondary docs: everything the card doesn't already point at
-  const extra = [];
-  if (p.status !== "live" && p.doc && p.docs) extra.push(...p.docs);
-  else if (p.status === "live") { if (p.doc) extra.push(p.doc); if (p.docs) extra.push(...p.docs); }
-  else if (p.docs && !p.doc) extra.push(...p.docs.slice(1));
-
-  // publish.py repoints the private links at the makers, which can land a doc
-  // on the same URL as the source link — show it once
-  const seen = new Set([main.href, p.src.href]);
-  const alsoLinks = extra.filter(d => {
-    if (seen.has(d.href)) return false;
-    seen.add(d.href);
-    return true;
-  }).map(d => `<a href="${esc(d.href)}" target="_blank" rel="noopener">${esc(d.label)}</a>`).join("");
-
+  // No manual links on a card. Every pedal has a companion now, and each of those
+  // carries its own links to the maker's documents - the card's job is to get the
+  // reader to the right pedal, not to fork them off the site on the way in. The
+  // doc/docs/src fields stay in PEDALS: primary() still falls back to them for a
+  // card that has no companion, and publish.py repoints them either way.
   return `
   <article class="card ${cls}" style="--accent-led:${cat.accent}">
     <div class="shot">
@@ -550,13 +568,26 @@ function cardHTML(p){
       <h3><a class="stretch" href="${esc(main.href)}"${main.newtab ? ' target="_blank" rel="noopener"' : ""} aria-label="${esc(p.brand + " " + p.name + " — " + main.label)}">${esc(p.name)}</a></h3>
       <p>${esc(p.blurb)}</p>
       <span class="cta">${esc(main.label)} <span class="arrow" aria-hidden="true">→</span></span>
-      <div class="also">
-        ${alsoLinks}
-        ${p.src.href === main.href ? "" :
-          `<a class="src" href="${esc(p.src.href)}" target="_blank" rel="noreferrer">${esc(p.src.label)} ↗</a>`}
-      </div>
     </div>
   </article>`;
+}
+
+/* Every companion is published, so the split is between the five that are finished
+   and the nine that are not. The warning rides with the WIP shelf, and each of those
+   pages repeats it at the top of itself. */
+const WIPNOTE = `<p class="shelfnote"><b>These may not be accurate.</b> The pages below are
+  unfinished and have not been checked against the makers' manuals. Where one of them differs
+  from the manual, the manual is right — every page links it.</p>`;
+
+/* one shelf: a heading, a count, and the cards under it. An empty shelf is not drawn,
+   so a chip that lands entirely on one side shows one heading rather than two. */
+function shelfHTML(title, list, note){
+  if (!list.length) return "";
+  return `<section class="shelf">
+    <h2 class="shelfhead">${esc(title)}<span class="n">${list.length}</span><span class="rule"></span></h2>
+    ${note || ""}
+    <div class="grid">${list.map(cardHTML).join("")}</div>
+  </section>`;
 }
 
 function matches(p){
@@ -571,15 +602,16 @@ function draw(){
   const list = PEDALS.filter(p => f.test(p) && matches(p));
 
   if (list.length){
-    grid.innerHTML = list.map(cardHTML).join("");
+    shelfE.innerHTML = shelfHTML("Available", list.filter(p =>  p.ready))
+                     + shelfHTML("WIP",       list.filter(p => !p.ready), WIPNOTE);
   } else {
     // a search can come up empty only because a chip is narrowing it — say so, and offer the way out
     const everywhere = PEDALS.filter(matches).length;
-    grid.innerHTML = (everywhere && active !== "all")
-      ? `<div class="empty"><b>Nothing under ${esc(f.label)} matches “${esc(qE.value.trim())}”.</b>
+    shelfE.innerHTML = (everywhere && active !== "all")
+      ? `<div class="shelf"><div class="empty"><b>Nothing under ${esc(f.label)} matches “${esc(qE.value.trim())}”.</b>
            ${everywhere} ${everywhere === 1 ? "pedal matches" : "pedals match"} across the whole shelf.
-           <button class="chip widen" type="button" id="widen">Search all pedals</button></div>`
-      : `<div class="empty"><b>Nothing on the shelf matches that.</b>Try a brand, a pedal name, or an effect — “reverb”, “fuzz”, “tape”.</div>`;
+           <button class="chip widen" type="button" id="widen">Search all pedals</button></div></div>`
+      : `<div class="shelf"><div class="empty"><b>Nothing on the shelf matches that.</b>Try a brand, a pedal name, or an effect — “reverb”, “fuzz”, “tape”.</div></div>`;
     const w = document.getElementById("widen");
     if (w) w.addEventListener("click", () => {
       active = "all";
@@ -614,10 +646,10 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape" && document.activeElement === qE) { qE.value = ""; query = ""; draw(); qE.blur(); }
 });
 
-const live = PEDALS.filter(p => p.status === "live").length;
-const soon = PEDALS.filter(p => p.status === "soon").length;
+const done = PEDALS.filter(p => p.ready).length;
+const soon = PEDALS.length - done;
 document.getElementById("tally").textContent =
-  PEDALS.length + " pedals · " + live + " interactive" + (soon ? " · " + soon + " building" : "");
+  PEDALS.length + " pedals · " + done + " finished" + (soon ? " · " + soon + " WIP" : "");
 
 draw();
 })();

@@ -1,0 +1,1946 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BigSky, Machine by Machine</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230095B9'/><path d='M4 24a12 12 0 0 1 24 0z' fill='%23F2FAFC'/><rect x='4' y='25.6' width='24' height='3' rx='1.5' fill='%23F2FAFC'/></svg>">
+<script>
+/* Theme: apply the reader's stored pick before first paint, then wire the header toggle. */
+(function(){
+  var root = document.documentElement, KEY = "pedal-theme";
+  try {
+    var saved = localStorage.getItem(KEY);
+    if (saved === "light" || saved === "dark") root.dataset.theme = saved;
+  } catch(e){}
+  var isDark = function(){
+    return root.dataset.theme ? root.dataset.theme === "dark"
+                              : matchMedia("(prefers-color-scheme: dark)").matches;
+  };
+  addEventListener("DOMContentLoaded", function(){
+    var btn = document.querySelector(".themetoggle");
+    if (!btn) return;
+    var sync = function(){
+      var label = "Switch to the " + (isDark() ? "light" : "dark") + " theme";
+      btn.setAttribute("aria-label", label);
+      btn.title = label;
+    };
+    btn.addEventListener("click", function(){
+      root.dataset.theme = isDark() ? "light" : "dark";
+      try { localStorage.setItem(KEY, root.dataset.theme); } catch(e){}
+      sync();
+    });
+    sync();
+  });
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,500;0,600;0,700;1,700&family=DM+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=swap">
+
+<style>
+/* ---------- tokens: light is the bare :root, dark redefines ---------- */
+:root{
+  --bg:#ECF1F3;
+  --surface:#F8FBFC;
+  --surface-2:#E0E9ED;
+  --line:#C9D8DF;
+  --line-soft:#DCE6EA;
+  --ink:#10181C;
+  --ink-2:#4A5960;
+  --ink-3:#7B8C94;
+  --tint:#070D10;
+  --shadow:0 1px 0 rgba(16,24,28,.04), 0 12px 32px -20px rgba(16,24,28,.45);
+
+  --accent:#12A0C4;
+  --accent-text:#0A7793;
+  --warn:#B4561B;
+
+  --r:14px;
+  --step:clamp(2.6rem, 5vw, 4.4rem);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A1114;
+    --surface:#111B1F;
+    --surface-2:#17242A;
+    --line:#25383F;
+    --line-soft:#1D2C32;
+    --ink:#E3EEF2;
+    --ink-2:#9CAFB7;
+    --ink-3:#697C84;
+    --tint:#F2FBFF;
+    --shadow:0 1px 0 rgba(255,255,255,.02), 0 16px 40px -24px rgba(0,0,0,.9);
+    --accent:#3FC2E4;
+    --accent-text:#63D2ED;
+    --warn:#DB9455;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A1114;
+  --surface:#111B1F;
+  --surface-2:#17242A;
+  --line:#25383F;
+  --line-soft:#1D2C32;
+  --ink:#E3EEF2;
+  --ink-2:#9CAFB7;
+  --ink-3:#697C84;
+  --tint:#F2FBFF;
+  --accent:#3FC2E4;
+  --accent-text:#63D2ED;
+  --warn:#DB9455;
+}
+
+/* constants - sampled from Strymon's own top-down photograph of the pedal */
+:root{
+  --case-hi:#02BEDE;
+  --case:#0095B9;
+  --case-lo:#01789B;
+  --case-edge:#006C8E;
+  --silk:#FFFFFF;
+  --silk-2:#CDEAF3;
+  --disp-bg:#0B0705;
+  --disp-on:#8CE85C;
+  --disp-off:#1E2A18;
+  --led-green:#4FD41C;
+  --led-amber:#F2A73B;
+  --led-dim:#0B5064;
+}
+
+/* ---------- base ---------- */
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Newsreader",Georgia,"Times New Roman",serif;
+  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased;
+}
+#app{max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 96px}
+h1,h2,h3,h4,.lbl,.mono,button,th,select{font-family:"Archivo",system-ui,-apple-system,"Helvetica Neue",sans-serif}
+h1,h2,h3{text-wrap:balance;margin:0}
+.mono,code{font-family:"DM Mono","SFMono-Regular",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+a{color:var(--accent-text)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+
+.lbl{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.lbl-a{color:var(--accent-text)}
+.brandline .unoff{font-weight:700;color:var(--accent-text)}
+
+/* an inference marker: everything it touches is this page's arithmetic, not the manual's */
+.inf{
+  display:inline-block;font-family:"Archivo",sans-serif;font-size:9px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;vertical-align:.35em;margin-left:5px;
+  padding:1px 5px;border-radius:4px;border:1px solid var(--line);color:var(--ink-3);
+  cursor:help;white-space:nowrap;
+}
+.inf.solo{vertical-align:baseline;margin-left:0}
+
+/* ---------- masthead ---------- */
+header.top{padding:clamp(40px,7vw,84px) 0 clamp(24px,4vw,40px)}
+.backlink{flex:none;display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);text-decoration:none;padding-right:12px;border-right:1px solid var(--line)}
+.backlink:hover{color:var(--ink)}
+.backlink .bk-arrow{font-size:13px;letter-spacing:0;transition:transform .14s ease}
+.backlink:hover .bk-arrow{transform:translateX(-3px)}
+@media (max-width:560px){.brandline{flex-wrap:wrap}.backlink{flex-basis:100%;border-right:0;padding-right:0;margin-bottom:2px}}
+/* The page follows the OS until the reader picks a side; after that [data-theme] on
+   <html> wins, and the pick is remembered. The button is an invitation to swap, so it
+   wears the theme it offers: a moon in dark colours on a light page, a sun in light
+   colours on a dark page. --tt-* is the opposite palette, cross-wired for that reason,
+   and held here rather than beside the tokens it inverts. */
+:root{color-scheme:light;--tt-surface:#111B1F;--tt-line:#25383F;--tt-ink:#E3EEF2;--tt-ink-3:#697C84}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;--tt-surface:#F8FBFC;--tt-line:#C9D8DF;--tt-ink:#10181C;--tt-ink-3:#7B8C94}}
+:root[data-theme="dark"]{color-scheme:dark;--tt-surface:#F8FBFC;--tt-line:#C9D8DF;--tt-ink:#10181C;--tt-ink-3:#7B8C94}
+.themetoggle{flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;
+  border:1px solid var(--tt-line);border-radius:8px;background:var(--tt-surface);color:var(--tt-ink-3);cursor:pointer;
+  transition:color .15s,border-color .15s}
+.themetoggle:hover{color:var(--tt-ink);border-color:var(--tt-ink-3)}
+.themetoggle svg{display:block;width:15px;height:15px}
+.themetoggle .i-sun{display:none}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .themetoggle .i-moon{display:none}
+  :root:not([data-theme="light"]) .themetoggle .i-sun{display:block}
+}
+:root[data-theme="dark"] .themetoggle .i-moon{display:none}
+:root[data-theme="dark"] .themetoggle .i-sun{display:block}
+.brandline{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.brandline .rule{flex:1;height:1px;background:var(--line)}
+h1{font-size:clamp(3.2rem,11vw,7rem);font-weight:700;letter-spacing:-.05em;line-height:.84;text-transform:uppercase}
+h1 .thin{display:block;font-weight:500;font-size:.19em;letter-spacing:.3em;color:var(--ink-3);margin-top:1.2em}
+.dek{max-width:62ch;margin-top:26px;font-size:1.18rem;color:var(--ink-2)}
+.dek strong{color:var(--ink);font-weight:500}
+.headrow{display:flex;gap:clamp(24px,5vw,64px);align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin-top:26px}
+.headrow .dek{margin-top:0;flex:1 1 30ch;max-width:52ch}
+.getmanual{
+  display:flex;align-items:center;gap:16px;flex:0 1 30ch;
+  padding:15px 19px;border:1px solid var(--accent);border-radius:var(--r);
+  background:color-mix(in oklab, var(--accent) 10%, var(--surface));
+  text-decoration:none;color:var(--ink);box-shadow:var(--shadow);
+  transition:background .15s,transform .15s;
+}
+.getmanual:hover{background:color-mix(in oklab, var(--accent) 20%, var(--surface));transform:translateY(-1px)}
+.getmanual .gm-txt{flex:1;min-width:0}
+.getmanual b{display:block;font-family:"Archivo",sans-serif;font-size:1.02rem;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+.getmanual small{display:block;margin-top:3px;font-size:.86rem;color:var(--ink-2)}
+.getmanual .gm-arrow{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:#04222B;font-size:1.05rem;font-weight:700}
+
+/* ---------- the console ---------- */
+.machine{
+  --mw:min(1560px, calc(100vw - 48px));
+  width:var(--mw);margin-left:calc((100% - var(--mw)) / 2);
+  border:1px solid var(--line);border-radius:var(--r);background:var(--surface);
+  box-shadow:var(--shadow);overflow:hidden;margin-top:10px;
+}
+.mhead{
+  display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;
+  padding:14px 18px;border-bottom:1px solid var(--line-soft);background:var(--surface-2);
+}
+.mhead .who{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.mhead .who b{font-family:"Archivo",sans-serif;font-size:.82rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.mtools{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+
+.stage{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(0,1fr);align-items:stretch}
+.viz{display:flex;flex-direction:column;min-width:0;border-left:1px solid var(--line-soft);background:var(--surface)}
+canvas#plot{display:block;width:100%;flex:1 1 0;min-height:280px;background:#07131A}
+.capline{display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:space-between;padding:10px 18px;border-top:1px solid var(--line-soft);background:var(--surface-2)}
+.vizcap{padding:12px 18px;border-top:1px solid var(--line-soft);font-size:.86rem;color:var(--ink-2);line-height:1.5}
+.vizcap b{font-weight:500;color:var(--ink)}
+@media (max-width:1023px){
+  .stage{grid-template-columns:1fr}
+  .viz{border-left:0;border-top:1px solid var(--line-soft)}
+  canvas#plot{flex:0 0 auto;height:clamp(260px,48vw,380px)}
+}
+
+/* ---------- the pedal ---------- */
+.pedalwrap{display:flex;flex-direction:column;justify-content:flex-start;
+  padding:clamp(14px,2.2vw,24px);background:
+  repeating-linear-gradient(135deg, transparent 0 9px, rgba(0,60,80,.02) 9px 18px), var(--surface)}
+.pedal{
+  position:relative;width:100%;max-width:900px;margin:0 auto;aspect-ratio:854/589;
+  border-radius:13px;container-type:inline-size;touch-action:none;user-select:none;
+  background:
+    radial-gradient(120% 65% at 50% -10%, #2ADAF6 0%, transparent 52%),
+    linear-gradient(176deg, var(--case-hi) 0%, var(--case) 44%, var(--case-lo) 100%);
+  border:1px solid rgba(0,60,80,.55);
+  box-shadow:0 34px 64px -36px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.45), inset 0 -3px 8px rgba(0,55,72,.35);
+  color:var(--silk);
+}
+.pedal::before{ /* brushed anodised grain */
+  content:"";position:absolute;inset:0;border-radius:13px;pointer-events:none;opacity:.16;
+  background-image:repeating-linear-gradient(90deg, rgba(255,255,255,.5) 0 1px, transparent 1px 3px);
+}
+.screw{position:absolute;width:2.2cqw;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 36% 32%, #cfe9f1, #2b5566 72%);box-shadow:inset 0 0 0 .28cqw rgba(0,0,0,.25)}
+
+/* the display */
+.disp{
+  position:absolute;left:2.5%;top:5.8%;width:31%;height:13.2%;
+  border-radius:.5cqw;background:linear-gradient(180deg,#150E0B,var(--disp-bg));
+  border:1px solid rgba(0,0,0,.65);
+  box-shadow:inset 0 .2cqw .8cqw rgba(0,0,0,.9), 0 .15cqw 0 rgba(255,255,255,.22);
+  display:grid;place-items:center;overflow:hidden;
+}
+.disp svg{width:88%;height:64%;overflow:visible}
+.disp .sg{stroke-linecap:round;stroke-width:1.5}
+.disp .sg.off{stroke:var(--disp-off)}
+.disp .sg.on{stroke:var(--disp-on);filter:drop-shadow(0 0 1.4px rgba(140,232,92,.85))}
+.disp .dot.on{fill:var(--disp-on);filter:drop-shadow(0 0 1.4px rgba(140,232,92,.85))}
+.disp .dot.off{fill:var(--disp-off)}
+
+/* knobs */
+.kn{position:absolute;left:var(--x);top:var(--y);width:var(--d);transform:translate(-50%,-50%)}
+.kn .knob{position:relative;display:block;width:100%;aspect-ratio:1;border-radius:50%;padding:0;border:0;background:none;cursor:ns-resize}
+.kn .cap{
+  position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 50% 30%, #4B4B52 0%, #26262C 32%, #0C0C10 70%, #000 100%);
+  box-shadow:0 .6cqw 1.4cqw -.3cqw rgba(0,0,0,.9), inset 0 .3cqw .5cqw rgba(255,255,255,.24), inset 0 -.35cqw .7cqw rgba(0,0,0,.85);
+  transition:transform .05s linear;
+}
+.kn .cap::before{
+  content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
+  background:linear-gradient(152deg, rgba(255,255,255,.26) 0%, rgba(255,255,255,.04) 26%, transparent 48%, transparent 64%, rgba(255,255,255,.09) 88%, rgba(255,255,255,.02) 100%);
+}
+.kn .cap::after{ /* white index line printed on the cap */
+  content:"";position:absolute;left:50%;top:5%;width:.95cqw;height:40%;
+  transform:translateX(-50%);border-radius:.5cqw;background:#F6FAFB;box-shadow:0 0 .3cqw rgba(255,255,255,.45);
+}
+.kn .knob:focus-visible{outline:none}
+.kn .knob:focus-visible .cap{outline:2px solid var(--led-green);outline-offset:.4cqw}
+.kn.live .cap{box-shadow:0 0 0 .3cqw rgba(140,232,92,.9), 0 .5cqw 1.2cqw -.3cqw rgba(0,0,0,.9)}
+.klbl{
+  position:absolute;left:50%;top:calc(100% + 1.1cqw);transform:translateX(-50%);
+  font-family:"Archivo",sans-serif;font-size:1.62cqw;font-weight:700;letter-spacing:.05em;line-height:1.25;
+  text-transform:uppercase;color:var(--silk);white-space:nowrap;pointer-events:none;text-align:center;
+}
+.klbl small{display:block;font-size:.78em;font-weight:500;letter-spacing:.01em;text-transform:none;color:var(--silk-2)}
+
+/* the TYPE ring */
+.tled{
+  position:absolute;left:var(--x);top:var(--y);width:1.9cqw;aspect-ratio:1;border-radius:50%;
+  transform:translate(-50%,-50%);border:0;padding:0;cursor:pointer;
+  background:radial-gradient(circle at 38% 32%, #1b6f85, var(--led-dim) 75%);
+  box-shadow:inset 0 0 0 .16cqw rgba(0,0,0,.35);
+}
+.tled[aria-pressed="true"]{
+  background:radial-gradient(circle at 38% 32%, #DBFFC0, var(--led-green) 55%);
+  box-shadow:0 0 1.6cqw rgba(79,212,28,.9);
+}
+.tname{
+  position:absolute;top:var(--y);transform:translateY(-50%);
+  font-family:"Archivo",sans-serif;font-size:1.5cqw;font-weight:700;letter-spacing:.03em;line-height:1;
+  text-transform:uppercase;color:var(--silk);white-space:nowrap;background:none;border:0;padding:0;cursor:pointer;
+}
+.tname.l{right:var(--r);text-align:right}
+.tname.r{left:var(--l)}
+.tname[aria-pressed="true"]{color:#DBFFC0;text-shadow:0 0 .8cqw rgba(79,212,28,.7)}
+
+/* silkscreen text */
+.silk{
+  position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);text-align:center;
+  font-family:"Archivo",sans-serif;line-height:1.2;color:var(--silk);white-space:nowrap;pointer-events:none;
+}
+.silk.big{font-size:1.9cqw;font-weight:700;letter-spacing:.06em}
+.silk.sm{font-size:1.34cqw;font-weight:500;letter-spacing:.01em;color:var(--silk-2)}
+.silk.brand{font-size:2.7cqw;font-weight:700;letter-spacing:-.03em;text-transform:lowercase}
+.silk.logo{
+  font-family:"Newsreader",Georgia,serif;font-style:italic;font-weight:500;font-size:6.8cqw;line-height:1;
+  letter-spacing:-.02em;text-transform:none;
+}
+.silk.bank{font-size:1.28cqw;font-weight:600;letter-spacing:.16em}
+.bankrule{position:absolute;top:81.3%;height:1px;background:rgba(255,255,255,.5);pointer-events:none}
+
+/* footswitches */
+.fsw{
+  position:absolute;left:var(--x);top:80.5%;width:8.9cqw;aspect-ratio:1;border-radius:50%;
+  transform:translate(-50%,-50%);cursor:pointer;padding:0;
+  background:radial-gradient(circle at 38% 26%, #F4F8FA, #A8B4B9 56%, #5E686C 100%);
+  border:1px solid rgba(0,0,0,.35);
+  box-shadow:0 .8cqw 1.6cqw -.5cqw rgba(0,0,0,.55), inset 0 .3cqw .6cqw rgba(255,255,255,.6);
+}
+.fsw:active{transform:translate(-50%,-50%) scale(.95)}
+.fsw::after{content:"";position:absolute;inset:24%;border-radius:50%;background:radial-gradient(circle at 40% 30%,#DCE4E7,#6C777B 74%);box-shadow:inset 0 .25cqw .55cqw rgba(0,0,0,.4)}
+.fled{
+  position:absolute;left:var(--x);top:68.1%;width:2.1cqw;aspect-ratio:1;border-radius:50%;
+  transform:translate(-50%,-50%);background:radial-gradient(circle at 38% 32%,#1b6f85,var(--led-dim) 75%);
+  pointer-events:none;box-shadow:inset 0 0 0 .16cqw rgba(0,0,0,.3);
+}
+.fled[data-lit="green"]{background:radial-gradient(circle at 38% 32%,#DBFFC0,var(--led-green) 55%);box-shadow:0 0 1.6cqw rgba(79,212,28,.9)}
+.fled[data-lit="amber"]{background:radial-gradient(circle at 38% 32%,#FFE2AE,var(--led-amber) 55%);box-shadow:0 0 1.6cqw rgba(242,167,59,.9)}
+.fltr{
+  position:absolute;left:var(--x);top:68.1%;transform:translateY(-50%);
+  font-family:"Archivo",sans-serif;font-size:2.1cqw;font-weight:700;line-height:1;color:var(--silk);pointer-events:none;
+}
+
+/* hint bar */
+.hint{
+  display:flex;align-items:flex-start;gap:10px;min-height:52px;margin:14px auto 0;max-width:900px;width:100%;
+  padding:10px 14px;border:1px dashed var(--line);border-radius:10px;background:var(--surface);
+  font-size:.88rem;color:var(--ink-2);line-height:1.5;
+}
+.hint[data-live="true"]{border-style:solid;border-color:var(--accent);color:var(--ink)}
+.hint b{font-family:"Archivo",sans-serif;font-size:.74rem;letter-spacing:.11em;text-transform:uppercase;color:var(--accent-text);white-space:nowrap;padding-top:2px}
+.hint .src{
+  display:inline-block;margin-left:7px;font-family:"Archivo",sans-serif;font-size:.66rem;
+  font-weight:600;letter-spacing:.09em;text-transform:uppercase;white-space:nowrap;
+  color:var(--accent-text);text-decoration:none;border-bottom:1px solid currentColor;
+}
+.simkey{display:flex;align-items:flex-start;gap:8px;margin:12px auto 0;max-width:900px;width:100%;font-size:.8rem;color:var(--ink-3);line-height:1.5}
+.simkey i{flex:none;width:8px;height:8px;border-radius:50%;margin-top:6px;background:var(--led-green);box-shadow:0 0 6px rgba(79,212,28,.8)}
+
+/* ---------- readout strip ---------- */
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0;border-top:1px solid var(--line-soft)}
+.cell{padding:12px 16px;border-right:1px solid var(--line-soft)}
+.cell:last-child{border-right:0}
+.cell .k{display:block;font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
+.cell .v{display:block;font-family:"DM Mono",monospace;font-size:1.12rem;font-variant-numeric:tabular-nums;color:var(--ink);line-height:1.5}
+.cell .s{display:block;font-size:.8rem;color:var(--ink-3);line-height:1.35}
+
+/* ---------- the knob map ---------- */
+.kmap{border-top:1px solid var(--line-soft)}
+.kmap-h{
+  display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;justify-content:space-between;
+  padding:13px 18px;background:var(--surface-2);border-bottom:1px solid var(--line-soft);
+}
+.kmap-h h3{font-family:"Archivo",sans-serif;font-size:.95rem;font-weight:600;letter-spacing:-.01em}
+.krow{display:grid;grid-template-columns:132px minmax(0,1fr) 210px;gap:0 18px;padding:12px 18px;border-bottom:1px solid var(--line-soft);align-items:start}
+.krow:last-child{border-bottom:0}
+.krow.on{background:color-mix(in oklab, var(--accent) 7%, var(--surface))}
+.krow .kn-n{font-family:"Archivo",sans-serif;font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);padding-top:2px}
+.krow .kn-n em{display:block;font-style:normal;font-weight:500;letter-spacing:.02em;text-transform:none;font-size:.8rem;color:var(--accent-text);margin-top:2px}
+.krow .kn-d{font-size:.92rem;color:var(--ink-2);line-height:1.5}
+.krow .kn-d b{font-weight:500;color:var(--ink)}
+.krow .kn-v{text-align:right}
+.krow .kn-v .big{display:block;font-family:"DM Mono",monospace;font-size:1.02rem;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.4}
+.krow .kn-v .sub{display:block;font-size:.78rem;color:var(--ink-3);line-height:1.4}
+@media (max-width:720px){
+  .krow{grid-template-columns:1fr;gap:4px}
+  .krow .kn-v{text-align:left}
+}
+select.assign{
+  width:100%;margin-top:5px;font-size:.78rem;font-weight:600;letter-spacing:.02em;
+  padding:5px 7px;border-radius:7px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);
+}
+.bar{display:block;height:5px;border-radius:3px;background:var(--surface-2);border:1px solid var(--line-soft);margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+
+.disclaim{margin:0;padding:16px 18px 18px;background:var(--surface-2);border-top:1px solid var(--line-soft);
+  font-size:.82rem;line-height:1.6;color:var(--ink-3);max-width:none}
+.disclaim em{font-style:italic;color:var(--ink-2)}
+.disclaim + .disclaim{border-top:0;padding-top:0}
+
+/* ---------- buttons ---------- */
+button.btn{
+  font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  padding:8px 13px;border-radius:8px;cursor:pointer;
+  background:var(--surface);color:var(--ink);border:1px solid var(--line);
+  transition:background .15s,border-color .15s,color .15s;
+}
+button.btn:hover{border-color:var(--accent);color:var(--accent-text)}
+button.btn[aria-pressed="true"],button.btn.on{background:var(--accent);border-color:var(--accent);color:#04222B}
+
+/* ---------- sections ---------- */
+section{padding-top:var(--step)}
+.shead{display:flex;align-items:baseline;gap:14px;margin-bottom:18px}
+.shead h2{font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:700;letter-spacing:-.03em}
+.shead .rule{flex:1;height:1px;background:var(--line)}
+.sdek{max-width:66ch;color:var(--ink-2);margin:-4px 0 24px}
+
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+
+.card{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:18px 20px;box-shadow:var(--shadow)}
+.card h3{font-size:1.06rem;font-weight:600;letter-spacing:-.01em;margin-bottom:6px}
+.card p{margin:0;color:var(--ink-2);font-size:.95rem}
+.card p + p{margin-top:9px}
+.card b{font-weight:500;color:var(--ink)}
+
+/* machine cards */
+.mcard{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+.mcard.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent), var(--shadow)}
+.mcard header{display:flex;align-items:baseline;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line-soft);background:var(--surface-2)}
+.mcard header h3{flex:1;font-size:1.1rem;font-weight:700;letter-spacing:-.02em}
+.mcard header .num{font-family:"DM Mono",monospace;font-size:.8rem;color:var(--ink-3)}
+.mcard .body{padding:16px 18px;flex:1}
+.mcard .body p{margin:0 0 10px;color:var(--ink-2);font-size:.94rem}
+.mcard .rng{font-family:"DM Mono",monospace;font-size:.82rem;color:var(--ink-2);display:block;margin:0 0 12px;padding:7px 10px;border:1px solid var(--line-soft);border-radius:8px;background:var(--surface-2)}
+.mcard .rng b{color:var(--ink);font-weight:500}
+.mcard dl{margin:0;font-size:.9rem}
+.mcard dt{font-family:"Archivo",sans-serif;font-size:.74rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink);margin-top:11px}
+.mcard dt:first-child{margin-top:0}
+.mcard dd{margin:2px 0 0;color:var(--ink-2);line-height:1.5}
+.mcard .tips{margin:14px 0 0;padding:12px 14px;border-radius:9px;background:var(--surface-2);border:1px solid var(--line-soft)}
+.mcard .tips .lbl{display:block;margin-bottom:5px}
+.mcard .tips ul{margin:0;padding-left:18px;font-size:.9rem;color:var(--ink-2)}
+.mcard .tips li + li{margin-top:6px}
+.mcard footer{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px 18px;border-top:1px solid var(--line-soft);background:var(--surface-2)}
+.mcard footer a{font-family:"Archivo",sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;text-decoration:none;border-bottom:1px solid currentColor}
+
+/* tables */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table.doc{border-collapse:collapse;width:100%;font-size:.9rem;min-width:600px}
+table.doc th,table.doc td{text-align:left;padding:11px 16px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+table.doc th{font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);background:var(--surface-2);position:sticky;top:0}
+table.doc tr:last-child td{border-bottom:0}
+table.doc td.mono{font-family:"DM Mono",monospace;color:var(--ink-2);white-space:nowrap}
+table.doc td b{font-weight:500}
+table.doc tr.on td{background:color-mix(in oklab, var(--accent) 8%, transparent)}
+table.doc td.nm{font-family:"Archivo",sans-serif;font-weight:600;white-space:nowrap}
+table.doc td.nm button{background:none;border:0;padding:0;font:inherit;color:var(--accent-text);cursor:pointer;text-align:left;border-bottom:1px solid transparent}
+table.doc td.nm button:hover{border-bottom-color:currentColor}
+
+/* manual index */
+.mindex{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:10px 22px}
+.mindex a{
+  display:flex;align-items:baseline;gap:10px;text-decoration:none;color:var(--ink-2);
+  padding:7px 11px;border:1px solid var(--line-soft);border-radius:9px;background:var(--surface);
+  transition:border-color .15s,color .15s,background .15s;
+}
+.mindex a:hover{border-color:var(--accent);color:var(--ink);background:var(--surface-2)}
+.mindex a .t{flex:1;font-family:"Archivo",sans-serif;font-size:.9rem;font-weight:600}
+.mindex a .n{font-family:"DM Mono",monospace;font-size:.8rem;color:var(--ink-3);white-space:nowrap}
+.mindex a:hover .n{color:var(--accent-text)}
+.mindex .grp{grid-column:1/-1;margin:12px 0 2px}
+.mindex .grp:first-child{margin-top:0}
+
+/* dock */
+#dock{
+  position:fixed;left:50%;bottom:18px;transform:translate(-50%,140%);z-index:40;
+  display:flex;align-items:center;gap:14px;padding:9px 12px 9px 18px;
+  border:1px solid var(--line);border-radius:999px;background:var(--surface);
+  box-shadow:0 10px 30px -12px rgba(0,0,0,.5);transition:transform .22s ease;
+  font-size:.88rem;max-width:calc(100vw - 32px);
+}
+#dock[data-on="true"]{transform:translate(-50%,0)}
+#dock .dl{font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+#dock b{font-family:"Archivo",sans-serif;font-weight:600}
+#dock .dq{color:var(--ink-3);font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:36ch}
+@media (max-width:620px){ #dock .dq{display:none} }
+
+footer.end{margin-top:var(--step);padding-top:22px;border-top:1px solid var(--line);color:var(--ink-3);
+  font-size:.88rem;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+}
+/* ---------- work in progress ---------- */
+/* The page is unfinished, so it says so above everything else on it. Its own colours
+   rather than the pedal's or the theme's accent - a warning that borrows the palette
+   stops reading as one - and every value carries its [data-theme] twin, so a reader
+   who has forced a theme gets the same warning as one following the OS. */
+:root{--wip-bg:#FBF1D9;--wip-line:#E7D4A4;--wip-edge:#A0700F;--wip-ink:#5A4520}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--wip-bg:#231C11;--wip-line:#3C3120;--wip-edge:#D9A441;--wip-ink:#CDBB9A}
+}
+:root[data-theme="dark"]{--wip-bg:#231C11;--wip-line:#3C3120;--wip-edge:#D9A441;--wip-ink:#CDBB9A}
+.wipbar{
+  display:flex;align-items:baseline;gap:6px 14px;flex-wrap:wrap;
+  margin:18px 0 0;padding:14px 18px;
+  background:var(--wip-bg);color:var(--wip-ink);
+  border:1px solid var(--wip-line);border-left:5px solid var(--wip-edge);
+  border-radius:11px;
+}
+.wipbar b{
+  font-family:"Archivo",system-ui,sans-serif;font-weight:700;font-size:12px;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--wip-edge);
+}
+.wipbar p{margin:0;flex:1 1 24ch;font-size:.95rem;line-height:1.55}
+.wipbar a{color:var(--wip-edge)}
+</style>
+
+<div id="app">
+<div class="wipbar" role="note">
+  <b>Work in progress</b>
+  <p>This page is unfinished and has not been checked against <a href="https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf" target="_blank" rel="noopener">Strymon's manual</a>. Some of what it says may be wrong; where the two differ, the manual is right.</p>
+</div>
+
+<header class="top">
+  <div class="brandline">
+    <a class="backlink" href="index.html"><span class="bk-arrow" aria-hidden="true">&#8592;</span>All manuals</a>
+    <span class="lbl">Strymon</span><span class="rule"></span>
+    <span class="lbl unoff">Unofficial companion to the manual &middot; not affiliated with Strymon</span>
+    <button class="themetoggle" type="button" aria-label="Switch theme"><svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg><svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2M12 19.4v2M4.6 4.6 6 6M18 18l1.4 1.4M2.6 12h2M19.4 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg></button>
+  </div>
+  <h1>BigSky<span class="thin">Reverberator &middot; twelve machines</span></h1>
+  <div class="headrow">
+    <p class="dek">Eight knobs, and most of them mean something different on each of the twelve
+    machines. Pick a machine and this page rewrites what every knob does, what its two
+    assignable PARAM knobs can be pointed at, and what range DECAY covers &mdash; then draws the
+    result. <strong>The text in quotation marks throughout is Strymon's own, from the manual page
+    named beside it. The numbers this page works out for itself are marked
+    <span class="inf solo">calc</span>.</strong></p>
+    <a class="getmanual" href="https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf" target="_blank" rel="noopener">
+      <span class="gm-txt">
+        <b>Read the official manual</b>
+        <small>BigSky user manual, Rev D &middot; 25 pages, PDF</small>
+      </span>
+      <span class="gm-arrow" aria-hidden="true">&#8595;</span>
+    </a>
+  </div>
+</header>
+
+<div class="machine">
+  <div class="mhead">
+    <div class="who"><b id="mName">Room</b><span class="lbl" id="mSub"></span></div>
+    <div class="mtools">
+      <button class="btn" id="btnPrev" title="Previous machine">&larr; Machine</button>
+      <button class="btn" id="btnNext" title="Next machine">Machine &rarr;</button>
+      <button class="btn" id="btnReset">Reset the knobs</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="pedalwrap">
+      <div class="pedal" id="pedal">
+        <span class="screw" style="left:2.6%;top:4.2%"></span>
+        <span class="screw" style="left:97.4%;top:4.2%"></span>
+        <span class="screw" style="left:2.6%;top:95%"></span>
+        <span class="screw" style="left:97.4%;top:95%"></span>
+
+        <div class="disp" id="disp"><svg id="dispSvg" viewBox="0 0 84 21" aria-hidden="true"></svg></div>
+        <span class="visually-hidden" id="dispA11y" style="position:absolute;left:-9999px" aria-live="polite"></span>
+
+        <!-- TYPE ring: twelve LEDs, thirty degrees apart, clockwise from ROOM -->
+        <div id="typeRing"></div>
+        <div class="kn" data-k="type" style="--x:18.0%;--y:38.4%;--d:8.9%">
+          <button class="knob" id="typeKnob" aria-label="TYPE encoder: selects the reverb machine"><span class="cap"></span></button>
+        </div>
+        <span class="silk big" style="--x:18.0%;--y:58.7%">Type</span>
+        <span class="silk sm" style="--x:18.0%;--y:63.0%">push (bank/time)</span>
+        <span class="silk sm" style="--x:18.0%;--y:65.8%">hold (save)</span>
+
+        <!-- top knob row -->
+        <div class="kn" data-k="value"    style="--x:41.5%;--y:10.5%;--d:8.4%"><button class="knob" aria-label="VALUE encoder"><span class="cap"></span></button><span class="klbl">Value<small>push (param)<br>hold (global)</small></span></div>
+        <div class="kn" data-k="decay"    style="--x:57.5%;--y:10.5%;--d:8.4%"><button class="knob" aria-label="DECAY knob"><span class="cap"></span></button><span class="klbl" id="lblDecay">Decay</span></div>
+        <div class="kn" data-k="predelay" style="--x:71.5%;--y:10.5%;--d:8.4%"><button class="knob" aria-label="PRE-DELAY knob"><span class="cap"></span></button><span class="klbl" id="lblPre">Pre-Delay</span></div>
+        <div class="kn" data-k="mix"      style="--x:85.5%;--y:10.5%;--d:8.4%"><button class="knob" aria-label="MIX knob"><span class="cap"></span></button><span class="klbl">Mix</span></div>
+
+        <!-- bottom knob row -->
+        <div class="kn" data-k="tone"   style="--x:51.0%;--y:40.6%;--d:8.4%"><button class="knob" aria-label="TONE knob"><span class="cap"></span></button><span class="klbl">Tone</span></div>
+        <div class="kn" data-k="param1" style="--x:64.5%;--y:40.6%;--d:8.4%"><button class="knob" aria-label="PARAM 1 knob"><span class="cap"></span></button><span class="klbl">Param 1</span></div>
+        <div class="kn" data-k="param2" style="--x:78.0%;--y:40.6%;--d:8.4%"><button class="knob" aria-label="PARAM 2 knob"><span class="cap"></span></button><span class="klbl">Param 2</span></div>
+        <div class="kn" data-k="mod"    style="--x:90.5%;--y:40.6%;--d:8.4%"><button class="knob" aria-label="MOD knob"><span class="cap"></span></button><span class="klbl">Mod</span></div>
+
+        <span class="silk brand" style="--x:44.0%;--y:53.8%">strymon</span>
+        <span class="silk logo"  style="--x:56.0%;--y:60.8%">BigSky</span>
+
+        <span class="fled" data-f="A" style="--x:11.1%"></span>
+        <span class="fled" data-f="B" style="--x:50.2%"></span>
+        <span class="fled" data-f="C" style="--x:89.3%"></span>
+        <span class="fltr" style="--x:14.6%">A</span>
+        <span class="fltr" style="--x:53.7%">B</span>
+        <span class="fltr" style="--x:92.6%">C</span>
+        <button class="fsw" data-f="A" style="--x:10.5%" aria-label="A footswitch"></button>
+        <button class="fsw" data-f="B" style="--x:49.6%" aria-label="B footswitch"></button>
+        <button class="fsw" data-f="C" style="--x:88.8%" aria-label="C footswitch"></button>
+        <span class="bankrule" style="left:16%;width:9%"></span>
+        <span class="silk bank" style="--x:30.2%;--y:81.3%">Bank Down</span>
+        <span class="bankrule" style="left:37%;width:7%"></span>
+        <span class="bankrule" style="left:55%;width:8.5%"></span>
+        <span class="silk bank" style="--x:69.2%;--y:81.3%">Bank Up</span>
+        <span class="bankrule" style="left:75.5%;width:7.5%"></span>
+      </div>
+
+      <div class="hint" id="hint" data-live="false"></div>
+      <p class="simkey"><i></i><span id="simkey"></span></p>
+    </div>
+
+    <div class="viz">
+      <canvas id="plot"></canvas>
+      <div class="capline">
+        <span class="lbl" id="plotTitle">Envelope</span>
+        <span class="lbl lbl-a mono" id="plotMeta"></span>
+      </div>
+      <p class="vizcap" id="plotCap"></p>
+    </div>
+  </div>
+
+  <div class="strip">
+    <div class="cell"><span class="k" id="cDecayK">Decay</span><span class="v" id="cDecay">&mdash;</span><span class="s" id="cDecayS"></span></div>
+    <div class="cell"><span class="k" id="cPreK">Pre-Delay</span><span class="v" id="cPre">&mdash;</span><span class="s" id="cPreS"></span></div>
+    <div class="cell"><span class="k">Mix</span><span class="v" id="cMix">&mdash;</span><span class="s" id="cMixS"></span></div>
+    <div class="cell"><span class="k">Machine parameters</span><span class="v" id="cParams">&mdash;</span><span class="s" id="cParamsS"></span></div>
+  </div>
+
+  <div class="kmap">
+    <div class="kmap-h">
+      <h3>What each knob does on <span id="kmapName">Room</span></h3>
+      <span class="lbl" id="kmapPg"></span>
+      <span class="lbl">Turn a knob on the pedal, or use the arrow keys once it has focus</span>
+    </div>
+    <div id="kmapRows"></div>
+  </div>
+
+  <p class="disclaim" id="disclaim"></p>
+</div>
+
+<!-- ============ the remap table ============ -->
+<section id="remap">
+  <div class="shead"><h2>What the eight knobs do on each machine</h2><span class="rule"></span></div>
+  <p class="sdek">Four of the eight knobs do the same job on all twelve machines: VALUE, MIX and TONE,
+  and TYPE, which always picks the machine. The other four change with the machine. DECAY covers a
+  different range on nearly every one, and on Magneto, Nonlinear and Reflections it sets something
+  other than a decay time. PRE-DELAY becomes a Feedback control on Magneto and Nonlinear. MOD is a
+  different modulator on each machine. PARAM 1 and PARAM 2 point at a different pool of parameters
+  every time you turn TYPE. Click a name to load that machine into the pedal above.</p>
+  <div class="tw">
+    <table class="doc" id="remapTable">
+      <thead><tr><th>Machine</th><th>Decay knob</th><th>Pre-Delay knob</th><th>Mod knob</th><th>Its own parameters</th><th>Manual</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ PARAM 1 &amp; 2 ============ -->
+<section id="params">
+  <div class="shead"><h2>Assigning PARAM 1 and PARAM 2</h2><span class="rule"></span></div>
+  <p class="sdek">&ldquo;The PARAM 1 &amp; PARAM 2 knobs allow you quick access to any desired menu
+  parameter of the currently active reverb machine.&rdquo;
+  <a href="https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf#page=4" target="_blank" rel="noopener">Manual pg.&nbsp;4</a>.</p>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Assigning a parameter</h3>
+      <p>The manual's four steps, on <a href="https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf#page=4" target="_blank" rel="noopener">pg.&nbsp;4</a>:</p>
+      <ol style="margin:10px 0 0;padding-left:20px;color:var(--ink-2);font-size:.95rem">
+        <li>&ldquo;Navigate to the desired parameter to be assigned.&rdquo;</li>
+        <li>&ldquo;Press and hold the value encoder.&rdquo;</li>
+        <li>&ldquo;While holding the value encoder. Turn either the PARAM 1 or PARAM 2 knob to assign
+        a parameter.&rdquo;</li>
+        <li>&ldquo;Turn the newly assigned PARAM knob to adjust your reverb machine parameter.&rdquo;</li>
+      </ol>
+      <p style="margin-top:12px">To reach a parameter in the first place, from
+      <a href="https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf#page=6" target="_blank" rel="noopener">pg.&nbsp;6</a>:
+      while displaying BANK, NAME or TIME, &ldquo;push the VALUE encoder to enter PARAMS menu&rdquo;,
+      &ldquo;turn the VALUE encoder to select the desired PARAMETER&rdquo;, then &ldquo;push the VALUE
+      encoder and turn to edit the selected PARAMETER&rdquo;.</p>
+    </div>
+    <div class="card">
+      <h3>What the manual does not print</h3>
+      <p>The manual describes both PARAM knobs as assignable and gives the procedure above. It does
+      not say which parameter each knob arrives assigned to on a factory preset. So the selectors
+      above start on the first two parameters in the manual's own listing for the machine, and you
+      can point them at any parameter in the list.</p>
+      <p>The one assignment the manual does name is on Cloud: &ldquo;DIFUSN on the Cloud machine can
+      be assigned to one of the parameter knobs to allow for easier control over the reverb
+      diffusion.&rdquo;</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ the twelve machines ============ -->
+<section id="machines">
+  <div class="shead"><h2>The twelve machines</h2><span class="rule"></span></div>
+  <p class="sdek">In the order the TYPE encoder steps through them, which is also the order the
+  manual prints them and the order the LEDs run clockwise round the encoder. Every quotation on a
+  card &mdash; the description, the parameter definitions and the tips &mdash; is copied from that
+  machine's own page in the manual, linked at the foot of the card.</p>
+  <div class="grid g2" id="mcards"></div>
+</section>
+
+<!-- ============ saved with every preset ============ -->
+<section id="common">
+  <div class="shead"><h2>Saved with every preset</h2><span class="rule"></span></div>
+  <p class="sdek">&ldquo;All Reverb Machines share a set of parameters. These parameters are saved
+  with each preset&rdquo;, and they sit alongside the machine's own parameters in the PARAMS menu.
+  Every quotation in the table is from
+  <a href="https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf#page=7" target="_blank" rel="noopener">manual pg.&nbsp;7</a>.</p>
+  <div class="tw">
+    <table class="doc">
+      <thead><tr><th>Parameter</th><th>Range</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td class="nm">Boost</td><td class="mono">&plusmn;3&nbsp;dB</td><td>&ldquo;+/- 3dB of boost/cut. This can be useful for level matching in your effects chain, or can be used as an effect such as boosting a solo with reverb.&rdquo;</td></tr>
+        <tr><td class="nm">Persist</td><td class="mono">Off / On</td><td>&ldquo;Turns on reverb persist &lsquo;trails&rsquo; which will spill over when the effect is bypassed. Use this if it is desired for reverb decay to continue after the effect has been bypassed. Note that if persist is set to ON, the bypass mode will automatically be set to analog bypass.&rdquo;</td></tr>
+        <tr><td class="nm">Hold</td><td class="mono">INFNTE / FREEZE</td><td>&ldquo;Sets the press-and-hold function for the selected preset switch. Select INFNTE to set as Infinite Sustain, allowing your reverbs to continue infinitely, with each new note you play adding to the reverb signal. Select FREEZE to set as Reverb Freeze, delivering infinite sustain, and allowing for new notes on top of the sustain without adding to the reverb.&rdquo;</td></tr>
+        <tr><td class="nm">Name</td><td class="mono">16 characters</td><td>&ldquo;Allows editing the 16 character name of the current preset. Use the VALUE encoder to change the selected character. Use the TYPE encoder to select a character. Exit by pressing the VALUE encoder, then press and hold the TYPE encoder to SAVE the name permanently.&rdquo; And: &ldquo;For the preset name to be displayed the NAMES global must be set to ON or SCROLL.&rdquo;</td></tr>
+        <tr><td class="nm">Expression Pedal</td><td class="mono">Off / On</td><td>&ldquo;Enables or disables the expression pedal input for each preset.&rdquo;</td></tr>
+        <tr><td class="nm">EP SET</td><td class="mono">Heel / Toe</td><td>&ldquo;To set up which knobs are controlled by the expression pedal, push the Value encoder when it displays &lsquo;EP SET&rsquo; and it will then display &lsquo;HEEL&rsquo;. Turn the knob(s) to the position desired at heel down on the expression pedal. Then, turn the Value encoder right to display &lsquo;TOE&rsquo; and set the knobs to their desired values at the toe down position on the expression pedal. An expression pedal can control all of the knobs simultaneously.&rdquo;</td></tr>
+        <tr><td class="nm">MIDI Clock</td><td class="mono">Off / On</td><td>&ldquo;When set to ON, BigSky will respond to external MIDI clock from the MIDI input to control the PRE-DELAY on all reverb machines except for MAGNETO and NONLINEAR where it controls the DECAY time. This parameter is saved independently so that only presets with this parameter set to ON will respond to MIDI clock.&rdquo;</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ banks and presets ============ -->
+<section id="presets">
+  <div class="shead"><h2>Banks, presets and saving</h2><span class="rule"></span></div>
+  <p class="sdek">Quotations here are from
+  <a href="https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf#page=6" target="_blank" rel="noopener">manual pg.&nbsp;6</a>,
+  except where another page is named.</p>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Banks and presets</h3>
+      <p>&ldquo;BigSky has 100 banks with A, B, and C presets in each bank. Banks are numbered 00 to
+      99 on the display.&rdquo; That is 300 presets. From
+      <a href="https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf#page=2" target="_blank" rel="noopener">pg.&nbsp;2</a>:
+      &ldquo;Press A &amp; B to select a lower bank. Press B &amp; C to select a higher bank.&rdquo;</p>
+      <p>&ldquo;BigSky ships from the factory with the first 100 presets (00A-33A) duplicated from
+      33B-66B, and again from 66C-99C.&rdquo;</p>
+      <p>The A, B and C LEDs, from
+      <a href="https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf#page=2" target="_blank" rel="noopener">pg.&nbsp;2</a>:
+      &ldquo;Green if active. Amber if the preset has been edited. Off if bypassed.&rdquo;</p>
+    </div>
+    <div class="card">
+      <h3>Saving</h3>
+      <p><b>To the current location:</b> &ldquo;hold the TYPE encoder&rdquo;, then &ldquo;push the
+      TYPE encoder to save your settings&rdquo;.</p>
+      <p><b>To a new location:</b> &ldquo;hold the TYPE encoder&rdquo;, &ldquo;turn the VALUE encoder
+      to select the bank to save to&rdquo;, then &ldquo;push the TYPE encoder or the A, B, or C
+      footswitch to save your settings&rdquo;.</p>
+      <p>&ldquo;To cancel an in-progress save press the VALUE encoder.&rdquo;</p>
+    </div>
+    <div class="card">
+      <h3>Restoring the factory presets</h3>
+      <p>&ldquo;POWER UP BigSky while holding A &amp; C. Keep holding for 5 seconds after BigSky has
+      powered up. REINIT will be displayed and all factory patches will automatically be
+      restored&rdquo;.</p>
+      <p style="color:var(--warn)">&ldquo;CAUTION: This procedure will erase any custom patches saved
+      in your BigSky and restore them to factory&rdquo;.</p>
+    </div>
+    <div class="card">
+      <h3>What the display is showing</h3>
+      <p>The diagram on <a href="https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf#page=4" target="_blank" rel="noopener">pg.&nbsp;4</a>
+      has the TYPE encoder pushed to toggle the display between BANK, NAME and TIME. Which
+      one is showing changes what the VALUE encoder does &mdash; from
+      <a href="https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf#page=2" target="_blank" rel="noopener">pg.&nbsp;2</a>,
+      &ldquo;Turn for fine adjustment of Decay time when time is displayed. Scrolls through presets
+      when bank or name is displayed.&rdquo;</p>
+      <p>&ldquo;The displayed Decay time is the RT60 value, which is the time it takes for the
+      reverberated signal to decay to -60dB (1/1000th) of its initial value.&rdquo;
+      <a href="https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf#page=4" target="_blank" rel="noopener">Pg.&nbsp;4</a>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ globals ============ -->
+<section id="globals">
+  <div class="shead"><h2>The globals menu</h2><span class="rule"></span></div>
+  <p class="sdek">Hold the VALUE encoder to reach it. &ldquo;Global parameters affect BigSky
+  regardless of what preset is currently active.&rdquo; Every quotation in the table is from
+  <a href="https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf#page=20" target="_blank" rel="noopener">manual pg.&nbsp;20&ndash;21</a>.</p>
+  <div class="tw">
+    <table class="doc">
+      <thead><tr><th>Setting</th><th>Options</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td class="nm">Bypass</td><td class="mono">TRUE&nbsp;/&nbsp;BUFFERED</td><td>&ldquo;Changes the bypass mode between True Bypass and Buffered Bypass. In True Bypass, electromechanical relays are used to bypass BigSky so that no components are touching the input signal. In Buffered Bypass the bypassed signal runs through a high quality analog buffer.&rdquo;</td></tr>
+        <tr><td class="nm">MIDI Channel</td><td class="mono">CH 1&ndash;16</td><td>&ldquo;Sets the MIDI Channel. Can be set to 1 - 16.&rdquo;</td></tr>
+        <tr><td class="nm">MIDI CCs</td><td class="mono">ON / OFF</td><td>&ldquo;Turns MIDI CC messaging (continuous controllers) ON or OFF.&rdquo;</td></tr>
+        <tr><td class="nm">MIDI Patch Change</td><td class="mono">ON / OFF</td><td>&ldquo;Turns MIDI patch change messaging ON or OFF.&rdquo;</td></tr>
+        <tr><td class="nm">Bank Scroll</td><td class="mono">BNK 1&ndash;99</td><td>&ldquo;Sets the maximum bank number to scroll to.&rdquo;</td></tr>
+        <tr><td class="nm">EXP input mode</td><td class="mono">PEDAL / TAP / BANK / PRESET</td><td>&ldquo;Configures the EXP input to use an Expression Pedal, an external TAP footswitch, a Strymon MultiSwitch&rdquo;. <b>PEDAL</b> &ldquo;for use with Expression Pedal&rdquo;; <b>TAP</b> &ldquo;for use with external TAP footswitch, or MultiSwitch for tap and preset select&rdquo;; <b>BANK</b> &ldquo;for use with MultiSwitch to select preset banks&rdquo;; <b>PRESET</b> &ldquo;for use with MultiSwitch to select presets&rdquo;.</td></tr>
+        <tr><td class="nm">MIDI Through</td><td class="mono">THRU / MERGE / OFF</td><td>&ldquo;When set to THRU, MIDI messages that arrive at the MIDI input are sent to the MIDI output without ANY additional MIDI messages generated by BigSky. When set to MERGE, MIDI messages that arrive at the input and those that are generated by BigSky are merged together to be sent to the MIDI output. When set to OFF, only MIDI messages generated by the controls on BigSky are sent to the MIDI output.&rdquo;</td></tr>
+        <tr><td class="nm">Dry Signal</td><td class="mono">NORMAL / KILL</td><td>&ldquo;Turns the dry signal on or off. This is useful in a parallel effects loop when an effect level is necessary.&rdquo; On KILL, the &ldquo;dry signal is muted allowing the MIX control to be used as an effect level&rdquo;.</td></tr>
+        <tr><td class="nm">Spillover</td><td class="mono">ON / OFF</td><td>&ldquo;Allows the wet delay signal of a currently selected preset to &lsquo;spill&rsquo; into the next selected preset. IMPORTANT: Because of the reverb buffer architecture, the current preset must be active for at least 5 seconds before spillover will be operational.&rdquo;</td></tr>
+        <tr><td class="nm">Preset Names</td><td class="mono">OFF / ON / SCROLL</td><td>&ldquo;Enables or disables the display of preset names when displaying the current bank.&rdquo; <b>OFF</b>: &ldquo;bank numbers are displayed instead of preset names&rdquo;. <b>ON</b>: &ldquo;the first 6 characters of the preset name are displayed&rdquo;. <b>SCROLL</b>: &ldquo;the preset name will scroll once completely through it&rsquo;s 16 characters then settle on the first 6 characters&rdquo;. And: &ldquo;If set to ON or SCROLL, when incrementing through banks with the VALUE ENCODER, the bank number will be displayed with 2 digits followed by the first 3 characters of the preset name.&rdquo;</td></tr>
+        <tr><td class="nm">Preset Dump</td><td class="mono">ALL / PR 0A&ndash;99C</td><td>&ldquo;Allows presets to be sent via MIDI to another BigSky or to a MIDI recorder device. Presets can be dumped individually or all at one time. Select ALL to dump all presets, or scroll to select an individual preset to send.&rdquo;</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="sdek" style="margin-top:14px">Strymon's note at the foot of the page: &ldquo;If any of the
+  above options do not appear in the GLOBLS menu, you may need to update the firmware to the latest
+  version.&rdquo;</p>
+</section>
+
+<!-- ============ connections ============ -->
+<section id="rear">
+  <div class="shead"><h2>The rear panel</h2><span class="rule"></span></div>
+  <p class="sdek">Quotations are from
+  <a href="https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf#page=3" target="_blank" rel="noopener">manual pg.&nbsp;3</a>,
+  the EXP jack from <a href="https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf#page=5" target="_blank" rel="noopener">pg.&nbsp;5</a>
+  and the cab filter from <a href="https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf#page=22" target="_blank" rel="noopener">pg.&nbsp;22</a>.</p>
+  <div class="grid g3">
+    <div class="card">
+      <h3>Power</h3>
+      <p>&ldquo;Never plug into voltage higher than 9V DC. Requires at least 300mA of available
+      current. 9V DC center negative polarity.&rdquo;</p>
+    </div>
+    <div class="card">
+      <h3>Inputs and outputs</h3>
+      <p>&ldquo;High impedance inputs. Use LEFT input for mono.&rdquo; And for the outputs:
+      &ldquo;Use LEFT output for mono.&rdquo;</p>
+    </div>
+    <div class="card">
+      <h3>Cab filter switch</h3>
+      <p>&ldquo;If outputting to a full-range PA system, recording interface, or headphones, place
+      BigSky last in your effects chain and set the CAB FILTER switch to the ON position. This will
+      engage our sophisticated speaker response curve. Your dirt pedals will sound amp-like, and your
+      clean guitar will have a present yet rounded response even without an amp.&rdquo;</p>
+      <p>&ldquo;If outputting to a guitar amp, set the CAB FILTER switch to the OFF position.&rdquo;</p>
+    </div>
+    <div class="card">
+      <h3>EXP &mdash; expression pedal</h3>
+      <p>&ldquo;Connect a standard TRS expression pedal for continuous control over any knob. To
+      select the knob(s) controlled by the expression pedal, use the EP SET parameter in each
+      preset. All knobs can be controlled simultaneously.&rdquo;</p>
+    </div>
+    <div class="card">
+      <h3>EXP &mdash; switches</h3>
+      <p>&ldquo;Connect a Strymon MiniSwitch for remote control of Pre-Delay (or Decay time with the
+      Magneto and Nonlinear machines). Use a standard TRS cable to connect the external switch. Set
+      the EXP MD global setting to TAP to use external tap.&rdquo;</p>
+      <p>&ldquo;Connect a Strymon MultiSwitch for external tap, bank, or preset selection. Set the
+      EXP MD global setting to either TAP, BANK, or PRESET.&rdquo;</p>
+    </div>
+    <div class="card">
+      <h3>MIDI</h3>
+      <p>&ldquo;Full featured MIDI input and output supporting CCs, Program changes, etc.&rdquo;</p>
+      <p>From <a href="https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf#page=23" target="_blank" rel="noopener">pg.&nbsp;23</a>:
+      &ldquo;Because MIDI Program Change messages have a maximum number of 128 (0-127), the presets
+      are grouped into 3 MIDI Patch Banks&rdquo; &mdash; bank&nbsp;0 is 00A&ndash;42B, bank&nbsp;1 is
+      42C&ndash;85A, bank&nbsp;2 is 85B&ndash;99C.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MIDI ============ -->
+<section id="midi">
+  <div class="shead"><h2>MIDI control</h2><span class="rule"></span></div>
+  <p class="sdek">Every knob and every parameter has a continuous controller number. The knobs and the
+  settings shared by all machines are below; each machine&rsquo;s own parameters carry their number on
+  the card above. <a href="https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf#page=23" target="_blank" rel="noopener">Manual pg.&nbsp;23</a>
+  prints the complete list.</p>
+  <div class="grid g2">
+    <div class="tw">
+      <table class="doc" style="min-width:0">
+        <thead><tr><th>Knob</th><th>CC</th><th>Values</th></tr></thead>
+        <tbody>
+          <tr><td class="nm">Type encoder</td><td class="mono">19</td><td class="mono">0&ndash;11</td></tr>
+          <tr><td class="nm">Value encoder</td><td class="mono">20</td><td class="mono">0&ndash;1</td></tr>
+          <tr><td class="nm">Decay</td><td class="mono">17</td><td class="mono">0&ndash;127</td></tr>
+          <tr><td class="nm">Pre-Delay</td><td class="mono">18</td><td class="mono">0&ndash;127</td></tr>
+          <tr><td class="nm">Mix</td><td class="mono">15</td><td class="mono">0&ndash;127</td></tr>
+          <tr><td class="nm">Tone</td><td class="mono">3</td><td class="mono">0&ndash;127</td></tr>
+          <tr><td class="nm">Param 1</td><td class="mono">9</td><td class="mono">0&ndash;127</td></tr>
+          <tr><td class="nm">Param 2</td><td class="mono">16</td><td class="mono">0&ndash;127</td></tr>
+          <tr><td class="nm">Mod</td><td class="mono">14</td><td class="mono">0&ndash;127</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tw">
+      <table class="doc" style="min-width:0">
+        <thead><tr><th>Everything else</th><th>CC</th><th>Values</th></tr></thead>
+        <tbody>
+          <tr><td class="nm">Boost</td><td class="mono">23</td><td class="mono">0&ndash;60</td></tr>
+          <tr><td class="nm">Persist</td><td class="mono">22</td><td class="mono">0&ndash;1</td></tr>
+          <tr><td class="nm">Freeze / Infinite</td><td class="mono">70</td><td class="mono">0&ndash;1</td></tr>
+          <tr><td class="nm">Expression on/off</td><td class="mono">60</td><td class="mono">0&ndash;1</td></tr>
+          <tr><td class="nm">MIDI Clock on/off</td><td class="mono">71</td><td class="mono">0&ndash;1</td></tr>
+          <tr><td class="nm">A footswitch</td><td class="mono">80</td><td class="mono">down 0, up 127</td></tr>
+          <tr><td class="nm">B footswitch</td><td class="mono">82</td><td class="mono">down 0, up 127</td></tr>
+          <tr><td class="nm">C footswitch</td><td class="mono">81</td><td class="mono">down 0, up 127</td></tr>
+          <tr><td class="nm">Press / hold switch</td><td class="mono">97</td><td class="mono">off 0, on 127</td></tr>
+          <tr><td class="nm">Remote tap</td><td class="mono">93</td><td class="mono">any</td></tr>
+          <tr><td class="nm">Expression pedal</td><td class="mono">100</td><td class="mono">0&ndash;127</td></tr>
+          <tr><td class="nm">Bypass</td><td class="mono">102</td><td class="mono">bypass 0, engage 127</td></tr>
+          <tr><td class="nm">MIDI patch bank</td><td class="mono">0</td><td class="mono">0&ndash;2</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <p class="sdek" style="margin-top:14px">&ldquo;The presets are numbered sequentially within each bank&rdquo;:
+  00A is MIDI program 0, 00B is 1, 00C is 2, 01A is 3, and so on. &ldquo;BigSky always powers up in MIDI
+  Patch Bank 0, so if you plan to stay within the first 127 presets (00A-42B), simply send a standard MIDI
+  Program Change message to load a preset. If you will be using MIDI Banks 1 and/or 2, it is advisable to
+  send a standard MIDI Bank Change message [MIDI CC# 0 with a value equal to the MIDI Bank #] before each
+  MIDI Program Change.&rdquo;</p>
+</section>
+
+<!-- ============ manual index ============ -->
+<section id="manual">
+  <div class="shead"><h2>Find it in the manual</h2><span class="rule"></span></div>
+  <p class="sdek">This page is a companion, not a replacement &mdash; when you want Strymon's own
+  words, or want to check something here against the source, these open the manual at the right
+  page. The numbers are the ones printed on the pages.</p>
+  <div class="mindex" id="mindex"></div>
+</section>
+
+<div id="dock" data-on="false" aria-live="polite">
+  <span class="dl">In the pedal</span>
+  <span><b id="dockName">Room</b></span>
+  <span class="dq" id="dockQ"></span>
+  <button class="btn" id="dockGo">Show the pedal</button>
+</div>
+
+<footer class="end">
+  <span>BigSky user manual, Rev D &middot; 05.24.19</span>
+  <span><a href="https://www.strymon.net/product/bigsky/" target="_blank" rel="noopener">strymon.net/product/bigsky</a></span>
+</footer>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = s => document.querySelector(s);
+const clamp = (v,a,b) => Math.min(b===undefined?1:b, Math.max(a===undefined?0:a, v));
+
+/* Every sheet of this manual prints its own number, and PDF page 2 prints "pg 2":
+   printed page N is PDF page N, with no front-matter offset to correct for. */
+const MANUAL = "https://www.strymon.net/manuals/BigSky_UserManual_RevD.pdf";
+const pgHref = n => MANUAL + "#page=" + n;
+const pgLink = n => '<a href="' + pgHref(n) + '" target="_blank" rel="noopener">pg.&nbsp;' + n + '</a>';
+
+/* the marker that separates the manual's numbers from this page's arithmetic */
+const INF = t => '<span class="inf" title="' + t + '">calc</span>';
+const INF_DECAY = "Interpolated between the two ends of the range the manual prints. The taper in between is not published.";
+const INF_PRE   = "Interpolated across the 0 to 1.5 second span the manual prints. The taper is not published.";
+
+/* ---------------- shared parameter text ----------------
+   The text in quotation marks below is Strymon's own, copied from the manual page named
+   on each machine's card. Anything outside the quotation marks is this page's, and says
+   so where it makes a claim. */
+const LOEND = "“Adjusts the low frequency content of the reverb. Higher values allow more low end reverberation.”";
+const SHIFTS = ["-Octave","-Major 7th","-minor 7th","-Major 6th","-minor 6th","-Perfect 5th","-Tritone",
+  "-Perfect 4th","-Major 3rd","-minor 3rd","-Major 2nd","-minor 2nd","-10 cents","+10 cents","+minor 2nd",
+  "+Major 2nd","+minor 3rd","+Major 3rd","+Perfect 4th","+Tritone","+Perfect 5th","+minor 6th","+Major 6th",
+  "+minor 7th","+Major 7th","+Octave","+Octave & 5th","+2 Octaves"];
+const RISE = [0.08,0.10,0.12,0.14,0.17,0.20,0.25,0.30,0.35,0.40,0.50,0.60,0.70,0.80,0.90,1.00,1.20,1.40,1.70,2.00,2.50,3.00,4.00];
+
+/* the MOD paragraph is printed for Room and for Hall, with one word of difference */
+const MOD_ROOM = "“The Mod control randomly modulates the reverb’s delay lengths for the first half of " +
+  "the knob travel for subtle natural movement, and then adds modulation to the input of the reverb tank " +
+  "for the 2nd half of the knob travel for a more overt yet tasteful modulation experience.”";
+const MOD_HALL = "“The Mod control randomly modulates the reverb’s delay lengths for the first half of " +
+  "the knob travel for subtle natural movement, and then adds modulation to the input of the reverb tank " +
+  "for the 2nd half of the knob travel for a more overt yet beautifully tasteful modulation experience.”";
+
+const DECAY_STD = "“Controls the Decay time of the reverberated signal. The range can depend on the " +
+  "selected reverb machine.”";
+const RT60 = "The time on the display is the RT60 value: “the time it takes for the reverberated signal " +
+  "to decay to -60dB (1/1000th) of its initial value.”";
+const PRE_STD = "“Adjusts the time between the dry signal and the onset of the reverb, from 0 to 1.5 seconds.”";
+const MIDICLK = "With MIDI Clock set to ON for the preset, BigSky “will respond to external MIDI clock " +
+  "from the MIDI input to control the PRE-DELAY on all reverb machines except for MAGNETO and NONLINEAR " +
+  "where it controls the DECAY time.”";
+
+/* ---------------- the twelve machines, in TYPE-encoder order ---------------- */
+const MACHINES = [
+{
+  key:"room", name:"Room", pg:8, tag:"studio ambience to night club",
+  range:"200mS — +20.00S", dec:{lo:0.2, hi:20},
+  desc:"“A versatile room algorithm that creates environments ranging from well-tuned studio ambience to " +
+       "larger night club acoustics. The Tone knob, Diffusion and Low End parameters adjust the damping and " +
+       "scattering effects of room materials, furniture, and people.”",
+  tone:"“The Tone knob, Diffusion and Low End parameters adjust the damping and scattering effects of room " +
+       "materials, furniture, and people.”",
+  mod:MOD_ROOM,
+  params:[
+    {n:"Low End", cc:61, kind:"bar", steps:21, d:"“Affects the low frequency content and decay profile. As you turn it up, more low frequencies reverberate creating the impression of longer decay times and a room that is sparsely furnished.”"},
+    {n:"Size", cc:59, kind:"list", vals:["STUDIO","CLUB"], d:"“Choose Studio for a well-tuned intimate studio environment, or Club for a larger, livelier Night Club experience. The early reflections and reverb decay profile change accordingly.”"},
+    {n:"Diffusion", cc:58, kind:"bar", steps:21, d:"“Softens the early reflections to create a thicker, more diffused reverb at the attack portion of the reverb. Sometimes this can be more easily ‘felt’ than heard depending on the input and specific settings.”"}
+  ],
+  tips:["“For realistic acoustic spaces, Pre-Delay can be kept at minimum, with Decay values in the 500mS to 2 second range. However, the Room algorithm is designed to be just as adept at long decay times. For great atmospheric reverbs, try Pre-Delay at noon, Decay at 12 seconds or more, and Mod at 1:00. Mix to taste.”"]
+},
+{
+  key:"hall", name:"Hall", pg:9, tag:"concert hall and arena",
+  range:"500mS — +20.00S", dec:{lo:0.5, hi:20},
+  desc:"“Diffused reflections and slower-building density are the hallmarks of this beautiful and versatile " +
+       "reverb. The Concert size is well-balanced, spacious and warm, while the Arena size is huge, enveloping " +
+       "and booming. The Mid parameter allows for precise EQ tailoring of the reverberated sound.”",
+  tone:"", mod:MOD_HALL,
+  params:[
+    {n:"Low End", cc:39, kind:"bar", steps:21, d:"“Affects the low frequency content and decay profile. As you turn it up, more low frequencies reverberate creating a deeper reverberation indicative of fewer bass traps and other low-frequency-absorbing architectural details.”"},
+    {n:"Size", cc:40, kind:"list", vals:["CONCERT","ARENA"], d:"“Choose Concert for a well-balanced and warm Concert Hall auditorium, or Arena to capture the acoustics of the largest enclosed venues. The early reflection buildup and late reverb decay profile change accordingly.”"},
+    {n:"Mid", cc:42, kind:"bar", steps:21, d:"“Affects the midrange frequency content of the reverb. Turn up to emphasize the mid frequencies, or back to reduce the mids. Set half-way for a flat midrange response.”"}
+  ],
+  tips:["“Adding some Pre-Delay can increase the sense of physical space and further separate the reverb from the dry signal.”",
+        "“For a balanced, versatile hall sound that will complement just about any input source and style, try Concert with a decay of about 3.5 seconds, with the Tone at noon and Lo End parameter centered. Setting the Mod knob at 12:00 maximizes the random delay-length modulation, further increasing the warmth.”",
+        "“For realistic mega-structure reverb, choose Arena with a 10 second decay or longer and increase the Lo End parameter. Keep the Mix control below 12:00.”"]
+},
+{
+  key:"plate", name:"Plate", pg:10, tag:"small and large studio plates",
+  range:"500mS — +20.00S", dec:{lo:0.5, hi:20},
+  desc:"“The Plate machine is a rich, fast-building reverb that creates depth without early reflection cues " +
+       "to a specific environment. The Tone knob and Low End parameter are simple but powerful frequency " +
+       "shaping tools.”",
+  tone:"“the Tone knob adjusts the high end from unfiltered full-bandwidth (max) to warm (noon) to dark and damped (min).”",
+  mod:"“The Mod control modulates the reverb’s delay lengths with a special LFO that allows for lush modulation without warble.”",
+  params:[
+    {n:"Low End", cc:69, kind:"bar", steps:21, d:"“Adjusts the low frequency content of the plate reverberation. Set lower for lighter, airy plate tones that won’t color the dry signal, or increase for richer plate tones.”"},
+    {n:"Size", cc:68, kind:"list", vals:["SMALL","LARGE"], d:"“Selects from two plate sizes. The Small plate is representative of a ‘home project’ plate at 1 ½’ x 2 ¼’. The Large plate is a traditional studio plate with dimensions of 4’ x 6’.”"}
+  ],
+  tips:["“The undamped Decay time of traditional large plate reverbs is about 5 seconds. Large baffles were positioned close to the plate to damp the vibrations for shorter reverbs as required. Try short decays around 1.5s with lower Mix values to add some subtle ambience to dry tracks. Long decay times can go beyond physical limitations to create clear ambient pads of reverb.”",
+        "“Plate reverbs were routinely run through a post EQ to tailor the low end to sit properly in the mix, and to reduce less pleasant high frequency ringing. The Low End parameter’s wide range is voiced for maximum flexibility, while the Tone knob adjusts the high end from unfiltered full-bandwidth (max) to warm (noon) to dark and damped (min).”",
+        "“The Large plate’s traditional size yields lush, smooth and transparent reverb that adds a bit of class to any track or instrument. The Small plate’s size dictates a splashier, ringy characteristic with less low end efficiency - perfect for applications that call for something a bit less sophisticated.”"]
+},
+{
+  key:"spring", name:"Spring", pg:11, tag:"one, two or three springs",
+  range:"800mS — 10.00S", dec:{lo:0.8, hi:10},
+  desc:"“The Spring machine allows for complete customization from warm and mellow to splashy and dripping " +
+       "with its Tone and Mix Controls, Dwell parameter, and selectable number of springs.”",
+  tone:"", mod:"",
+  params:[
+    {n:"Low End", cc:64, kind:"bar", steps:21, d:"“Adjusts the low frequency content of the spring tank. Higher values allow more low end reverberation.”"},
+    {n:"Dwell", cc:63, kind:"list", vals:["CLEAN","COMBO","TUBE","OVERDRIVE"], d:"“Adjusts the amount of drive in the spring tank preamp circuit. Select Clean for the cleanest spring tones. The Combo setting adds more gain as was typical in combo amps with onboard spring reverb. The Tube selection increases the gain further and increases the harmonic components entering the spring tank, like turning up the Dwell control in an outboard spring reverb unit. The Overdrive setting maximizes the preamp gain for maximum trashiness.”"},
+    {n:"# of Springs", cc:62, kind:"list", vals:["1","2","3"], d:"“Allows selection of one, two, or three springs in the spring tank. Increasing the number of springs adds complexity due to the interaction of the different delay times of each individual spring.”"}
+  ],
+  tips:["“For traditional combo amp tones, use the 2-spring option with the Combo Dwell setting and decays of around 4.5 seconds. Many combo amps have a darker spring tone, so try rolling the Tone knob back to mellow out the reverb. Try lower settings on the Low End parameter to reduce the low frequency content as well.”",
+        "“For more sophisticated spring reverbs, try the 3-spring reverb with Clean Dwell settings and shorter decay times, around 3 seconds. Keep the Low End parameter at the half-way point and adjust the Tone knob to taste.”",
+        "“For maximum splash, crank the Tone knob to maximum and turn the Low End param to minimum. Turn up the Mix to 3:00 if you’re bold.”",
+        "“Hot input signals will drive the spring harder. Reduce the Dwell setting if you experience too much spring distortion.”",
+        "“Most spring circuits attenuate the low end pretty heavily to avoid rumble and feedback issues. This represents the 1st half of the Low End parameter values in BigSky’s spring reverb. Increasing the Low End settings can add some richness to the spring when using the Clean or Combo Dwell settings and lower Mix levels.”"]
+},
+{
+  key:"swell", name:"Swell", pg:12, tag:"the reverb, or the dry signal, swelled in",
+  range:"500mS — +20.00S", dec:{lo:0.5, hi:20},
+  desc:"“The Swell machine brings in the reverb gradually behind the dry signal for subtle evolving textures, " +
+       "like having a volume pedal on the wet signal. Alternatively, you can choose to have the dry signal " +
+       "swelled into the reverb, for maximum ambience and atmosphere.”",
+  tone:"", mod:"“The Mod knob adds 4-phase modulation of the reverb’s delay lines, lending a sense of movement and depth to the reverb signal.”",
+  params:[
+    {n:"Low End", cc:65, kind:"bar", steps:21, d:LOEND},
+    {n:"Rise Time", cc:66, kind:"list", vals:RISE.map(v=>v.toFixed(2)+"s"), d:"“Adjusts the rise time of the swelled signal. Choose shorter times for single-line soloing or longer times for ambient chord work.” The manual prints the twenty-three settings it steps through, 0.08 seconds to 4.00 seconds."},
+    {n:"Mode", cc:67, kind:"list", vals:["SWLWET","SWLDRY"], d:"“Chooses the configuration of the Swell machine. The Swell Wet option swells in the wet signal behind your dry signal for a subtle evolving verb. The Swell Dry mode swells the dry signal in front of the reverb for awesome ambience or swelled solos.”"}
+  ],
+  tips:["“For a volume-knob effect for soloing, use the Swell Dry mode with a Rise time of 0.3 seconds or less.”",
+        "“For long ambient chords, try the Swell Dry mode with Rise Time greater than 1 second, decay times longer than 10 seconds, with high modulation settings.”",
+        "“Try using the Swell Wet mode with a short Rise Time, around 0.10 seconds, for a reverb that sits nicely behind the dry signal.”"]
+},
+{
+  key:"bloom", name:"Bloom", pg:13, tag:"a bloom section feeding the tank",
+  range:"500mS — +20.00S", dec:{lo:0.5, hi:20}, decName:"Decay",
+  decNote:"“The Decay knob controls the tank’s decay time, while the Length parameter controls the bloom " +
+       "length. High settings of the Length parameter and/or higher Feedback settings can result in reverbs " +
+       "that are much longer than the displayed tank decay time.”",
+  desc:"“The Bloom reverb features a bloom generating section that feeds into a traditional reverb tank, and " +
+       "adds a unique Feedback parameter that expands the possibilities exponentially.”",
+  tone:"“The Tone knob is a unique resonant filter that shapes the top end with synth-like voicing. Experiment by adjusting the Tone knob with long-decay reverbs.”",
+  mod:"“The Mod knob controls two independent 16-phase oscillators for a total of 32 oscillator signals. The first 16-phase oscillator modulates the bloom-generating delay lines, while the 2nd 16-phase oscillator modulates the tank reverb delay lines.”",
+  params:[
+    {n:"Low End", cc:31, kind:"bar", steps:21, d:LOEND},
+    {n:"Length", cc:32, kind:"bar", steps:18, d:"“Adjusts the length of the ‘bloom’ portion of the reverb. Higher levels will result in longer bloom times.” The manual gives no figure in seconds for any position of this parameter."},
+    {n:"Feedback", cc:30, kind:"bar", steps:18, d:"“Adjusts the amount of feedback that is applied around the bloom portion of the reverb.”"}
+  ],
+  tips:["“Experiment with short Decay times and higher Length values, and then longer Decay times with lower length values to get a feel for how these two portions of the reverb interact and complement each other.”",
+        "“High Feedback settings paired with high Modulation results in a gorgeous spectrum of sweeping resonant harmonics.”"]
+},
+{
+  key:"cloud", name:"Cloud", pg:14, tag:"cascaded input diffusion",
+  range:"1.00S — +50.00S", dec:{lo:1, hi:50},
+  desc:"“The cascaded input diffusion blocks create an expanded ‘early’ reverb. This results in a longer " +
+       "overall reverb time than the displayed tank decay time, most noticeable when the Decay knob is set " +
+       "to low values.”",
+  tone:"",
+  mod:"“From min to 2:00, the Modulation knob adjusts the amount of modulation (developed by a quadrature oscillator at a frequency harmonious to the Cloud generator) that is applied to the input diffusor sections. Past 2:00, the frequency of the quadrature oscillators is increased.”",
+  params:[
+    {n:"Low End", cc:38, kind:"bar", steps:21, d:"“Adjusts the low frequency content of the Cloud reverb. Higher values allow more low frequency content.”"},
+    {n:"Diffusion", cc:37, kind:"bar", steps:21, d:"“Adds diffusors in front of and within the reverb generator. At minimum there is no diffusion effect, and the cloud effect is ‘grainy’, yet mesmerizing, on transient attacks. As Diffusion is increased, the reverb is smoothed and softened.” The display calls it DIFUSN."}
+  ],
+  tips:["“The modulation scheme was developed to allow for high degrees of modulation without muddying up the sustaining reverberation tail.”"]
+},
+{
+  key:"chorale", name:"Chorale", pg:15, tag:"a vocal choir",
+  range:"500mS — +20.00S", dec:{lo:0.5, hi:20},
+  decNote:"The choir “sings in venues that vary with the Decay knob.”",
+  desc:"“A vocal choir accompanies your music. Choose vowel ranges and intensities to customize your choir as " +
+       "it sings in venues that vary with the Decay knob. As the Modulation is increased, the choir becomes " +
+       "alive with multitude of voices.”",
+  tone:"“Adjust the Tone knob to add more ‘breath’ and high end articulation to the vocals.”",
+  mod:"“The Mod knob is a very effective way to add realism to the chorale. As Mod is turned up, randomization is added to the chorale’s pitch and timbre to create an increasing number of singers that have distinct voices.”",
+  params:[
+    {n:"Vowel", cc:33, kind:"bar", steps:7, unit:"of 7", d:"“Selects the vowel sound(s) that the choir will use to accompany you. The selections include traditional singing formants, AH, OH, OO and combinations of the two. Also included is a Random choice that will allow any formant to be sung.” Which formant each of the seven positions sings is printed as artwork beside the parameter, and this page cannot read the order of that artwork, so it names the position number instead."},
+    {n:"Resonance", cc:34, kind:"list", vals:["MILD","MEDIUM","HIGH"], d:"“Adjusts the intensity of the vowel sound by adjusting the vocal filter resonance (Q) values. Select Mild for subtle vocal qualities, or Medium for increased vocal intensity. The High setting produces the most resonant vowel sounds, and can be a bit spooky late at night.”"}
+  ],
+  tips:["“Since many of the vocal formant frequencies are ‘mid-range’ frequencies, a mid-heavy guitar amp may overly re-enforce some of them at High Reso settings. In those cases, reduce the Reso setting to Medium or Mild.”"]
+},
+{
+  key:"shimmer", name:"Shimmer", pg:16, tag:"two tunable pitch-shifted voices",
+  range:"500mS — +20.00S", dec:{lo:0.5, hi:20},
+  desc:"“Two tunable voices add pitch-shifted tones to the reverberated signal, for resplendent, unearthly " +
+       "ambience. The voices are carefully created from the reverberated signal itself to generate maximum " +
+       "radiance and beauty. The Amount and Mode parameters allow for a range of shimmer effects from " +
+       "laid-back and subtle to full-blown majestic splendor.”",
+  tone:"",
+  mod:"“The Modulation knob modulates the shimmer voices as well as the reverb tank’s delay line lengths with a 4-phase oscillator.”",
+  params:[
+    {n:"Shift 1", cc:25, kind:"list", vals:SHIFTS, d:"“Selects the 1st voice interval, from an octave down to two octaves up.”"},
+    {n:"Shift 2", cc:26, kind:"list", vals:["Off"].concat(SHIFTS), d:"“Selects the 2nd voice interval, from an octave down to two octaves up. Can be set to Off if no 2nd voice is desired.”"},
+    {n:"Amount", cc:27, kind:"bar", steps:19, d:"“Adjusts the level of the shifted voices in the reverberated signal from Off to full.”"},
+    {n:"Mode", cc:28, kind:"list", vals:["INPUT","REGEN","IN+REG"], d:"“Selects input Shimmer with no regeneration, regenerating tank shimmer, or input shimmer plus regenerating tank shimmer.”"},
+    {n:"Low End", cc:24, kind:"bar", steps:21, d:"“Adjusts the low frequency content of the Shimmer reverb. Higher values allow more low frequency content.”"}
+  ],
+  tips:["“The Amount parameter works in conjunction with the Mode parameter to produce the particular intensity of the shimmer effect. If Amount is set to Off, no shimmer effect is heard.”",
+        "“For deep octave down shifts, increase the Low End parameter to allow the lower octave frequencies to come through strongly.”",
+        "“Try +1 Oct and Oct.5th with lower amount levels for just a hint of shimmer.”",
+        "“Try Oct.5th and –P5 with ‘Input’ shimmer Mode for an other-wordly synth-pad.”",
+        "“Try -10cents and +10cents with ‘Input’ shimmer Mode and Modulation Off for a beautiful detuned reverb.”"]
+},
+{
+  key:"magneto", name:"Magneto", pg:17, tag:"multi-head echo, all heads on",
+  range:"200mS — 1.50mS", dec:{lo:0.2, hi:1.5},
+  rangeNote:"The manual prints this range as “200mS — 1.50mS”. The upper figure is a typographical slip for 1.50 seconds — a 1.5&nbsp;mS top end would be below the bottom of the range.",
+  decName:"Delay Time", decNote:"“Sets the Delay time of the last head.”",
+  preName:"Feedback", pre:"“Adds feedback from the last head back to the input when Even Spacing is selected. With Uneven Spacing, the feedback is taken from the last two heads.”",
+  desc:"“The Magneto machine sets up a multi-head echo with all heads on, while the PreDelay knob adds " +
+       "feedback. The Diffusion parameter adds a new dimension of ambience, smearing the response of the " +
+       "heads and blurring the line between delay and reverb.”",
+  tone:"“The age, condition, and alignment of the record and playback heads greatly influence the tonality of magnetic media delays. As a result, they may be bright or dark, high-passed or fuller in the low frequencies. The Tone knob and Low End parameters are wide-ranging to allow for a full spectrum of tones.”",
+  mod:"“The Mod control acts as a Wow and Flutter generator, adding hypnotic movement and fullness to the sound.”",
+  params:[
+    {n:"Low End", cc:55, kind:"bar", steps:21, d:"“Adjusts the low frequency response of the Magneto machine. Higher values allow more low frequency content. Lower values roll off the low end in a manner representative of many magnetic-media delay machines.”"},
+    {n:"Number of Heads", cc:57, kind:"list", vals:["3","4","6"], d:"“Selects from three, four or six heads.”"},
+    {n:"Diffusion", cc:56, kind:"bar", steps:21, d:"“Controls the effect of diffusors on the magnetic heads. At minimum there is no diffusion effect. As the Diffusion parameter is turned up, the heads are increasingly smeared, creating a reverberated quality to the repeats.”"},
+    {n:"Spacing", cc:54, kind:"list", vals:["EVEN","UNEVEN"], d:"“Even spacing puts the heads at the same distance from one another for equal delay times. Uneven spacing scatters the heads which creates a more complex, less overtly rhythmic effect.”"}
+  ],
+  tips:["“The last repeat occurs at the displayed decay time, so a 300ms decay time with 3 evenly spaced heads would have repeats at 100ms, 200ms, and 300ms. Switching to a 4-head machine results in delays at 75ms, 150ms, 225ms, and 300ms.”",
+        "“As the Feedback (Pre-Delay knob) is increased, the EQ response is regenerative, leading to evolving soundscapes and ambient washes.”"]
+},
+{
+  key:"nonlinear", name:"Nonlinear", pg:18, tag:"six nonlinear shapes",
+  range:"50mS — 2.00S", dec:{lo:0.05, hi:2},
+  decName:"Time", decNote:"“Sets the time of the nonlinear portion of the reverb.”",
+  preName:"Feedback", pre:"“Adds feedback from the nonlinear portion of the reverb back to the input.”",
+  desc:"“A variety of physics-defying reverb shapes are available for special effects and unique textures. " +
+       "Choose from three ‘backwards’ shapes (Swoosh, Reverse, and Ramp), or a Gate and more. Feedback " +
+       "control, Late Reverb, and Diffusion parameters allow for a vast array of time-warped possibilities.”",
+  tone:"",
+  mod:"“The Mod control varies the nonlinear generator tap lengths, as well as the late reverb’s delay lines for an expanded experience.”",
+  params:[
+    {n:"Shape", cc:46, kind:"list", vals:["SWOOSH","REVERS","RAMP","GATE","GAUSS","BOUNCE"], d:"“Adjusts the shape of the nonlinear generator. Swoosh, Reverse, and Ramp all create ‘backwards’ effects with different slope profiles. Gate generates an even amplitude profile with an abrupt cut-off. Gauss creates a ‘bell curve’ profile, and Bounce creates an ‘anti-bell’ shape.”"},
+    {n:"Diffusion", cc:45, kind:"bar", steps:21, d:"“Controls the effect of diffusors on the nonlinear generator. At minimum there is no diffusion effect, and the nonlinear effect is ‘grainy’. As Diffusion is increased, the effect is smeared and smoothed.”"},
+    {n:"Late Decay", cc:47, kind:"bar", steps:18, d:"“Adjusts the decay time of the late reverb. Higher settings produce longer decay times.”"},
+    {n:"Late Level", cc:48, kind:"bar", steps:19, d:"“Adjusts the level of the late reverb. Higher settings increase the level of the late reverb. At minimum, the late reverb is turned off.”"},
+    {n:"Mod Speed", cc:43, kind:"bar", steps:18, d:"“Adjusts the modulation LFO speeds for both the non-linear delay tap lengths and the late reverb’s delay lines.”"},
+    {n:"Low End", cc:44, kind:"bar", steps:21, d:"“Adjusts the low frequency content of the nonlinear generator. Higher values allow more low-end frequencies to pass through.”"}
+  ],
+  tips:["“The Nonlinear generator feeds into the late reverb. The Pre-Delay knob adds feedback around the nonlinear generator before it enters the late reverb portion, producing repeating nonlinear shapes as you turn the knob clockwise.”",
+        "“The Diffusion parameter softens the Nonlinear portion, and is useful with longer Decay times. High Diffusion levels with short decay times can result in a ‘metallic’ sound. Reduce the Diffusion parameter in these cases if desired.”",
+        "“Short decay times and no feedback (Pre-Delay knob minimum) with the Gate shape gives an interesting level-independent take on the traditional ‘gated reverb’.”",
+        "“Try high feedback levels (Pre-Delay knob) with some added Modulation to create trippy ambient textures.”",
+        "“Maximum feedback (Pre-Delay knob maximum) with the Gate shape will produce a nearly endless wash of ‘multi-tapped’ reverb. Try Decay at 800ms and Modulation at 10:00.”",
+        "“Try the Swoosh or Reverse shapes at very short decays (&lt;100ms) for a great slapback effect. Try minimum Diffusion for best results.”"]
+},
+{
+  key:"reflections", name:"Reflections", pg:19, tag:"250 calculated early reflections",
+  range:"133mS — 400mS", dec:{lo:0.133, hi:0.4},
+  decName:"Room Size",
+  decNote:"“The Decay knob adjusts the size of the room from 100 sq ft (10’x10 square, or 8’x13’ rectangle " +
+       "and oblong) to 1000 sq ft (31’x31’ square, or 24’x39’ rectangle and oblong). As the room size " +
+       "increases, the decay increases accordingly.”",
+  desc:"“The Reflections machine is a psycho-acoustically accurate small-space reverb that allows you to move " +
+       "your amp anywhere in the room. The Reflections algorithm precisely calculates 250 reflections based on " +
+       "the source position within the chosen room shape. The psycho-acoustic modifiers adjust for human " +
+       "auditory perception to create unparalleled ambient-space realism to dry instrument or vocal tracks.”",
+  tone:"“Darker Tone settings would come about from carpeting, drapes and other absorptive elements on the reflecting surfaces. Brighter Tone settings create the sound of stone or tiled walls, with fewer absorbing materials in the room.”",
+  mod:"“The Mod control modulates the Pre-Delay time to create a randomized chorus effect against the dry signal.”",
+  params:[
+    {n:"Location Y", cc:50, kind:"bar", steps:7, unit:"F ↔ B", d:"“Positions the amplifier towards the front (F) or back (B) of the room. The reflections are re-calculated accordingly with the movement of the amp. When the amp is in the front of the room (closest to you), the dry signal will dominate over the reflections, whereas moving the amp to the back will result in the reflections arriving at times and amplitudes similar to the direct sound, thus appearing more reverberant overall.”"},
+    {n:"Location X", cc:49, kind:"bar", steps:7, unit:"L ↔ R", d:"“Positions the amplifier towards the left (L) or right (R) of the room. The reflections are re-calculated accordingly with the movement of the amp, and the dry signal is panned through the stereo analog buffers to give proper imaging.”"},
+    {n:"Shape", cc:51, kind:"list", vals:["SQUARE","RECT","OBLONG"], d:"“Selects the shape of the room that is producing the reflections. The Square shape is (you guessed it) square, while the Rectangle shape is short and wide with Golden Ratio dimensions (1.618:1), and the Oblong is long and narrow with Golden Ratio dimensions (1:1.618).”"},
+    {n:"Low End", cc:52, kind:"bar", steps:21, d:"“Affects the low frequency decay profile. As you turn it up, more low frequencies reverberate creating the impression of longer decay times and a room that is sparsely furnished.”"}
+  ],
+  tips:["“Set Mix at 12:00 and Pre-Delay to 0 (minimum) for a natural room response.”",
+        "“Reduce the Low End to give a more natural room or studio environment with furnishing/couches etc. Increase Low End for more of an ‘empty space’ reverberation.”"]
+}
+];
+
+/* ---------------- state ---------------- */
+const KNOBS = ["value","decay","predelay","mix","tone","param1","param2","mod"];
+const DEFAULTS = {value:.5, decay:.35, predelay:0, mix:.5, tone:.5, mod:.25, param1:.5, param2:.5};
+const S = {
+  mi:0,
+  k:Object.assign({}, DEFAULTS),
+  pv:{},          /* param values, keyed machine.paramIndex, 0..1 */
+  as:{},          /* PARAM knob assignments, keyed machine key -> [i1,i2] */
+  disp:"time",    /* time | bank | param */
+  lastParam:null,
+  bank:12, slot:"A", engaged:true,
+  active:null
+};
+const M = () => MACHINES[S.mi];
+const assign = () => {
+  const m = M();
+  if (!S.as[m.key]) S.as[m.key] = [0, Math.min(1, m.params.length - 1)];
+  return S.as[m.key];
+};
+const pvKey = (m,i) => m.key + "." + i;
+/* stepped settings start on the first option the manual prints; continuous ones start
+   half-way. Neither is a factory value — the manual publishes no preset positions. */
+const pvGet = (m,i) => (pvKey(m,i) in S.pv) ? S.pv[pvKey(m,i)]
+  : (m.params[i].kind === "list" ? 0 : .5);
+
+/* ---------------- value formatting ---------------- */
+const ang = v => -150 + v * 300;
+function clockOf(v){                       /* Strymon knobs sweep 7:00 round to 5:00 */
+  let h = 7 + v * 10, hh = Math.floor(h + 1e-9);
+  let mm = Math.round((h - hh) * 12) * 5;
+  if (mm === 60){ hh += 1; mm = 0; }
+  if (hh > 12) hh -= 12;
+  return hh + ":" + String(mm).padStart(2, "0");
+}
+function secs(t){
+  if (t < 1) return Math.round(t * 1000) + " mS";
+  if (t < 10) return t.toFixed(2) + " S";
+  return t.toFixed(1) + " S";
+}
+const logLerp = (lo,hi,v) => lo * Math.pow(hi/lo, v);
+const decaySec = () => logLerp(M().dec.lo, M().dec.hi, S.k.decay);
+const preSec   = () => S.k.predelay * 1.5;
+
+function paramIndex(m,i){
+  const p = m.params[i], n = p.kind === "list" ? p.vals.length : p.steps;
+  return Math.min(n - 1, Math.round(pvGet(m,i) * (n - 1)));
+}
+function paramText(m,i){
+  const p = m.params[i], idx = paramIndex(m,i);
+  if (p.kind === "list") return p.vals[idx];
+  if (p.n === "Location Y") return ["far front","front","just front","centre","just back","back","far back"][idx];
+  if (p.n === "Location X") return ["far left","left","just left","centre","just right","right","far right"][idx];
+  if (p.n === "Amount" && idx === 0) return "Off";
+  if (p.n === "Late Level" && idx === 0) return "Off — late reverb bypassed";
+  if (p.n === "Vowel") return "position " + (idx + 1) + " of 7";
+  return (idx) + " of " + (p.steps - 1);
+}
+/* the display carries the manual's own word when it fits the six characters the
+   display has; where the manual's word is longer, the position number, because the
+   pedal's own abbreviation for it is not printed anywhere in the manual */
+function paramDisp(m,i){
+  const p = m.params[i], idx = paramIndex(m,i), t = paramText(m,i);
+  if (p.kind === "list" && p.vals[idx].length <= 6) return p.vals[idx].toUpperCase();
+  if (p.kind === "bar") return String(idx);
+  return String(idx);
+}
+function mixText(){
+  const v = S.k.mix;
+  if (v < .005) return ["100% dry", "minimum"];
+  if (v > .995) return ["100% wet", "maximum"];
+  if (Math.abs(v - .8) < .012) return ["50 / 50", "knob at 3:00"];
+  return [clockOf(v), v < .8 ? "more dry than wet" : "more wet than dry"];
+}
+
+/* ---------------- the 14-segment display ---------------- */
+const SEGD = {
+  a:[2.4,1,9.6,1], b:[10,1.7,10,9.3], c:[10,10.7,10,18.3], d:[2.4,19,9.6,19],
+  e:[2,10.7,2,18.3], f:[2,1.7,2,9.3], g:[2.7,10,5.3,10], G:[6.7,10,9.3,10],
+  h:[2.9,2.1,5.1,8.9], i:[6,2,6,9], j:[9.1,2.1,6.9,8.9],
+  k:[6.9,11.1,9.1,17.9], l:[6,11,6,18], m:[5.1,11.1,2.9,17.9]
+};
+const GLYPH = {
+  " ":"", "0":"abcdef","1":"bc","2":"abgGed","3":"abcdgG","4":"fbgGc","5":"afgGcd","6":"afedcgG",
+  "7":"abc","8":"abcdefgG","9":"abcdfgG",
+  "A":"abcefgG","B":"abcdGil","C":"adef","D":"abcdil","E":"adefgG","F":"aefgG","G":"acdefG",
+  "H":"bcefgG","I":"adil","J":"bcde","K":"efgjk","L":"def","M":"bcefhj","N":"bcefhk","O":"abcdef",
+  "P":"abefgG","Q":"abcdefk","R":"abefgGk","S":"acdfgG","T":"ail","U":"bcdef","V":"efjm",
+  "W":"bcefkm","X":"hjkm","Y":"hjl","Z":"adjm","-":"gG","+":"gGil","/":"jm"
+};
+function renderDisplay(text){
+  /* six cells; a decimal point rides on the cell before it rather than taking one */
+  const cells = [];
+  for (const ch of String(text).toUpperCase()){
+    if (ch === "." && cells.length){ cells[cells.length-1].dot = true; continue; }
+    if (cells.length < 6) cells.push({ch, dot:false});
+  }
+  while (cells.length < 6) cells.unshift({ch:" ", dot:false});
+  let out = "";
+  cells.forEach((c, n) => {
+    const ox = n * 14 + 1, on = GLYPH[c.ch] !== undefined ? GLYPH[c.ch] : "";
+    for (const key in SEGD){
+      const p = SEGD[key], lit = on.indexOf(key) >= 0;
+      out += '<line class="sg ' + (lit ? "on" : "off") + '" x1="' + (p[0]+ox) + '" y1="' + p[1] +
+             '" x2="' + (p[2]+ox) + '" y2="' + p[3] + '"/>';
+    }
+    out += '<circle class="dot ' + (c.dot ? "on" : "off") + '" cx="' + (11.6+ox) + '" cy="18.6" r="1"/>';
+  });
+  $("#dispSvg").innerHTML = out;
+  $("#dispA11y").textContent = "Display: " + text;
+}
+function displayText(){
+  if (S.disp === "bank") return String(S.bank).padStart(2,"0") + S.slot;
+  if (S.disp === "param" && S.lastParam !== null){
+    const m = M(), i = S.lastParam;
+    if (i < m.params.length) return paramDisp(m, i);
+  }
+  const t = decaySec();
+  return t < 1 ? Math.round(t*1000) + "MS" : (t < 10 ? t.toFixed(2) : t.toFixed(1)) + "S";
+}
+
+/* ---------------- the pedal ---------------- */
+const pedal = $("#pedal");
+(function buildRing(){
+  /* twelve LEDs on a ring around the TYPE encoder, thirty degrees apart, measured off
+     Strymon's own top-down photograph. Clockwise from ROOM at the lower left, the ring
+     runs in exactly the order the manual prints the machines. */
+  const CX = 18.0, CY = 38.4, RX = 7.0, RY = 10.4;
+  let h = "";
+  MACHINES.forEach((m, i) => {
+    const a = (195 + i * 30) * Math.PI / 180;
+    const x = CX + Math.sin(a) * RX, y = CY - Math.cos(a) * RY;
+    const left = Math.sin(a) < 0;
+    h += '<button class="tled" data-mi="' + i + '" style="--x:' + x.toFixed(2) + '%;--y:' + y.toFixed(2) +
+         '%" aria-pressed="false" aria-label="' + m.name + '"></button>';
+    h += '<button class="tname ' + (left ? "l" : "r") + '" data-mi="' + i + '" style="--y:' + y.toFixed(2) +
+         '%;' + (left ? "--r:" + (100 - x + 1.6).toFixed(2) + "%" : "--l:" + (x + 1.6).toFixed(2) + "%") +
+         '" aria-pressed="false">' + m.name + '</button>';
+  });
+  $("#typeRing").innerHTML = h;
+})();
+
+function renderPedal(){
+  const m = M();
+  KNOBS.forEach(k => {
+    const el = pedal.querySelector('.kn[data-k="' + k + '"]');
+    const cap = el.querySelector(".cap");
+    /* The PARAM caps have to read their assigned parameter's value, not S.k.
+       Drawing them from S.k left the cap pointing where you last dragged it
+       while the readout beside it showed the new machine's stored value - so
+       a cap at fully clockwise sat next to a readout saying "10 of 20". */
+    const pv = (k === "param1" || k === "param2")
+      ? pvGet(m, assign()[k === "param1" ? 0 : 1])
+      : S.k[k];
+    cap.style.transform = k === "value"
+      ? "rotate(" + (S.k.value * 3600 % 360) + "deg)"
+      : "rotate(" + ang(pv) + "deg)";
+    el.classList.toggle("live", S.active === k);
+  });
+  pedal.querySelector('.kn[data-k="type"] .cap').style.transform = "rotate(" + (-150 + S.mi/11*300) + "deg)";
+  document.querySelectorAll(".tled,.tname").forEach(b =>
+    b.setAttribute("aria-pressed", String(+b.dataset.mi === S.mi)));
+  ["A","B","C"].forEach(f => {
+    const led = pedal.querySelector('.fled[data-f="' + f + '"]');
+    led.dataset.lit = (S.engaged && S.slot === f) ? "green" : "";
+  });
+  $("#lblDecay").textContent = m.decName || "Decay";
+  $("#lblPre").textContent = m.preName || "Pre-Delay";
+  renderDisplay(displayText());
+}
+
+/* ---------------- the knob map ---------------- */
+function bar(frac){ return '<span class="bar"><i style="width:' + Math.round(clamp(frac)*100) + '%"></i></span>'; }
+
+function knobRows(){
+  const m = M(), as = assign();
+  const rows = [];
+  rows.push({k:"value", n:"Value", sub:"encoder",
+    d:"“Turn for fine adjustment of Decay time when time is displayed. Scrolls through presets when bank " +
+      "or name is displayed. Push to access the PARAMETER menu, hold to access the GLOBAL menu.”",
+    big:"endless", sm:"an encoder — it has no fixed position"});
+
+  const dt = decaySec();
+  rows.push({k:"decay", n:m.decName || "Decay", sub:(m.decName && m.decName !== "Decay") ? "the DECAY knob" : "",
+    d:(m.decNote ? m.decNote + " " : DECAY_STD + " " + RT60 + " ") +
+      "The range on this machine is <b>" + m.range.replace(/ — /, " – ") + "</b>." +
+      (m.rangeNote ? ' <span style="color:var(--warn)">' + m.rangeNote + "</span>" : ""),
+    big:(m.key === "reflections" ? roomText().size : secs(dt)) + INF(INF_DECAY),
+    sm:m.key === "reflections" ? roomText().dims + " · reverb " + secs(dt)
+     : m.key === "magneto"     ? "the last head's delay time"
+     : m.key === "nonlinear"   ? "the nonlinear portion"
+     : "RT60 — to −60 dB"});
+
+  if (m.preName){
+    rows.push({k:"predelay", n:"Feedback", sub:"pre-delay knob", d:m.pre,
+      big:Math.round(S.k.predelay*100) + "%", sm:"knob at " + clockOf(S.k.predelay)});
+  } else {
+    rows.push({k:"predelay", n:"Pre-Delay", sub:"", d:PRE_STD + " " + MIDICLK,
+      big:secs(preSec()) + INF(INF_PRE), sm:"knob at " + clockOf(S.k.predelay)});
+  }
+
+  const mx = mixText();
+  rows.push({k:"mix", n:"Mix", sub:"", d:"“Controls the balance of your analog dry signal and your wet " +
+    "signal, from 100% dry at minimum to 100% wet at maximum. 50/50 mix occurs when the Mix knob is set to " +
+    "3:00.” With the DRY global set to KILL, the “dry signal is muted allowing the MIX control to be used " +
+    "as an effect level”.", big:mx[0], sm:mx[1]});
+
+  rows.push({k:"tone", n:"Tone", sub:"", d:"“Adjusts the high end content of the reverb. Lower settings " +
+    "create darker, warmer reverberation, higher settings are bright and crisp. Set at 12:00 for a nicely " +
+    "balanced top end.”" +
+    (m.tone ? " <b>On " + m.name + ":</b> " + m.tone : ""),
+    big:clockOf(S.k.tone), sm:S.k.tone < .48 ? "darker than balanced" : (S.k.tone > .52 ? "brighter than balanced" : "balanced top end")});
+
+  [0,1].forEach(n => {
+    const pi = as[n], p = m.params[pi];
+    let sel = '<select class="assign" data-slot="' + n + '">';
+    m.params.forEach((q, qi) => sel += '<option value="' + qi + '"' + (qi === pi ? " selected" : "") + ">" + q.n + "</option>");
+    sel += "</select>";
+    rows.push({k:"param" + (n+1), n:"Param " + (n+1), sub:"assignable · CC " + p.cc, d:p.d + sel,
+      big:paramText(m, pi), sm:p.kind === "bar" ? "step " + paramIndex(m,pi) + " of " + (p.steps-1) : p.n,
+      frac:p.kind === "bar" ? paramIndex(m,pi)/(p.steps-1) : paramIndex(m,pi)/Math.max(1,p.vals.length-1)});
+  });
+
+  rows.push({k:"mod", n:"Mod", sub:"", d:"“Adds modulation to the reverberated signal. Lower settings " +
+    "modulate the delay lines lightly for a subtle and natural movement, higher settings tastefully add " +
+    "stronger modulation.”" +
+    (m.mod ? " <b>On " + m.name + ":</b> " + m.mod
+           : " <b>On " + m.name + "</b> the manual does not print what the modulator is doing."),
+    big:clockOf(S.k.mod), sm:Math.round(S.k.mod*100) + "% of travel"});
+  return rows;
+}
+
+function renderKmap(){
+  $("#kmapName").textContent = M().name;
+  $("#kmapPg").innerHTML = "Quoted from " + pgLink(2) + " and " + pgLink(M().pg);
+  $("#kmapRows").innerHTML = knobRows().map(r =>
+    '<div class="krow' + (S.active === r.k ? " on" : "") + '" data-k="' + r.k + '">' +
+      '<div class="kn-n">' + r.n + (r.sub ? "<em>" + r.sub + "</em>" : "") + "</div>" +
+      '<div class="kn-d">' + r.d + "</div>" +
+      '<div class="kn-v"><span class="big">' + r.big + '</span><span class="sub">' + r.sm + "</span>" +
+        (r.frac !== undefined ? bar(r.frac) : "") + "</div>" +
+    "</div>").join("");
+  $("#kmapRows").querySelectorAll("select.assign").forEach(sel =>
+    sel.addEventListener("change", () => {
+      assign()[+sel.dataset.slot] = +sel.value;
+      S.lastParam = +sel.value; S.disp = "param";
+      render();
+    }));
+}
+
+/* ---------------- the readout strip ---------------- */
+function renderStrip(){
+  const m = M();
+  $("#cDecayK").textContent = (m.decName || "Decay") + " knob";
+  $("#cDecay").innerHTML = (m.key === "reflections" ? roomText().size : secs(decaySec())) + INF(INF_DECAY);
+  $("#cDecayS").textContent = "range " + m.range.replace(/ — /, " – ");
+  if (m.preName){
+    $("#cPreK").textContent = "Feedback (pre-delay knob)";
+    $("#cPre").textContent = Math.round(S.k.predelay*100) + "%";
+    $("#cPreS").textContent = "the PRE-DELAY knob, on this machine";
+  } else {
+    $("#cPreK").textContent = "Pre-Delay knob";
+    $("#cPre").innerHTML = secs(preSec()) + INF(INF_PRE);
+    $("#cPreS").textContent = "range 0 – 1.5 S";
+  }
+  const mx = mixText();
+  $("#cMix").textContent = mx[0]; $("#cMixS").textContent = mx[1];
+  $("#cParams").textContent = m.params.length;
+  $("#cParamsS").textContent = m.params.map(p => p.n).join(" · ");
+  $("#mName").textContent = m.name;
+  $("#mSub").textContent = m.tag + " · manual pg. " + m.pg;
+  $("#dockName").textContent = m.name;
+  $("#dockQ").textContent = (m.decName || "Decay") + " " + (m.key === "reflections" ? roomText().size : secs(decaySec()));
+}
+
+/* ---------------- Reflections: the room ---------------- */
+/* The manual prints both ends: 100 sq ft (10'x10' square, or 8'x13' rectangle and oblong)
+   up to 1000 sq ft (31'x31' square, or 24'x39'). Everything between is this page
+   interpolating those two, geometrically, so both ends land on the printed figures. */
+function roomDims(){
+  const v = S.k.decay, m = M();
+  const shape = m.params.findIndex(p => p.n === "Shape");
+  const si = paramIndex(m, shape);
+  if (si === 0){ const s = 10 * Math.pow(3.1, v); return {w:s, h:s, name:"Square"}; }
+  const a = 8 * Math.pow(3, v), b = 13 * Math.pow(3, v);
+  return si === 1 ? {w:b, h:a, name:"Rectangle"} : {w:a, h:b, name:"Oblong"};
+}
+function roomText(){
+  const d = roomDims();
+  return {size:Math.round(d.w*d.h) + " sq ft", dims:Math.round(d.w) + "' × " + Math.round(d.h) + "' " + d.name.toLowerCase()};
+}
+
+/* ---------------- the drawing ---------------- */
+const cv = $("#plot"), ctx = cv.getContext("2d");
+const PAL = {bg:"#07131A", grid:"#15303C", axis:"#2C5163", txt:"#7FA3B0", dim:"#4A6D7B",
+             wet:"#3FC2E4", wet2:"rgba(63,194,228,.22)", dry:"#9BB4BE", hot:"#8CE85C", warn:"#F2A73B"};
+function pidx(m, name){ const i = m.params.findIndex(p => p.n === name); return i < 0 ? -1 : paramIndex(m, i); }
+function fitCanvas(){
+  const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.max(320, Math.round(r.width * dpr));
+  cv.height = Math.max(220, Math.round(r.height * dpr));
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return {w:r.width, h:r.height};
+}
+function niceTicks(max, n){
+  const raw = max / n, mag = Math.pow(10, Math.floor(Math.log10(raw))), r = raw / mag;
+  const step = (r <= 1 ? 1 : r <= 2 ? 2 : r <= 5 ? 5 : 10) * mag;
+  const out = []; for (let t = 0; t <= max + 1e-9; t += step) out.push(t);
+  return out;
+}
+const tLabel = t => t === 0 ? "0" : (t < 1 ? Math.round(t*1000) + "ms" : (t < 10 ? t.toFixed(t < 2 ? 1 : 0) : Math.round(t)) + "s");
+
+function drawFrame(w, h, tMax, xlab){
+  const L = 40, R = 14, T = 16, B = 28;
+  ctx.fillStyle = PAL.bg; ctx.fillRect(0, 0, w, h);
+  ctx.font = '10px "DM Mono", monospace'; ctx.textBaseline = "middle";
+  ctx.strokeStyle = PAL.grid; ctx.lineWidth = 1;
+  niceTicks(tMax, 6).forEach(t => {
+    const x = L + (t / tMax) * (w - L - R);
+    ctx.beginPath(); ctx.moveTo(x + .5, T); ctx.lineTo(x + .5, h - B); ctx.stroke();
+    ctx.fillStyle = PAL.txt; ctx.textAlign = "center"; ctx.fillText(tLabel(t), x, h - B + 12);
+  });
+  [0,.25,.5,.75,1].forEach(v => {
+    const y = h - B - v * (h - B - T);
+    ctx.strokeStyle = v === 0 ? PAL.axis : PAL.grid;
+    ctx.beginPath(); ctx.moveTo(L, y + .5); ctx.lineTo(w - R, y + .5); ctx.stroke();
+  });
+  ctx.fillStyle = PAL.dim; ctx.textAlign = "right";
+  ctx.fillText("0 dB", L - 6, T);
+  ctx.fillText("−30", L - 6, h - B - .5 * (h - B - T));
+  ctx.fillText("−60", L - 6, h - B);
+  ctx.textAlign = "left"; ctx.fillText(xlab, L, h - B + 22);
+  return {L, R, T, B, X:t => L + (t / tMax) * (w - L - R), Y:v => h - B - clamp(v) * (h - B - T)};
+}
+
+function drawPlot(){
+  const m = M(), sz = fitCanvas(), w = sz.w, h = sz.h;
+  let title = "Envelope", meta = "", cap = "";
+
+  /* --- Reflections: a room plan, drawn from the sizes and shapes the manual prints --- */
+  if (m.key === "reflections"){
+    ctx.fillStyle = PAL.bg; ctx.fillRect(0, 0, w, h);
+    const d = roomDims(), pad = 46, availW = w - pad*2, availH = h - pad*2;
+    /* Scaled against the largest room the knob reaches (24' x 39' at 1000 sq ft),
+       not against the current one. Fitting the current room to the panel drew
+       10' x 10' and 31' x 31' at exactly the same size, which on the one machine
+       where DECAY *is* the room-size control hid the whole point of the knob. */
+    const ROOM_REF = 39;
+    const sc = Math.min(availW, availH) / ROOM_REF, rw = d.w * sc, rh = d.h * sc;
+    const x0 = (w - rw)/2, y0 = (h - rh)/2;
+    ctx.strokeStyle = PAL.axis; ctx.lineWidth = 2;
+    ctx.fillStyle = "rgba(63,194,228,.06)";
+    ctx.fillRect(x0, y0, rw, rh); ctx.strokeRect(x0, y0, rw, rh);
+    ctx.font = '10px "DM Mono", monospace'; ctx.fillStyle = PAL.txt;
+    ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+    ctx.fillText(Math.round(d.w) + " ft", x0 + rw/2, y0 - 8);
+    ctx.save(); ctx.translate(x0 - 10, y0 + rh/2); ctx.rotate(-Math.PI/2);
+    ctx.textBaseline = "bottom"; ctx.fillText(Math.round(d.h) + " ft", 0, 0); ctx.restore();
+    /* the listener stays at the front of the room; the manual describes the front as
+       "closest to you" and moves only the amp */
+    const lx = x0 + rw/2, ly = y0 + rh - 8;
+    ctx.fillStyle = PAL.dry; ctx.beginPath(); ctx.arc(lx, ly, 5, 0, 7); ctx.fill();
+    ctx.textBaseline = "top"; ctx.fillStyle = PAL.dim; ctx.fillText("you", lx, ly + 8);
+    const ix = pidx(m, "Location X"), iy = pidx(m, "Location Y");
+    const ax = x0 + rw * (0.12 + 0.76 * (ix/6)), ay = y0 + rh * (0.88 - 0.76 * (iy/6));
+    ctx.strokeStyle = "rgba(140,232,92,.35)"; ctx.setLineDash([3,4]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(lx, ly); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = PAL.hot; ctx.fillRect(ax - 11, ay - 9, 22, 18);
+    ctx.fillStyle = "#07131A"; ctx.font = '9px "Archivo", sans-serif'; ctx.textBaseline = "middle";
+    ctx.fillText("AMP", ax, ay);
+    ctx.fillStyle = PAL.dim; ctx.font = '10px "DM Mono", monospace'; ctx.textBaseline = "top";
+    ctx.textAlign = "left"; ctx.fillText("back", x0 + 6, y0 + 6);
+    ctx.textBaseline = "bottom"; ctx.fillText("front", x0 + 6, y0 + rh - 6);
+    title = d.name + " room"; meta = roomText().size + " · " + roomText().dims;
+    cap = "On Reflections the DECAY knob sets the size of the room. “As the room size increases, the " +
+      "decay increases accordingly” — <b>" + secs(decaySec()) + "</b> at this size. The manual gives the " +
+      "dimensions at each end of the knob: 100 square feet is 10&prime;&nbsp;×&nbsp;10&prime; square or " +
+      "8&prime;&nbsp;×&nbsp;13&prime; rectangle, 1000 square feet is 31&prime;&nbsp;×&nbsp;31&prime; square " +
+      "or 24&prime;&nbsp;×&nbsp;39&prime;. This page interpolates every size between those two. The 250 " +
+      "reflections the algorithm calculates are not drawn.";
+    $("#plotTitle").textContent = title; $("#plotMeta").textContent = meta; $("#plotCap").innerHTML = cap;
+    return;
+  }
+
+  /* --- Magneto: the heads, spaced across the last head's delay time --- */
+  if (m.key === "magneto"){
+    const T = decaySec(), heads = [3,4,6][pidx(m, "Number of Heads")], even = pidx(m, "Spacing") === 0;
+    /* Fixed at the machine's longest delay time, like the envelope plot. Scaling
+       to the current time drew the heads in identical positions at 200 mS and at
+       1.50 S - only the numbers under them changed. */
+    const g = drawFrame(w, h, m.dec.hi * 1.18, "time after the note");
+    ctx.strokeStyle = PAL.dry; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(g.X(0), g.Y(0)); ctx.lineTo(g.X(0), g.Y(1)); ctx.stroke();
+    ctx.font = '10px "DM Mono", monospace'; ctx.fillStyle = PAL.dim; ctx.textAlign = "left";
+    ctx.fillText("dry", g.X(0) + 6, g.Y(1) + 11);
+    const list = [];
+    if (even) for (let k = 1; k <= heads; k++) list.push(T * k / heads); else list.push(T);
+    list.forEach(t => {
+      ctx.strokeStyle = PAL.wet; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(g.X(t), g.Y(0)); ctx.lineTo(g.X(t), g.Y(.86)); ctx.stroke();
+      ctx.fillStyle = PAL.txt; ctx.textAlign = "center";
+      ctx.fillText(tLabel(t), g.X(t), g.Y(.86) - 8);
+    });
+    title = heads + " heads · " + (even ? "even" : "uneven") + " spacing";
+    meta = "last head at " + secs(T);
+    cap = even
+      ? "“Even spacing puts the heads at the same distance from one another for equal delay times.” The " +
+        "manual works the arithmetic through on " + pgLink(17) + ": “The last repeat occurs at the displayed " +
+        "decay time, so a 300ms decay time with 3 evenly spaced heads would have repeats at 100ms, 200ms, " +
+        "and 300ms.” Here, " + heads + " heads divide <b>" + secs(T) + "</b> into " + heads + " equal steps. " +
+        "Every head is drawn at the same height: the manual says the machine runs with all heads on, and it " +
+        "prints no level for the individual heads."
+      : "“Uneven spacing scatters the heads which creates a more complex, less overtly rhythmic effect.” The " +
+        "manual does not print where the scattered heads land, so the drawing shows only the last head, which " +
+        "is the one the displayed time sets. Feedback in this mode “is taken from the last two heads.”";
+    $("#plotTitle").textContent = title; $("#plotMeta").textContent = meta; $("#plotCap").innerHTML = cap;
+    return;
+  }
+
+  /* --- everything else: pre-delay, onset, and the decay to −60 dB --- */
+  const pd = m.preName ? 0 : preSec(), rt = decaySec();
+  let tEnd = Math.max(.3, pd + rt * 1.15);
+  const swellMode = m.key === "swell" ? pidx(m, "Mode") : -1;
+  const rise = m.key === "swell" ? RISE[pidx(m, "Rise Time")] : 0;
+  if (m.key === "swell") tEnd = Math.max(tEnd, pd + rise + rt * .9);
+  const shape = m.key === "nonlinear" ? ["SWOOSH","REVERS","RAMP","GATE","GAUSS","BOUNCE"][pidx(m, "Shape")] : null;
+  const lateLvl = m.key === "nonlinear" ? pidx(m, "Late Level") / 18 : 0;
+  const lateDec = m.key === "nonlinear" ? pidx(m, "Late Decay") / 17 : 0;
+  if (m.key === "nonlinear" && lateLvl > 0) tEnd = Math.max(tEnd, rt * (1.25 + 2.4 * lateDec));
+  const bloomLen = m.key === "bloom" ? pidx(m, "Length") / 17 : 0;
+
+  /* The axis is the machine's whole documented decay range, so it holds still
+     while you turn DECAY. Scaling it to the current decay time drew every
+     setting as the same picture: curve and axis grew together, so a 0.4 s tail
+     and a 30 s tail filled the plot identically. Fixed at the maximum, the curve
+     really does reach further right as DECAY comes up.
+     Where the manual writes the top of the range with a "+" - Cloud's
+     "1.00S - +50.00S", the several "+20.00S" machines - the decay goes on past
+     the printed figure, and an axis cannot be drawn to infinity. Those use the
+     printed number, which is why a long tail can still reach the right-hand
+     edge. Parameters that outrun the decay itself (Nonlinear's late decay,
+     Swell's rise) push the axis out rather than being clipped.
+     The headroom here has to beat the pd + rt * 1.15 above, or the last few
+     percent of DECAY's travel would win the Math.max and re-expand the axis
+     after all - which is the whole thing this is here to stop. */
+  tEnd = Math.max(tEnd, pd + m.dec.hi * 1.15);
+
+  const g = drawFrame(w, h, tEnd, "time after the note");
+  const dB = t => Math.pow(10, -3 * t / rt);                    /* −60 dB at the decay time */
+  /* the vertical axis is decibels, so amplitudes are mapped through it and an
+     exponential decay draws as the straight line down to −60 dB that RT60 describes */
+  const dbY = a => clamp(1 + Math.log10(Math.max(a, 1e-4)) / 3);
+  const ramp = p => Math.pow(10, -3 * (1 - clamp(p)));        /* a rise that is straight in dB */
+
+  function wet(t){
+    if (m.key === "nonlinear"){
+      if (t <= rt){
+        const u = t / rt;
+        if (shape === "GATE") return 1;
+        if (shape === "GAUSS") return Math.exp(-Math.pow(u - .5, 2) / (2*.17*.17));
+        if (shape === "BOUNCE") return 1 - .95 * Math.exp(-Math.pow(u - .5, 2) / (2*.17*.17));
+        return ramp(u);                                          /* the three backwards shapes */
+      }
+      if (lateLvl <= 0) return 0;
+      const lt = rt * (0.3 + 2.2 * lateDec);
+      return lateLvl * Math.pow(10, -3 * (t - rt) / lt);
+    }
+    if (t < pd) return 0;
+    const u = t - pd;
+    if (m.key === "swell" && swellMode === 0) return ramp(u / rise) * dB(u);
+    if (m.key === "bloom"){
+      const bl = rt * (.05 + .55 * bloomLen);
+      return u < bl ? ramp(u / bl) : dB(u - bl);
+    }
+    return dB(u);
+  }
+  /* wet body */
+  ctx.beginPath(); ctx.moveTo(g.X(0), g.Y(0));
+  for (let px = 0; px <= 400; px++){ const t = tEnd * px / 400; ctx.lineTo(g.X(t), g.Y(dbY(wet(t)))); }
+  ctx.lineTo(g.X(tEnd), g.Y(0)); ctx.closePath();
+  ctx.fillStyle = PAL.wet2; ctx.fill();
+  ctx.beginPath();
+  for (let px = 0; px <= 400; px++){ const t = tEnd * px / 400, y = g.Y(dbY(wet(t))); px ? ctx.lineTo(g.X(t), y) : ctx.moveTo(g.X(t), y); }
+  ctx.strokeStyle = PAL.wet; ctx.lineWidth = 2; ctx.stroke();
+
+  /* dry reference, and the swelled dry where that is the mode */
+  ctx.strokeStyle = PAL.dry; ctx.lineWidth = 2;
+  if (m.key === "swell" && swellMode === 1){
+    ctx.beginPath();
+    for (let px = 0; px <= 200; px++){ const t = tEnd*px/200, v = g.Y(dbY(ramp(t/rise)));
+      px ? ctx.lineTo(g.X(t), v) : ctx.moveTo(g.X(t), v); }
+    ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.moveTo(g.X(0), g.Y(0)); ctx.lineTo(g.X(0), g.Y(1)); ctx.stroke();
+  }
+  ctx.font = '10px "DM Mono", monospace'; ctx.fillStyle = PAL.dim; ctx.textAlign = "left";
+  ctx.fillText(m.key === "swell" && swellMode === 1 ? "dry, swelled" : "dry", g.X(0) + 6, g.Y(1) + 11);
+
+  /* pre-delay bracket */
+  if (pd > 0.004){
+    ctx.strokeStyle = PAL.warn; ctx.setLineDash([3,3]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(g.X(pd), g.Y(0)); ctx.lineTo(g.X(pd), g.Y(1)); ctx.stroke();
+    ctx.setLineDash([]); ctx.fillStyle = PAL.warn; ctx.textAlign = "left";
+    ctx.fillText("pre-delay " + secs(pd), g.X(pd) + 4, g.Y(1) + 10);
+  }
+
+  meta = (m.decName || "decay") + " " + secs(rt) + (pd > .004 ? " · pre-delay " + secs(pd) : "");
+  title = m.name + " envelope";
+  cap = "The wet curve falls to &minus;60&nbsp;dB at the decay time the manual's range gives, which is the " +
+        "RT60 value the display shows. This page draws that curve from the decay time alone; Strymon's " +
+        "algorithm is not modelled here.";
+  if (m.key === "swell") cap = "Rise time is one of twenty-three settings the manual prints, and this one is <b>" +
+    RISE[pidx(m,"Rise Time")].toFixed(2) + "&nbsp;s</b>. On SWLWET the machine “swells in the wet signal behind " +
+    "your dry signal”; on SWLDRY it “swells the dry signal in front of the reverb”. This is set to " +
+    (swellMode === 0 ? "SWLWET, so the blue wet curve is the one that ramps." : "SWLDRY, so the grey dry curve is the one that ramps.");
+  if (m.key === "bloom") cap = "The bloom builds first, then feeds the tank, which decays. <b>The manual gives " +
+    "no figure in seconds for the bloom's length</b>, so the width of the rising part here follows the Length " +
+    "parameter's position and means nothing more than that; the numbered axis is the tank decay time. High " +
+    "Length or Feedback settings “can result in reverbs that are much longer than the displayed tank decay time.”";
+  if (m.key === "nonlinear") cap = "The numbered axis is the time the TIME knob sets, which is the nonlinear " +
+    "portion of the reverb. " +
+    (shape === "GATE" ? "“Gate generates an even amplitude profile with an abrupt cut-off.”" :
+     shape === "GAUSS" ? "“Gauss creates a ‘bell curve’ profile”." :
+     shape === "BOUNCE" ? "“Bounce creates an ‘anti-bell’ shape.”" :
+     "“Swoosh, Reverse, and Ramp all create ‘backwards’ effects with different slope profiles.” <b>The manual does not print those three profiles</b>, so all three are drawn as one plain rise.") +
+    (lateLvl > 0 ? " The tail after it is the late reverb, at Late Level " + pidx(m,"Late Level") + " of 18. <b>The manual gives no figure in seconds for the late reverb's decay</b>, so the length of that tail follows the Late Decay position and means nothing more than that."
+                 : " Late Level is at minimum, so the late reverb is off.");
+  if (m.key === "cloud") cap += " On Cloud the manual adds: “The cascaded input diffusion blocks create an " +
+    "expanded ‘early’ reverb. This results in a longer overall reverb time than the displayed tank decay " +
+    "time, most noticeable when the Decay knob is set to low values.” That extra reverb is not drawn here.";
+  $("#plotTitle").textContent = title; $("#plotMeta").textContent = meta; $("#plotCap").innerHTML = cap;
+}
+
+/* ---------------- hint bar ---------------- */
+function setHint(html, live, pgN){
+  const el = $("#hint");
+  el.dataset.live = live ? "true" : "false";
+  el.innerHTML = '<b>' + (live ? "You turned" : "Try this") + '</b><span>' + html +
+    (pgN ? '<a class="src" href="' + pgHref(pgN) + '" target="_blank" rel="noopener">manual pg. ' + pgN + '</a>' : "") + "</span>";
+}
+const KHINT = {
+  value:["Value", "An endless encoder, so it has no position of its own. “Turn for fine adjustment of Decay time when time is displayed. Scrolls through presets when bank or name is displayed. Push to access the PARAMETER menu, hold to access the GLOBAL menu.”", 2],
+  decay:["Decay", "", 4],
+  predelay:["Pre-Delay", "", 2],
+  mix:["Mix", "“Controls the balance of your analog dry signal and your wet signal, from 100% dry at minimum to 100% wet at maximum. 50/50 mix occurs when the Mix knob is set to 3:00.”", 2],
+  tone:["Tone", "“Lower settings create darker, warmer reverberation, higher settings are bright and crisp. Set at 12:00 for a nicely balanced top end.”", 2],
+  mod:["Mod", "", 2],
+  param1:["Param 1", "", 4],
+  param2:["Param 2", "", 4]
+};
+function hintFor(k){
+  const m = M();
+  if (k === "decay") return setHint("<b>" + (m.decName || "Decay") + "</b> on " + m.name + " — " +
+    (m.decNote || DECAY_STD) + " Range " + m.range.replace(/ — /," – ") + "." +
+    (m.rangeNote ? " " + m.rangeNote : ""), true, 4);
+  if (k === "predelay") return setHint(m.preName
+    ? "<b>Feedback</b> on " + m.name + " — " + m.pre
+    : "<b>Pre-Delay</b> — " + PRE_STD, true, m.preName ? m.pg : 2);
+  if (k === "mod") return setHint("<b>Mod</b> on " + m.name + " — " +
+    (m.mod || "the manual does not print what the modulator is doing on this machine."), true, m.mod ? m.pg : 2);
+  if (k === "param1" || k === "param2"){
+    const n = k === "param1" ? 0 : 1, p = m.params[assign()[n]];
+    return setHint("<b>" + p.n + "</b>, assigned to PARAM " + (n+1) + " — " + p.d.replace(/<select[\s\S]*$/, ""), true, m.pg);
+  }
+  const t = KHINT[k];
+  return setHint("<b>" + t[0] + "</b> — " + t[1], true, t[2]);
+}
+
+/* ---------------- knob dragging ---------------- */
+function setKnob(k, v){
+  if (k === "value"){ S.k.value = v; S.disp = "time"; }
+  else S.k[k] = clamp(v);
+  if (k === "param1" || k === "param2"){
+    const n = k === "param1" ? 0 : 1, pi = assign()[n];
+    S.pv[pvKey(M(), pi)] = clamp(v);
+    S.lastParam = pi; S.disp = "param";
+  }
+  if (k === "decay") S.disp = "time";
+  S.active = k;
+  hintFor(k);
+  render();
+}
+KNOBS.forEach(k => {
+  const el = pedal.querySelector('.kn[data-k="' + k + '"] .knob');
+  let dragging = false, y0 = 0, v0 = 0;
+  el.addEventListener("pointerdown", e => {
+    dragging = true; y0 = e.clientY;
+    v0 = k === "param1" || k === "param2" ? pvGet(M(), assign()[k === "param1" ? 0 : 1]) : S.k[k];
+    el.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  el.addEventListener("pointermove", e => { if (dragging) setKnob(k, v0 + (y0 - e.clientY) / 170); });
+  el.addEventListener("pointerup", () => dragging = false);
+  el.addEventListener("pointercancel", () => dragging = false);
+  el.addEventListener("keydown", e => {
+    const step = e.shiftKey ? .01 : .05;
+    const cur = k === "param1" || k === "param2" ? pvGet(M(), assign()[k === "param1" ? 0 : 1]) : S.k[k];
+    if (e.key === "ArrowUp" || e.key === "ArrowRight"){ setKnob(k, cur + step); e.preventDefault(); }
+    if (e.key === "ArrowDown" || e.key === "ArrowLeft"){ setKnob(k, cur - step); e.preventDefault(); }
+  });
+  el.addEventListener("click", () => { S.active = k; hintFor(k); render(); });
+});
+
+/* ---------------- TYPE, footswitches, buttons ---------------- */
+function setMachine(i, quiet){
+  S.mi = (i + MACHINES.length) % MACHINES.length;
+  const m = M();
+  S.lastParam = null; if (S.disp === "param") S.disp = "time";
+  S.active = null;
+  if (!quiet) setHint("<b>" + m.name + "</b> — " + m.desc, true, m.pg);
+  render();
+}
+document.querySelectorAll(".tled,.tname").forEach(b =>
+  b.addEventListener("click", () => setMachine(+b.dataset.mi)));
+$("#typeKnob").addEventListener("click", () => {
+  S.disp = S.disp === "bank" ? "time" : "bank";
+  setHint("<b>Type</b> — “Turn to select desired reverb machine. Push to toggle the display to show Decay " +
+    "time or the current bank. Hold to save current preset.” The diagram on " + pgLink(4) + " gives the push " +
+    "as a toggle between three displays: <b>BANK</b>, <b>NAME</b> and <b>TIME</b>. The ring of LEDs runs " +
+    "clockwise in the order the manual prints the machines.", true, 2);
+  render();
+});
+$("#typeKnob").addEventListener("keydown", e => {
+  if (e.key === "ArrowUp" || e.key === "ArrowRight"){ setMachine(S.mi + 1); e.preventDefault(); }
+  if (e.key === "ArrowDown" || e.key === "ArrowLeft"){ setMachine(S.mi - 1); e.preventDefault(); }
+});
+pedal.querySelectorAll(".fsw").forEach(b => b.addEventListener("click", () => {
+  const f = b.dataset.f;
+  if (S.slot === f) S.engaged = !S.engaged; else { S.slot = f; S.engaged = true; }
+  setHint("Footswitch <b>" + f + "</b>, bank " + String(S.bank).padStart(2,"0") +
+    ". “Press to engage or bypass preset of the current bank. Hold for Infinite Sustain or Freeze " +
+    "(selectable via PARAMETER menu). Press A &amp; B to select a lower bank. Press B &amp; C to select a " +
+    "higher bank.” And the LEDs: “Green if active. Amber if the preset has been edited. Off if bypassed.”", true, 2);
+  render();
+}));
+$("#btnPrev").addEventListener("click", () => setMachine(S.mi - 1));
+$("#btnNext").addEventListener("click", () => setMachine(S.mi + 1));
+$("#btnReset").addEventListener("click", () => {
+  S.k = Object.assign({}, DEFAULTS); S.pv = {}; S.as = {}; S.active = null; S.disp = "time";
+  setHint("Knobs back to where this page starts them. That starting point is this page's own choice; the " +
+    "manual publishes the knob positions of no factory preset.", true, null);
+  render();
+});
+$("#dockGo").addEventListener("click", () =>
+  document.querySelector(".machine").scrollIntoView({behavior:"smooth", block:"start"}));
+
+/* ---------------- the remap table ---------------- */
+/* the MOD column carries the manual's own sentence; where the manual writes more than one,
+   the first is shown and the quotation is closed with an ellipsis */
+function firstSentence(t){
+  if (!t) return "";
+  const quoted = t.charAt(0) === "“";
+  const body = quoted ? t.replace(/^“/, "").replace(/”$/, "") : t;
+  const cut = body.indexOf(". ");
+  const one = cut < 0 ? body : body.slice(0, cut) + "…";
+  return quoted ? "“" + one + "”" : one;
+}
+(function buildRemap(){
+  $("#remapTable tbody").innerHTML = MACHINES.map((m, i) =>
+    '<tr data-mi="' + i + '">' +
+      '<td class="nm"><button data-mi="' + i + '">' + m.name + "</button></td>" +
+      '<td><b>' + (m.decName || "Decay") + "</b><br><span class='mono' style='font-size:.82rem'>" +
+        m.range.replace(/ — /, " – ") + "</span></td>" +
+      "<td>" + (m.preName ? "<b>Feedback</b>" : "Pre-delay, 0 – 1.5 S") + "</td>" +
+      "<td>" + (m.mod ? firstSentence(m.mod) : "<span style='color:var(--ink-3)'>Not printed</span>") + "</td>" +
+      "<td>" + m.params.map(p => p.n).join(" · ") + "</td>" +
+      '<td class="mono"><a href="' + pgHref(m.pg) + '" target="_blank" rel="noopener">pg. ' + m.pg + "</a></td>" +
+    "</tr>").join("");
+  $("#remapTable").addEventListener("click", e => {
+    const b = e.target.closest("button[data-mi]");
+    if (b){ setMachine(+b.dataset.mi); document.querySelector(".machine").scrollIntoView({behavior:"smooth", block:"start"}); }
+  });
+})();
+
+/* ---------------- the machine cards ---------------- */
+(function buildCards(){
+  $("#mcards").innerHTML = MACHINES.map((m, i) =>
+    '<article class="mcard" data-mi="' + i + '">' +
+      "<header><h3>" + m.name + '</h3><span class="num">' + (i+1) + " of 12</span></header>" +
+      '<div class="body"><p>' + m.desc + "</p>" +
+        '<span class="rng"><b>' + (m.decName || "Decay") + ":</b> " + m.range.replace(/ — /, " – ") +
+          (m.decNote ? " — " + m.decNote : "") + "</span>" +
+        "<dl>" + m.params.map(p =>
+          "<dt>" + p.n + (p.kind === "list" ? " · " + p.vals.length + " settings" : " · " + p.steps + " steps") +
+          ' <span style="color:var(--ink-3);font-weight:500">CC ' + p.cc + "</span></dt><dd>" + p.d + "</dd>").join("") + "</dl>" +
+        (m.tips.length ? '<div class="tips"><span class="lbl">Strymon&rsquo;s tips</span><ul>' +
+          m.tips.map(t => "<li>" + t + "</li>").join("") + "</ul></div>" : "") +
+      "</div>" +
+      '<footer><button class="btn" data-load="' + i + '">Load into the pedal</button>' +
+        '<a href="' + pgHref(m.pg) + '" target="_blank" rel="noopener">Manual pg. ' + m.pg + "</a></footer>" +
+    "</article>").join("");
+  $("#mcards").addEventListener("click", e => {
+    const b = e.target.closest("button[data-load]");
+    if (b){ setMachine(+b.dataset.load); document.querySelector(".machine").scrollIntoView({behavior:"smooth", block:"start"}); }
+  });
+})();
+
+/* ---------------- the manual index ---------------- */
+(function buildIndex(){
+  const groups = [
+    ["Sections", [
+      ["Front panel controls", 2], ["Rear panel", 3], ["Reverb time ranges and display", 4],
+      ["PARAM 1 &amp; 2 controls", 4], ["EXP connections", 5], ["Banks, presets and saving", 6],
+      ["Editing parameters", 6], ["Common parameters", 7], ["Globals menu", 20],
+      ["Globals menu, continued", 21], ["Cab filter", 22], ["MIDI specification", 23],
+      ["Specifications", 24], ["Warranty", 25]
+    ]],
+    ["The twelve machines", MACHINES.map(m => [m.name, m.pg])]
+  ];
+  $("#mindex").innerHTML = groups.map(([g, rows]) =>
+    '<div class="grp lbl">' + g + "</div>" +
+    rows.map(([t, p]) => '<a href="' + pgHref(p) + '" target="_blank" rel="noopener">' +
+      '<span class="t">' + t + '</span><span class="n">pg. ' + p + "</span></a>").join("")).join("");
+})();
+
+/* ---------------- boot ---------------- */
+function render(){
+  renderPedal(); renderKmap(); renderStrip(); drawPlot();
+  document.querySelectorAll(".mcard").forEach(c => c.classList.toggle("on", +c.dataset.mi === S.mi));
+  document.querySelectorAll("#remapTable tbody tr").forEach(r => r.classList.toggle("on", +r.dataset.mi === S.mi));
+}
+$("#simkey").innerHTML = "A dot marks the knob you last moved. Every knob here turns, and the four that change " +
+  "meaning between machines — DECAY, PRE-DELAY, PARAM 1 and PARAM 2 — are relabelled when you turn TYPE. " +
+  "Nothing on this page makes a sound.";
+$("#disclaim").innerHTML =
+  "<b>What is the manual's and what is this page's.</b> The text in quotation marks above is Strymon's own, " +
+  "copied from the pages linked beside it. The numbers this page works out for itself are marked " +
+  "<span class='inf solo'>calc</span> and are these: " +
+  "<em>DECAY</em> is interpolated between the two ends of the range the manual prints for each machine — the " +
+  "taper in between is not published. <em>PRE-DELAY</em> is interpolated the same way across the 0 to 1.5 second " +
+  "span. <em>MIX</em> is reported as a clock position rather than a percentage, because the manual fixes only " +
+  "three points on it: 100% dry at minimum, 50/50 at 3:00, 100% wet at maximum. " +
+  "<em>Magneto's</em> repeat times are the manual's own arithmetic: the last repeat lands at the displayed time, " +
+  "and even spacing divides that time equally between the heads. They are shown for even spacing only, because " +
+  "the manual says uneven spacing scatters the heads without saying where they land. <em>Reflections'</em> room " +
+  "is interpolated between the two sizes the manual gives, and drawn in the three shapes it prints. The manual's " +
+  "own figures do not multiply out exactly: 31&prime;&nbsp;×&nbsp;31&prime; is 961 square feet, not the 1000 " +
+  "the text names. <em>Nonlinear's</em> Gate, Gauss and Bounce are drawn from the manual's descriptions of them; " +
+  "Swoosh, Reverse and Ramp are drawn as one rising shape, because the manual says the three have different " +
+  "slope profiles without printing them. <em>Bloom's</em> Length, and Late Decay, Late Level, Diffusion, Low " +
+  "End, Mid and the rest, are printed with no units at all, so this page shows a position in the range and " +
+  "nothing else. The number of positions in each range comes from the MIDI value ranges on " + pgLink(23) + ". " +
+  "The display carries the manual's own word for a setting where that word fits the six characters the display " +
+  "has; where the word is longer, it carries the position number instead, because the pedal's own abbreviation " +
+  "for it is printed nowhere in the manual. The knob positions this page starts on are this page's own choice: " +
+  "the manual publishes the knob positions of no factory preset. It publishes no factory assignment for either " +
+  "PARAM knob either, so the selectors start on the first two parameters in its own listing for the machine.";
+
+new ResizeObserver(() => drawPlot()).observe(cv);
+window.addEventListener("resize", () => drawPlot());
+const dock = $("#dock"), anchor = document.querySelector(".machine");
+new IntersectionObserver(es => es.forEach(e => dock.dataset.on = String(!e.isIntersecting)),
+  {rootMargin:"-80px 0px 0px 0px"}).observe(anchor);
+
+setHint("Turn the <b>TYPE</b> encoder — click any machine name around it — and watch DECAY, PRE-DELAY, MOD and " +
+  "the two PARAM knobs change what they mean. Then drag a knob.", false, 2);
+setMachine(0, true);
+})();
+</script>

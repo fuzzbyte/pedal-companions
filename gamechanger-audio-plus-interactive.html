@@ -1,0 +1,1274 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PLUS Pedal, Knob by Knob</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23D9B276'/><path d='M16 6.5v19M6.5 16h19' stroke='%23161616' stroke-width='5' stroke-linecap='round'/></svg>">
+<script>
+/* Theme: apply the reader's stored pick before first paint, then wire the header toggle. */
+(function(){
+  var root = document.documentElement, KEY = "pedal-theme";
+  try {
+    var saved = localStorage.getItem(KEY);
+    if (saved === "light" || saved === "dark") root.dataset.theme = saved;
+  } catch(e){}
+  var isDark = function(){
+    return root.dataset.theme ? root.dataset.theme === "dark"
+                              : matchMedia("(prefers-color-scheme: dark)").matches;
+  };
+  addEventListener("DOMContentLoaded", function(){
+    var btn = document.querySelector(".themetoggle");
+    if (!btn) return;
+    var sync = function(){
+      var label = "Switch to the " + (isDark() ? "light" : "dark") + " theme";
+      btn.setAttribute("aria-label", label);
+      btn.title = label;
+    };
+    btn.addEventListener("click", function(){
+      root.dataset.theme = isDark() ? "light" : "dark";
+      try { localStorage.setItem(KEY, root.dataset.theme); } catch(e){}
+      sync();
+    });
+    sync();
+  });
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=DM+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap">
+
+<style>
+:root{
+  --bg:#EFEAE0; --surface:#F8F5EE; --surface-2:#E8E1D4;
+  --line:#D6CCBB; --line-soft:#E2D9CA;
+  --ink:#1D1A15; --ink-2:#5B5349; --ink-3:#8A8073;
+  --tint:#0E0C09;
+  --shadow:0 1px 0 rgba(29,26,21,.04), 0 12px 32px -20px rgba(29,26,21,.45);
+
+  /* the enclosure: Gamechanger's black box and its brass treadle */
+  --panel:#191919; --panel-2:#0D0D0D;
+  --panel-ink:#FFFFFF; --panel-ink-2:rgba(255,255,255,.52);
+  --brass:#E3C68F; --brass-2:#B9955C; --brass-3:#8E6F3E;
+  --knob-body:#242424; --knob-edge:#3A3A3A;
+
+  --accent:#B2853A;
+  --accent-text:#8A631F;
+  --warn:#C0561E;
+  --wet:#5C9BE6;
+  --r:14px; --step:clamp(2.6rem, 5vw, 4.4rem);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121110; --surface:#1A1816; --surface-2:#221F1C;
+    --line:#2F2A25; --line-soft:#262220;
+    --ink:#EDE6DA; --ink-2:#A79D90; --ink-3:#736B60;
+    --tint:#FFF7EA;
+    --shadow:0 1px 0 rgba(255,255,255,.02), 0 16px 40px -24px rgba(0,0,0,.9);
+    --accent:#D8B276;
+    --accent-text:#E0BC7C;
+    --warn:#E8A15C;
+    --wet:#7FB3EE;
+    --panel:#1E1E1E; --panel-2:#101010;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121110; --surface:#1A1816; --surface-2:#221F1C;
+  --line:#2F2A25; --line-soft:#262220;
+  --ink:#EDE6DA; --ink-2:#A79D90; --ink-3:#736B60;
+  --tint:#FFF7EA;
+  --shadow:0 1px 0 rgba(255,255,255,.02), 0 16px 40px -24px rgba(0,0,0,.9);
+  --accent:#D8B276;
+  --accent-text:#E0BC7C;
+  --warn:#E8A15C;
+  --wet:#7FB3EE;
+  --panel:#1E1E1E; --panel-2:#101010;
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Newsreader",Georgia,"Times New Roman",serif;
+  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
+#app{max-width:1160px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 96px}
+h1,h2,h3,h4,.lbl,.mono,button,th{font-family:"Archivo",system-ui,-apple-system,"Helvetica Neue",sans-serif}
+h1,h2,h3{text-wrap:balance;margin:0}
+.mono,code{font-family:"DM Mono","SFMono-Regular",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+a{color:var(--accent-text)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+.lbl{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.lbl-a{color:var(--accent-text)}
+em{font-style:italic}
+
+header.top{padding:clamp(40px,7vw,84px) 0 clamp(30px,4vw,46px)}
+.backlink{flex:none;display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);text-decoration:none;padding-right:12px;border-right:1px solid var(--line)}
+.backlink:hover{color:var(--ink)}
+.backlink .bk-arrow{font-size:13px;letter-spacing:0;transition:transform .14s ease}
+.backlink:hover .bk-arrow{transform:translateX(-3px)}
+@media (max-width:560px){.brandline{flex-wrap:wrap}.backlink{flex-basis:100%;border-right:0;padding-right:0;margin-bottom:2px}}
+/* The page follows the OS until the reader picks a side; after that [data-theme] on
+   <html> wins, and the pick is remembered. The button is an invitation to swap, so it
+   wears the theme it offers: a moon in dark colours on a light page, a sun in light
+   colours on a dark page. --tt-* is the opposite palette, cross-wired for that reason,
+   and held here rather than beside the tokens it inverts. */
+:root{color-scheme:light;--tt-surface:#1A1816;--tt-line:#2F2A25;--tt-ink:#EDE6DA;--tt-ink-3:#736B60}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;--tt-surface:#F8F5EE;--tt-line:#D6CCBB;--tt-ink:#1D1A15;--tt-ink-3:#8A8073}}
+:root[data-theme="dark"]{color-scheme:dark;--tt-surface:#F8F5EE;--tt-line:#D6CCBB;--tt-ink:#1D1A15;--tt-ink-3:#8A8073}
+.themetoggle{flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;
+  border:1px solid var(--tt-line);border-radius:8px;background:var(--tt-surface);color:var(--tt-ink-3);cursor:pointer;
+  transition:color .15s,border-color .15s}
+.themetoggle:hover{color:var(--tt-ink);border-color:var(--tt-ink-3)}
+.themetoggle svg{display:block;width:15px;height:15px}
+.themetoggle .i-sun{display:none}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .themetoggle .i-moon{display:none}
+  :root:not([data-theme="light"]) .themetoggle .i-sun{display:block}
+}
+:root[data-theme="dark"] .themetoggle .i-moon{display:none}
+:root[data-theme="dark"] .themetoggle .i-sun{display:block}
+.brandline{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.brandline .rule{flex:1;height:1px;background:var(--line)}
+.brandline .unoff{text-align:right;font-weight:700;color:var(--accent-text)}
+h1{font-size:clamp(3rem,10vw,6.4rem);font-weight:700;letter-spacing:-.045em;line-height:.86;text-transform:uppercase}
+h1 .thin{display:block;font-weight:500;font-size:.15em;letter-spacing:.24em;color:var(--ink-3);margin-top:1.5em}
+.headrow{display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start;margin-top:30px}
+.dek{flex:1 1 34ch;margin:0;color:var(--ink-2);max-width:62ch}
+
+.getmanual{
+  display:flex;align-items:center;gap:16px;flex:0 1 30ch;
+  padding:15px 19px;border:1px solid var(--accent);border-radius:var(--r);
+  background:color-mix(in oklab, var(--accent) 10%, var(--surface));
+  text-decoration:none;color:var(--ink);box-shadow:var(--shadow);
+  transition:background .15s,transform .15s}
+.getmanual:hover{background:color-mix(in oklab, var(--accent) 20%, var(--surface));transform:translateY(-1px)}
+.getmanual .gm-txt{flex:1;min-width:0}
+.getmanual b{display:block;font-family:"Archivo",sans-serif;font-size:1.02rem;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+.getmanual small{display:block;margin-top:3px;font-size:.86rem;color:var(--ink-2)}
+.getmanual .gm-arrow{font-size:1.2rem;color:var(--accent-text)}
+
+.makerbar{display:grid;grid-template-columns:1fr 1fr;gap:16px 26px;
+  margin-top:26px;padding:16px 20px;background:var(--surface);
+  border:1px solid var(--line);border-left:3px solid var(--accent);
+  border-radius:12px;box-shadow:var(--shadow)}
+.makerbar p{margin:4px 0 0;font-size:.95rem;color:var(--ink-2);max-width:52ch}
+.makerbar b{font-family:"Archivo",sans-serif;font-weight:600;color:var(--ink)}
+@media (max-width:760px){ .makerbar{grid-template-columns:1fr} }
+
+section{padding-top:var(--step)}
+.shead{display:flex;align-items:baseline;gap:14px;margin-bottom:20px}
+.shead h2{font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:700;letter-spacing:-.03em}
+.shead .rule{flex:1;height:1px;background:var(--line)}
+.shead .pg{white-space:nowrap}
+.sdek{max-width:68ch;color:var(--ink-2);margin:-6px 0 26px}
+.sdek + .sdek{margin-top:-16px}
+
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(235px,1fr))}
+.card{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:18px 20px;box-shadow:var(--shadow)}
+.card h3{font-size:1.06rem;font-weight:600;letter-spacing:-.01em;margin-bottom:6px}
+.card p{margin:0;color:var(--ink-2);font-size:.95rem}
+.card p + p{margin-top:9px}
+.card b{font-weight:500;color:var(--ink)}
+
+.note{display:flex;gap:10px;padding:13px 16px;border-radius:10px;font-size:.9rem;line-height:1.5;
+  background:color-mix(in oklab, var(--accent) 12%, var(--surface));
+  border:1px solid color-mix(in oklab, var(--accent) 40%, transparent);color:var(--ink)}
+.note.plain{background:var(--surface);border-color:var(--line)}
+.note h4{font-family:"Archivo",sans-serif;font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent-text);margin:0 0 4px;font-weight:600}
+.note strong{font-weight:500}
+.note p{margin:0}
+.note p + p{margin-top:7px}
+
+/* something this page says that the manual does not */
+.ours{display:block;margin-top:6px;font-family:"Archivo",sans-serif;font-size:.76rem;line-height:1.45;
+  letter-spacing:.01em;color:var(--warn)}
+.ours::before{content:"Not in the manual — ";font-weight:700;letter-spacing:.05em;text-transform:uppercase;font-size:.9em}
+
+a.ppg{font-family:"DM Mono",monospace;font-size:.78rem;color:var(--ink-3);text-decoration:none;
+  border-bottom:1px dotted var(--line);white-space:nowrap}
+a.ppg:hover{color:var(--accent-text);border-bottom-color:var(--accent)}
+
+/* ============ the console ============ */
+.console{display:grid;grid-template-columns:minmax(250px,320px) 1fr;gap:clamp(20px,3vw,38px);align-items:start}
+@media (max-width:900px){ .console{grid-template-columns:1fr} }
+.pedal-col{position:sticky;top:20px;display:flex;flex-direction:column;gap:12px}
+@media (max-width:900px){ .pedal-col{position:static} }
+
+.pedal{position:relative;width:100%;max-width:min(300px, calc((100vh - 150px) * 0.4615));margin:0 auto;
+  aspect-ratio:90/195;
+  background:linear-gradient(172deg, var(--panel), var(--panel-2));
+  border-radius:5%/2.4%;
+  box-shadow:0 30px 60px -34px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.14);
+  color:var(--panel-ink);container-type:inline-size;touch-action:none;user-select:none}
+
+.statled{position:absolute;left:50%;top:5.6%;width:4.4cqw;aspect-ratio:1;border-radius:50%;
+  transform:translate(-50%,-50%);background:#2C2A22;box-shadow:inset 0 0 3px rgba(0,0,0,.8)}
+.statled[data-lvl="half"]{background:#8E7A2E;box-shadow:0 0 6px rgba(214,186,92,.55)}
+.statled[data-lvl="full"]{background:#F2DC7A;box-shadow:0 0 14px rgba(242,220,122,.9)}
+
+.plusmark{position:absolute;left:50%;top:12.6%;width:26cqw;transform:translate(-50%,-50%);pointer-events:none}
+.plusmark svg{width:100%;height:auto;display:block}
+
+.knob{position:absolute;width:17cqw;aspect-ratio:1;transform:translate(-50%,-50%);
+  border-radius:50%;cursor:ns-resize;background:none;border:0;padding:0}
+.knob .cap{position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 38% 30%, var(--knob-edge), var(--knob-body) 70%);
+  box-shadow:0 3px 8px -3px rgba(0,0,0,.75), inset 0 0 0 1px rgba(255,255,255,.09);
+  transition:transform .04s linear}
+.knob .cap::after{content:"";position:absolute;left:50%;top:9%;width:8%;height:34%;
+  transform:translateX(-50%);border-radius:1.5px;background:#F2F0EA}
+.knob:focus-visible{outline:none}
+.knob:focus-visible .cap{outline:2px solid var(--brass);outline-offset:4px}
+.knob.active .cap{box-shadow:0 0 0 2px var(--brass), 0 3px 8px -3px rgba(0,0,0,.75)}
+
+.klbl{position:absolute;transform:translateX(-50%);text-align:center;white-space:nowrap;
+  font-family:"Archivo",sans-serif;font-size:3.9cqw;font-weight:600;letter-spacing:.09em;
+  color:var(--panel-ink);pointer-events:none}
+.kend{position:absolute;transform:translate(-50%,-50%);font-family:"Archivo",sans-serif;
+  font-size:3.4cqw;font-weight:600;color:var(--panel-ink-2);pointer-events:none;line-height:1}
+.kend.gl{width:5cqw;display:block}
+.kend.gl svg{width:100%;height:auto;display:block;fill:none;
+  stroke:var(--panel-ink-2);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+
+.treadle{position:absolute;left:50%;top:37.6%;width:36cqw;transform:translateX(-50%);
+  pointer-events:none}
+.treadle svg{width:100%;height:auto;display:block;overflow:visible}
+.treadle .body{fill:url(#brassgrad);stroke:rgba(0,0,0,.35);stroke-width:.5}
+.treadle .bowl{fill:rgba(0,0,0,.13)}
+.trbtn{position:absolute;left:50%;top:37.6%;width:36cqw;height:130cqw;transform:translateX(-50%);
+  background:none;border:0;padding:0;cursor:pointer;border-radius:18cqw}
+.trbtn:focus-visible{outline:2px solid var(--brass);outline-offset:3px}
+.pedal[data-press="half"] .treadle{transform:translateX(-50%) perspective(400px) rotateX(6deg)}
+.pedal[data-press="full"] .treadle{transform:translateX(-50%) perspective(400px) rotateX(13deg)}
+.treadle{transition:transform .12s ease-out}
+
+.slidesw{position:absolute;right:-2.5cqw;width:5cqw;height:9cqw;border-radius:1.4cqw;
+  background:#3A3A3A;border:0;padding:0;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.5)}
+.slidesw i{position:absolute;left:.7cqw;width:3.6cqw;height:3.6cqw;border-radius:.9cqw;
+  background:var(--brass);transition:top .13s ease}
+.slidesw[data-on="a"] i{top:.8cqw}
+.slidesw[data-on="b"] i{top:4.6cqw}
+.swtag{position:absolute;right:3.6cqw;font-family:"Archivo",sans-serif;font-size:2.7cqw;
+  font-weight:600;letter-spacing:.08em;color:var(--panel-ink-2);text-align:right;white-space:nowrap;pointer-events:none}
+.swtag b{color:var(--panel-ink);font-weight:700}
+
+.hint{min-height:50px;display:flex;align-items:center;gap:10px;padding:10px 14px;
+  border:1px dashed var(--line);border-radius:10px;background:var(--surface);
+  font-size:.86rem;color:var(--ink-2);line-height:1.45}
+.hint[data-live="true"]{border-style:solid;border-color:var(--accent);color:var(--ink)}
+
+button.btn{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  padding:8px 13px;border-radius:8px;cursor:pointer;background:var(--surface);color:var(--ink);
+  border:1px solid var(--line);transition:background .15s,border-color .15s,color .15s}
+button.btn:hover{border-color:var(--accent);color:var(--accent-text)}
+button.btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#17130C}
+button.btn.wide{width:100%}
+.btnrow{display:flex;flex-wrap:wrap;gap:6px}
+
+.readout{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden;box-shadow:var(--shadow)}
+.rhead{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between;
+  padding:16px 20px 13px;border-bottom:1px solid var(--line-soft);background:var(--surface-2)}
+.rhead h3{font-size:1.15rem;font-weight:700;letter-spacing:-.02em}
+
+.krow{display:grid;grid-template-columns:1fr auto;gap:6px 16px;padding:15px 20px;
+  border-bottom:1px solid var(--line-soft);transition:background .18s}
+.krow:last-of-type{border-bottom:0}
+.krow.active{background:color-mix(in oklab, var(--accent) 11%, transparent)}
+.krow .pname{font-family:"Archivo",sans-serif;font-weight:600;font-size:1rem;letter-spacing:.04em}
+.krow .pname small{font-family:"Newsreader",serif;font-weight:400;letter-spacing:0;font-size:.86rem;color:var(--ink-3);margin-left:8px}
+.krow .val{text-align:right;font-size:.9rem;line-height:1.3;white-space:nowrap}
+.krow .val .clock{font-family:"DM Mono",monospace;font-weight:500;color:var(--ink)}
+.krow .val .pct{display:block;color:var(--ink-3);font-size:.76rem}
+.krow .pdesc{grid-column:1/-1;font-size:.93rem;color:var(--ink-2);margin-top:1px}
+.krow .pdesc .maker{color:var(--ink);font-style:italic}
+.krow .pdesc .flag{color:var(--warn)}
+
+/* the layer stack */
+.slots{display:grid;gap:7px;padding:16px 20px 18px;border-top:1px solid var(--line-soft)}
+.slot{display:grid;grid-template-columns:22px 1fr 90px;gap:11px;align-items:center}
+.slot .sn{font-family:"DM Mono",monospace;font-size:.78rem;color:var(--ink-3)}
+.slot .bar{position:relative;height:15px;border-radius:4px;background:var(--surface-2);
+  border:1px solid var(--line-soft);overflow:hidden}
+.slot .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--wet);opacity:.85;border-radius:3px}
+.slot[data-muffled="true"] .bar i{background:repeating-linear-gradient(90deg,var(--wet) 0 4px,color-mix(in oklab,var(--wet) 45%,transparent) 4px 8px)}
+.slot[data-held="true"] .bar{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.slot .st{font-family:"Archivo",sans-serif;font-size:9.5px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);text-align:right}
+.slot[data-held="true"] .st{color:var(--accent-text)}
+.slot[data-off="true"]{opacity:.42}
+.slotcap{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:baseline;
+  padding:0 20px 16px;font-size:.85rem;color:var(--ink-3)}
+
+/* the sampling timeline */
+.timing{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);
+  padding:18px 20px 16px;box-shadow:var(--shadow)}
+.timing svg{width:100%;height:auto;display:block;touch-action:none;cursor:ew-resize}
+.tl-env{fill:color-mix(in oklab, var(--ink) 14%, transparent);stroke:none}
+.tl-cap{fill:color-mix(in oklab, var(--wet) 38%, transparent)}
+.tl-line{stroke:var(--accent);stroke-width:2}
+.tl-grab{fill:var(--accent)}
+.tl-axis{stroke:var(--line);stroke-width:1}
+.tl-txt{font-family:"Archivo",sans-serif;font-size:8px;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;fill:var(--ink-3)}
+.tl-loop{fill:none;stroke:var(--wet);stroke-width:1.5;opacity:.75}
+.tl-out{margin:14px 0 0;font-size:.95rem;color:var(--ink-2)}
+.tl-out b{font-family:"Archivo",sans-serif;font-weight:600;color:var(--ink)}
+
+/* signal path */
+.path{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:18px 20px;box-shadow:var(--shadow)}
+.path svg{width:100%;height:auto;display:block}
+.pt-box{fill:var(--surface-2);stroke:var(--line)}
+.pt-txt{font-family:"Archivo",sans-serif;font-size:7px;font-weight:600;letter-spacing:.06em;fill:var(--ink-2)}
+.pt-lbl{font-family:"Archivo",sans-serif;font-size:6px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;fill:var(--ink-3)}
+.pt-dry{stroke:var(--ink-3);stroke-width:1.6;fill:none}
+.pt-wetl{stroke:var(--wet);stroke-width:1.6;fill:none}
+.pt-mute{stroke-dasharray:3 3;opacity:.3}
+
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:520px}
+th,td{text-align:left;padding:11px 16px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+th{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);background:var(--surface-2)}
+tr:last-child td{border-bottom:0}
+td.mono{color:var(--ink-2);white-space:nowrap;font-family:"DM Mono",monospace;font-size:.82rem}
+td b{font-weight:500}
+
+.presets{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:12px}
+.preset{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:16px 18px;box-shadow:var(--shadow)}
+.preset .pt{display:flex;align-items:baseline;gap:9px;margin-bottom:7px}
+.preset h3{font-size:1.02rem;font-weight:700;letter-spacing:.06em}
+.preset .md{font-family:"Archivo",sans-serif;font-size:9px;font-weight:600;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--accent-text);border:1px solid var(--accent);border-radius:5px;padding:3px 6px}
+.preset p{margin:0;font-size:.93rem;color:var(--ink-2)}
+.preset .known{margin-top:9px;padding-top:9px;border-top:1px solid var(--line-soft);font-size:.86rem;color:var(--ink)}
+.preset .known .lbl{display:block;margin-bottom:3px}
+
+.mindex{display:grid;grid-template-columns:repeat(auto-fit,minmax(262px,1fr));gap:10px 22px}
+.mindex a{display:flex;align-items:baseline;gap:10px;text-decoration:none;color:var(--ink-2);
+  padding:7px 11px;border:1px solid var(--line-soft);border-radius:9px;background:var(--surface);
+  transition:border-color .15s,color .15s,background .15s}
+.mindex a:hover{border-color:var(--accent);color:var(--ink);background:var(--surface-2)}
+.mindex a .t{flex:1;font-family:"Archivo",sans-serif;font-size:.9rem;font-weight:600}
+.mindex a .n{font-family:"DM Mono",monospace;font-size:.8rem;color:var(--ink-3);white-space:nowrap}
+.mindex a:hover .n{color:var(--accent-text)}
+
+footer.end{margin-top:var(--step);padding-top:22px;border-top:1px solid var(--line);color:var(--ink-3);
+  font-size:.88rem;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+}
+/* ---------- work in progress ---------- */
+/* The page is unfinished, so it says so above everything else on it. Its own colours
+   rather than the pedal's or the theme's accent - a warning that borrows the palette
+   stops reading as one - and every value carries its [data-theme] twin, so a reader
+   who has forced a theme gets the same warning as one following the OS. */
+:root{--wip-bg:#FBF1D9;--wip-line:#E7D4A4;--wip-edge:#A0700F;--wip-ink:#5A4520}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--wip-bg:#231C11;--wip-line:#3C3120;--wip-edge:#D9A441;--wip-ink:#CDBB9A}
+}
+:root[data-theme="dark"]{--wip-bg:#231C11;--wip-line:#3C3120;--wip-edge:#D9A441;--wip-ink:#CDBB9A}
+.wipbar{
+  display:flex;align-items:baseline;gap:6px 14px;flex-wrap:wrap;
+  margin:18px 0 0;padding:14px 18px;
+  background:var(--wip-bg);color:var(--wip-ink);
+  border:1px solid var(--wip-line);border-left:5px solid var(--wip-edge);
+  border-radius:11px;
+}
+.wipbar b{
+  font-family:"Archivo",system-ui,sans-serif;font-weight:700;font-size:12px;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--wip-edge);
+}
+.wipbar p{margin:0;flex:1 1 24ch;font-size:.95rem;line-height:1.55}
+.wipbar a{color:var(--wip-edge)}
+</style>
+
+<div id="app">
+<div class="wipbar" role="note">
+  <b>Work in progress</b>
+  <p>This page is unfinished and has not been checked against <a href="https://gamechangeraudio.com/wp-content/uploads/2020/09/PLUS_manual_download.pdf" target="_blank" rel="noopener">Gamechanger Audio's manual</a>. Some of what it says may be wrong; where the two differ, the manual is right.</p>
+</div>
+
+<header class="top">
+  <div class="brandline">
+    <a class="backlink" href="index.html"><span class="bk-arrow" aria-hidden="true">&#8592;</span>All manuals</a>
+    <span class="lbl">Gamechanger Audio</span><span class="rule"></span>
+    <span class="lbl unoff">Unofficial companion to the manual · not affiliated with Gamechanger Audio</span>
+    <button class="themetoggle" type="button" aria-label="Switch theme"><svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg><svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2M12 19.4v2M4.6 4.6 6 6M18 18l1.4 1.4M2.6 12h2M19.4 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg></button>
+  </div>
+  <h1>PLUS Pedal<span class="thin">Sustain unit for melodic instruments</span></h1>
+
+  <div class="headrow">
+    <p class="dek">Printed page 2: “The PLUS pedal is a new kind of audio processing engine
+    that offers piano-style sustain/sostenuto effects for electric guitars and all other
+    melodic instruments.” It records your instrument the whole time it is on. Press the
+    treadle and it takes the ringing part of the note or chord you just played and loops it.</p>
+    <a class="getmanual" href="https://gamechangeraudio.com/wp-content/uploads/2020/09/PLUS_manual_download.pdf" target="_blank" rel="noopener">
+      <span class="gm-txt">
+        <b>Read the official manual</b>
+        <small>PLUS Pedal user's manual · PDF, 1.6&nbsp;MB, 16 printed pages</small>
+      </span>
+      <span class="gm-arrow" aria-hidden="true">&#8595;</span>
+    </a>
+  </div>
+
+  <div class="makerbar">
+    <div>
+      <span class="lbl lbl-a">Gamechanger asks</span>
+      <p><b>“For best results we ask you to place the PLUS Pedal FIRST in your signal
+      chain.”</b> Printed page 2.</p>
+    </div>
+    <div>
+      <span class="lbl lbl-a">And requires</span>
+      <p><b>“Use only power supplies that can produce at least 200mA of current at 9V DC
+      (center negative 5.5 x 2.1mm barrel connector).”</b> Printed page 16, repeating the
+      requirement given on printed page 2.</p>
+    </div>
+  </div>
+</header>
+
+<!-- ============ mechanism ============ -->
+<section id="how">
+  <div class="shead"><h2>How it makes the sound</h2><span class="rule"></span>
+    <a class="ppg pg" href="https://gamechangeraudio.com/wp-content/uploads/2020/09/PLUS_manual_download.pdf#page=1" target="_blank" rel="noopener">pg. 2</a></div>
+  <p class="sdek">Printed page 2: “The PLUS Pedal does not use oscillators or filters to
+  synthesize sounds! Instead – it produces sound using the real signal from your instrument.”
+  Printed page 3 names the method: “This method of sound synthesis is called Real Time Sampling
+  and it was developed specifically for PLUS Pedal by Gamechanger Audio.”</p>
+
+  <div class="grid g3">
+    <div class="card">
+      <h3>1 &middot; It is always recording</h3>
+      <p>Printed page 2: “When the PLUS is on – it constantly records all audio signal coming
+      from your instrument”.</p>
+    </div>
+    <div class="card">
+      <h3>2 &middot; The press picks an event</h3>
+      <p>Printed page 2: “as soon as you press the foot-pedal it is able to immediately spring
+      into action and start analyzing the most recent audio event – such as a strummed chord, or
+      a separate note on a wind instrument.”</p>
+    </div>
+    <div class="card">
+      <h3>3 &middot; The ringing becomes a loop</h3>
+      <p>Printed page 2: “The PLUS Pedal will now proceed to create a ‘usable loop’ out of the
+      ringing part of the chord. Think of it as a ‘Smart Looper’ that only catches the second
+      half of each note or chord you play and samples that short snippet of sound into a
+      seamless, continuous loop.”</p>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:14px"><div>
+    <h4>What the sampling keeps</h4>
+    <p>Printed page 3: “‘Real Time Audio Sampling’ ensures that each sustained note or chord will
+    retain the exact character of your instrument and faithfully reflect the dynamics of your
+    playing style. It also makes PLUS Pedal compatible with any type of melodic instruments, such
+    as brass or woodwinds, all string instruments, and even vocals.”</p>
+    <p>The same page on playing technique: “Real Time Sampling is also responsive to various
+    playing styles – create continuous layers of sustain incorporating vibrato, bends, harmonics,
+    trills and other dynamic playing techniques. You can also use your whammy bar, play with a
+    slide or experiment with amp feedback or noises – the PLUS Pedal will capture all of these
+    tonal nuances and turn them into a continuous sound.”</p>
+  </div></div>
+</section>
+
+<!-- ============ the timing scrubber ============ -->
+<section id="timing">
+  <div class="shead"><h2>The gap between the attack and the press</h2><span class="rule"></span>
+    <a class="ppg pg" href="https://gamechangeraudio.com/wp-content/uploads/2020/09/PLUS_manual_download.pdf#page=2" target="_blank" rel="noopener">pg. 3</a></div>
+  <p class="sdek">Printed page 3: “The quality and resolution of the WET signal produced by the
+  PLUS Pedal will always be determined by the amount of time between the attack of the chord/note
+  and the pedal being pressed down.” Drag the marker to move the press.</p>
+
+  <div class="timing">
+    <svg viewBox="0 0 400 130" id="tl" role="img" aria-label="A note envelope with a draggable marker showing where the treadle is pressed">
+      <line class="tl-axis" x1="14" y1="96" x2="386" y2="96"></line>
+      <path class="tl-env" id="tlEnv" d=""></path>
+      <path class="tl-cap" id="tlCap" d=""></path>
+      <g id="tlLoop"></g>
+      <line class="tl-line" id="tlLine" x1="120" y1="14" x2="120" y2="104"></line>
+      <circle class="tl-grab" id="tlGrab" cx="120" cy="14" r="6"></circle>
+      <text class="tl-txt" x="14" y="114">attack</text>
+      <text class="tl-txt" x="386" y="114" text-anchor="end">later in the ring-out</text>
+      <text class="tl-txt" id="tlTag" x="120" y="9" text-anchor="middle">pedal engaged</text>
+    </svg>
+    <p class="tl-out" id="tlOut"></p>
+    <p class="tl-out" style="font-size:.86rem;color:var(--ink-3);margin-top:8px">
+      The shaded block is the part of the ring-out the pedal turns into a loop; the outlined tiles
+      to its right are that snippet repeating.
+      <span class="ours">The envelope shape and the marker's position. Printed page 3 gives no
+      times, only the two ends of the range — quick after the attack, or a longer interval — so
+      the drawing here shows the mechanism rather than measured values.</span>
+    </p>
+  </div>
+</section>
+
+<!-- ============ the console ============ -->
+<section id="panel">
+  <div class="shead"><h2>The panel</h2><span class="rule"></span>
+    <a class="ppg pg" href="https://gamechangeraudio.com/wp-content/uploads/2020/09/PLUS_manual_download.pdf#page=3" target="_blank" rel="noopener">pg. 5–6</a></div>
+  <p class="sdek">Four knobs, two slide switches on the right-hand side, and the treadle. Drag a
+  knob up and down, or focus it and use the arrow keys. The buttons below the pedal work the
+  treadle, and the slot list on the right shows what is currently ringing.</p>
+
+  <div class="console">
+    <div class="pedal-col">
+      <div class="pedal" id="pedal" data-press="off">
+        <span class="statled" id="statled" data-lvl="off"></span>
+
+        <span class="plusmark" aria-hidden="true">
+          <svg viewBox="0 0 100 40">
+            <g fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round">
+              <circle cx="50" cy="17" r="15"></circle>
+              <path d="M50 2 v36 M35 17 h30"></path>
+            </g>
+            <text x="50" y="23" text-anchor="middle" font-family="Archivo,sans-serif"
+                  font-size="15" font-weight="700" letter-spacing="1" fill="#FFFFFF"
+                  stroke="#191919" stroke-width="4" paint-order="stroke">PLUS</text>
+          </svg>
+        </span>
+
+        <button class="knob" data-k="blend" style="left:20.5%;top:10.6%" aria-label="Blend"><span class="cap"></span></button>
+        <button class="knob" data-k="sustain" style="left:78.5%;top:10.6%" aria-label="Sustain"><span class="cap"></span></button>
+        <button class="knob" data-k="rise" style="left:28%;top:25%" aria-label="Rise"><span class="cap"></span></button>
+        <button class="knob" data-k="tail" style="left:70.5%;top:25%" aria-label="Tail"><span class="cap"></span></button>
+
+        <span class="klbl" style="left:20.5%;top:15.8%">BLEND</span>
+        <span class="klbl" style="left:78.5%;top:15.8%">SUSTAIN</span>
+        <span class="klbl" style="left:28%;top:30.2%">RISE</span>
+        <span class="klbl" style="left:70.5%;top:30.2%">TAIL</span>
+
+        <span class="kend" style="left:9%;top:14.6%">&lt;</span>
+        <span class="kend" style="left:20.5%;top:4.6%">=</span>
+        <span class="kend" style="left:32%;top:14.6%">&gt;</span>
+        <span class="kend" style="left:67%;top:14.6%">&minus;</span>
+        <span class="kend" style="left:90%;top:14.6%">&infin;</span>
+        <span class="kend gl" style="left:16.5%;top:29%"><svg viewBox="0 0 14 8"><path d="M1 7 L6 7 L6 1 L13 1"/></svg></span>
+        <span class="kend gl" style="left:39.5%;top:29%"><svg viewBox="0 0 14 8"><path d="M1 7 C6 7 8 1 13 1"/></svg></span>
+        <span class="kend" style="left:59%;top:29%">&lowast;</span>
+        <span class="kend" style="left:82%;top:29%">&infin;</span>
+
+        <span class="treadle" aria-hidden="true">
+          <svg viewBox="0 0 36 132">
+            <defs>
+              <linearGradient id="brassgrad" x1="0" y1="0" x2="1" y2="0.3">
+                <stop offset="0" stop-color="#F0DFC0"></stop>
+                <stop offset=".45" stop-color="#E3C68F"></stop>
+                <stop offset="1" stop-color="#B9955C"></stop>
+              </linearGradient>
+            </defs>
+            <path class="body" d="M14.4 0 L13.5 30 C11 48 4 62 2.6 82 C1 104 8 129 18 129 C28 129 35 104 33.4 82 C32 62 25 48 22.5 30 L21.6 0 Z"></path>
+            <ellipse class="bowl" cx="18" cy="99" rx="12.4" ry="21"></ellipse>
+          </svg>
+        </span>
+        <button class="trbtn" id="trbtn" aria-label="Treadle — click to press fully, click again to release"></button>
+
+        <button class="slidesw" id="swMode" style="top:24%" data-on="a" aria-label="Single or Group mode"><i></i></button>
+        <span class="swtag" id="tagMode" style="top:24.6%">SINGLE</span>
+        <button class="slidesw" id="swOut" style="top:33%" data-on="b" aria-label="Split or Mix output"><i></i></button>
+        <span class="swtag" id="tagOut" style="top:33.6%">MIX</span>
+      </div>
+
+      <div class="btnrow">
+        <button class="btn" id="bHalf">Half press</button>
+        <button class="btn" id="bFull">Full press</button>
+        <button class="btn" id="bRel">Release</button>
+      </div>
+      <div class="btnrow">
+        <button class="btn" id="bTapFull">Short full tap</button>
+        <button class="btn" id="bTapHalf">Short half tap</button>
+      </div>
+      <div class="hint" id="hint" data-live="false">Press the treadle to sample whatever you just played.</div>
+    </div>
+
+    <div class="readout">
+      <div class="rhead">
+        <h3>Knobs and controls</h3>
+        <span class="lbl" id="modeMeta">Single mode</span>
+      </div>
+      <div id="rows"></div>
+
+      <div class="slots" id="slots"></div>
+      <div class="slotcap">
+        <span id="slotCap"></span>
+        <span><a class="ppg" href="https://gamechangeraudio.com/wp-content/uploads/2020/09/PLUS_manual_download.pdf#page=4" target="_blank" rel="noopener">slots &amp; modes — pg. 7</a></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="note plain" style="margin-top:16px"><div>
+    <h4>What is simulated here and what is not</h4>
+    <p>The slot behaviour above follows the manual: five slots, rotational replacement, the layer
+    cap set by SUSTAIN in Group mode, and what a full tap and a half tap each remove.</p>
+    <p class="ours" style="margin-top:7px">The fade-in and fade-out times. Printed page 6
+    describes RISE and TAIL in words and knob positions and never gives a number of seconds, so
+    the times animated here were picked to be legible on screen. Do not read them as measurements
+    of the pedal.</p>
+  </div></div>
+</section>
+
+<!-- ============ treadle ============ -->
+<section id="treadle">
+  <div class="shead"><h2>GRADUAL control</h2><span class="rule"></span>
+    <a class="ppg pg" href="https://gamechangeraudio.com/wp-content/uploads/2020/09/PLUS_manual_download.pdf#page=2" target="_blank" rel="noopener">pg. 4</a></div>
+  <p class="sdek">Printed page 4, under the heading GRADUAL control: “The foot-pedal does not
+  always have to be pressed all the way - there is a distinct middle position, which requires only
+  a light touch.”</p>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>Half press</h3>
+      <p>Printed page 4: “In the middle-press mode, the sustained tones produced by the PLUS Pedal
+      will be slightly muffled and lower volume.”</p>
+      <p>Gamechanger, on the same page: “We encourage you to go back and forth between a half-press
+      and a full press to adjust the volume and tone of each sustained layer on the fly.”</p>
+      <p>On the short tap: “A short half-press of the foot pedal will only remove the last recorded
+      layer of sustain.”</p>
+    </div>
+    <div class="card">
+      <h3>Full press</h3>
+      <p>Printed page 3: “Each note will be sustained for as long as the pedal is pressed down, and
+      once you let go of the pedal, the sustained note/chord will start decaying according to the
+      value of the ‘TAIL’ setting”.</p>
+      <p>Printed page 4, on the short tap: “A short Full tap of the foot-pedal will act as a kill
+      switch and remove all layers of sustain currently active.”</p>
+    </div>
+    <div class="card">
+      <h3>The LED</h3>
+      <p>Printed page 4: “This middle position is indicated by the PLUS Pedal’s main LED – you will
+      see that it has 3 levels of brightness: off (standby), half, and full.” The features list on
+      printed page 5 calls it “Indication LED (two brightness stages)”.</p>
+      <p class="ours">Page 4 counts three because it counts the off state; page 5 counts two
+      because it counts only the lit ones.</p>
+    </div>
+    <div class="card">
+      <h3>One press per sound</h3>
+      <p>Printed page 4: “Depending on the value of the TAIL knob and other settings, the PLUS
+      Pedal allows you to stack and sustain up to 5 sounds, but bear in mind that each new note or
+      chord you’d like to sustain will require a separate foot-pedal input.”</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ modes ============ -->
+<section id="modes">
+  <div class="shead"><h2>Single mode and Group mode</h2><span class="rule"></span>
+    <a class="ppg pg" href="https://gamechangeraudio.com/wp-content/uploads/2020/09/PLUS_manual_download.pdf#page=4" target="_blank" rel="noopener">pg. 7–8</a></div>
+  <p class="sdek">A two-position slide switch on the side. Printed page 5 lists it as “1
+  two-position slide switch, labeled ‘SINGLE and GROUP’: Lets you go between two distinct modes of
+  playing”. Printed page 8: “SUSTAIN is a special knob that changes its functionality when you
+  switch from Single mode to Group mode.”</p>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th></th><th>Holding the treadle</th><th>What SUSTAIN does</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>SINGLE</b></td>
+          <td>Printed page 7: “holding down the foot-pedal will allow you to sustain one (most
+          recent) note/chord. All previous audio slots will continue fading out according to the
+          speed set by the TAIL knob.”</td>
+          <td>Printed page 8: “the SUSTAIN knob allows you to control the behavior of the
+          hold-function (while the foot-pedal is pressed down). When set to minimum, it will
+          emulate the natural decaying properties of a ringing string – gradual reduction of high
+          frequencies.” At the ∞ mark it “will keep the sustained note/chord completely static for
+          as long as the foot-pedal is pressed down, without applying any frequency filters.”</td>
+        </tr>
+        <tr>
+          <td><b>GROUP</b></td>
+          <td>Printed page 7: “pressing and holding the foot-pedal lets you hold the whole group of
+          audio layers currently active. For example – you can use a medium TAIL Setting to create
+          a quick three note arpeggio and then just continue holding all three layers by keeping
+          the foot-pedal pressed down.”</td>
+          <td>Printed page 8: “the SUSTAIN knob allows you to reduce the number of layers allowed
+          simultaneously – you can choose from 1 to 5 layers”. The count shows on the LED: “This is
+          indicated by the main LED, which will produce a single flash when the SUSTAIN knob is
+          turned all the way down. If you’d like to use two circular layers, turn the SUSTAIN knob
+          to around 10 o’clock until you see two quick flashes, and so on.”</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid g2" style="margin-top:14px">
+    <div class="note"><div>
+      <h4>The tone setting carries over</h4>
+      <p>The footnote on printed page 8: “Any tone and dynamics settings achieved with the SUSTAIN
+      knob in the SINGLE mode will be applied to all layers in the GROUP mode.”</p>
+    </div></div>
+    <div class="note plain"><div>
+      <h4>Filling all five slots</h4>
+      <p>Printed page 7: “When all 5 slots are filled up – each new slot will be blended in on a
+      rotational basis – slot number 6 will replace the 1st slot; slot 7 replaces the 2nd slot, and
+      so on.”</p>
+      <p class="ours">The manual gives two positions on the SUSTAIN sweep: minimum for one layer,
+      around 10 o'clock for two. It does not say where three, four and five sit. This page splits
+      the sweep into five equal bands, which puts two at around 10 o'clock. Count the LED flashes
+      on your own pedal to see where the bands actually fall.</p>
+    </div></div>
+  </div>
+</section>
+
+<!-- ============ outputs ============ -->
+<section id="outputs">
+  <div class="shead"><h2>Outputs, SPLIT and MIX</h2><span class="rule"></span>
+    <a class="ppg pg" href="https://gamechangeraudio.com/wp-content/uploads/2020/09/PLUS_manual_download.pdf#page=5" target="_blank" rel="noopener">pg. 9–10</a></div>
+  <p class="sdek">Printed page 9: “The PLUS Pedal features two ¼ inch output jacks labeled ‘OUT’
+  and ‘CLEAN OUT/FSW’. There is also a toggle switch on the Pedal’s side, labeled SPLIT &amp; MIX.”
+  Flip that switch on the pedal above, or with the buttons here.</p>
+
+  <div class="path">
+    <div class="btnrow" style="margin-bottom:14px">
+      <button class="btn" id="pMix" aria-pressed="true">MIX</button>
+      <button class="btn" id="pSplit" aria-pressed="false">SPLIT — wet only</button>
+    </div>
+    <svg viewBox="0 0 400 124" id="pathsvg" role="img" aria-label="Signal path through the PLUS Pedal">
+      <path class="pt-dry" d="M56 62 H120"></path>
+      <path class="pt-dry" id="pDry" d="M88 62 V34 C88 29 91 26 96 26 H286"></path>
+      <path class="pt-dry" d="M88 62 V92 C88 97 91 100 96 100 H286"></path>
+      <path class="pt-wetl" d="M206 62 C244 62 250 38 286 38"></path>
+      <rect class="pt-box" x="10" y="49" width="46" height="26" rx="5"></rect>
+      <text class="pt-txt" x="33" y="65" text-anchor="middle">IN</text>
+      <rect class="pt-box" x="120" y="49" width="86" height="26" rx="5"></rect>
+      <text class="pt-txt" x="163" y="65" text-anchor="middle">PLUS engine</text>
+      <rect class="pt-box" x="286" y="19" width="104" height="26" rx="5"></rect>
+      <text class="pt-txt" x="338" y="35" text-anchor="middle">OUT</text>
+      <rect class="pt-box" x="286" y="87" width="104" height="26" rx="5"></rect>
+      <text class="pt-txt" x="338" y="103" text-anchor="middle">CLEAN OUT / FSW</text>
+      <text class="pt-lbl" x="150" y="21" id="pLblDry">dry</text>
+      <text class="pt-lbl" x="228" y="57">wet</text>
+      <text class="pt-lbl" x="150" y="115">dry, always</text>
+      <text class="pt-lbl" x="338" y="14" text-anchor="middle" id="pLblOut">dry + wet</text>
+    </svg>
+  </div>
+
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card">
+      <h3>MIX</h3>
+      <p>With the switch at MIX, OUT sends, from printed page 9: “the combined DRY signal coming from your instrument
+      with the WET signal, this is the PLUS Pedal’s most commonly used mode and it can be activated
+      by setting the above-mentioned toggle switch to ‘MIX’”.</p>
+    </div>
+    <div class="card">
+      <h3>SPLIT — “WET only”</h3>
+      <p>With the switch at SPLIT, OUT sends, from printed page 9: “only the isolated WET signal
+      generated by the PLUS Pedal. This way your instrument’s DRY signal will be muted, but you will still be
+      able to produce sustained tones as before, by using the foot-pedal.”</p>
+      <p>The same page: “This mode of playing is called ‘WET only’ – and it comes in very handy when
+      creating soundscapes, cinematic ambiance and other unworldly sound effects. The WET only mode
+      can be activated by positioning the toggle switch to ‘SPLIT’.”</p>
+    </div>
+    <div class="card">
+      <h3>Two outputs at once</h3>
+      <p>Printed page 10: “The second output, labeled ‘CLEAN OUT/FSW’ sends out the unaffected Dry
+      signal from your instrument at all times. Thanks to this dual output system the PLUS Pedal
+      offers a lot of diversity when it comes to setting up your signal chain and creating stereo
+      effects.”</p>
+      <p>The diagram on that page: “Use two amps for a stereo feel; In a studio setting - it can be
+      useful to keep a separate DRY signal going into a mixing board or recording software at all
+      times.”</p>
+    </div>
+    <div class="card">
+      <h3>The WET Only Footswitch</h3>
+      <p>Printed page 11: “The WET Only Footswitch serves as a remote foot-controller that bypasses
+      the SPLIT &amp; MIX toggle switch on the PLUS Pedal’s side panel, thus letting you switch in
+      and out of the WET Only mode on the fly.”</p>
+      <p><b>“(Note: Switch for OUT 1 must be set to MIX in order to use the footswitch.)”</b> The
+      same page adds that “you can still access the DRY only signal through a special DRY OUT
+      output built into the Footswitch itself.”
+      <a class="ppg" href="https://gamechangeraudio.com/wp-content/uploads/2020/09/PLUS_manual_download.pdf#page=6" target="_blank" rel="noopener">pg. 11</a></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ fx loop + mics ============ -->
+<section id="loop">
+  <div class="shead"><h2>The FX loop and other instruments</h2><span class="rule"></span>
+    <a class="ppg pg" href="https://gamechangeraudio.com/wp-content/uploads/2020/09/PLUS_manual_download.pdf#page=6" target="_blank" rel="noopener">pg. 12–13</a></div>
+  <div class="grid g2">
+    <div class="card">
+      <h3>SEND and RETURN</h3>
+      <p>Printed page 13: “PLUS Pedal features a very easily accessible FX Loop that allows you to
+      channel the isolated WET signal through other external effects units. The FX Loop does not
+      have a separate on/off toggle switch – simply connect any effects device to the PLUS Pedal
+      via the SEND and RETURN jacks and switch the external effect on. Now any WET signal produced
+      by the PLUS Pedal will be channeled through this external effect.”</p>
+      <p>Gamechanger's suggestions on the same page: “connect a Tremolo or Vibrato unit to add a
+      satisfying pulsation to all of the sustained notes / chords”; “Modulation effects, such as
+      Choruses, Flangers or Phaser will add a nice psychedelic ‘turbulence’ to your sustained
+      layers”; “Pitch shifters, Harmonizers and Octavers are great for creating complex tonal
+      content, polyphonic arrangements and songwriting.”</p>
+    </div>
+    <div class="card">
+      <h3>Microphones</h3>
+      <p>Printed page 12: “PLUS Pedal is compatible with all types of microphones, but it does not
+      have a dedicated XLR input. For best results use a pre-amp to run the instrument’s signal
+      into the PLUS Pedal via a 1/4 inch audio jack cable. To achieve a smooth tone, always make
+      sure that the gain level of the input signal going into the PLUS Pedal is not clipping”.
+      Printed page 15 gives the ceiling: max input level +6.8&nbsp;dBu.</p>
+      <p>The footnote on page 12: “when using loud acoustic instruments in small rooms try setting
+      the PLUS Pedal’s SPLIT - MIX switch to ‘SPLIT’ and running a second channel for the DRY
+      signal. This way you can adjust the WET / DRY balance more accurately on the mixing desk”.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ presets ============ -->
+<section id="presets">
+  <div class="shead"><h2>The four settings Gamechanger recommend</h2><span class="rule"></span>
+    <a class="ppg pg" href="https://gamechangeraudio.com/wp-content/uploads/2020/09/PLUS_manual_download.pdf#page=7" target="_blank" rel="noopener">pg. 14</a></div>
+  <p class="sdek">Printed page 14 prints four knob diagrams with a short description each. The
+  descriptions below are quoted from it. The knob positions in those diagrams are never written
+  out in words, so each card lists which of the four knobs you have to read off the picture —
+  open printed page 14 for those.</p>
+
+  <div class="presets" id="presetGrid"></div>
+</section>
+
+<!-- ============ which pedal ============ -->
+<section id="which">
+  <div class="shead"><h2>Which PLUS this manual covers</h2><span class="rule"></span></div>
+  <div class="note"><div>
+    <h4>Original PLUS Pedal</h4>
+    <p>This is the manual for the original PLUS Pedal.</p>
+    <p class="ours">Gamechanger also sell a PLUS Pedal II, and nothing in this document is written
+    for it. The document carries no revision number, no date and no “Mk I” anywhere in it — it
+    simply says PLUS PEDAL throughout, so nothing on the cover tells a reader holding a PLUS Pedal
+    II that this is the wrong document. The identifiers are inside: the specification table on
+    printed page 15
+    gives a 26&nbsp;kHz sample rate at 16 bits, 200&nbsp;mA draw and a 90&nbsp;×&nbsp;195&nbsp;×&nbsp;72&nbsp;mm
+    enclosure, and the panel it describes has the SINGLE/GROUP and SPLIT/MIX slide switches and a
+    CLEAN OUT/FSW jack. If your unit does not match that list, check Gamechanger's current manual
+    rather than this one.</p>
+  </div></div>
+</section>
+
+<!-- ============ specs ============ -->
+<section id="specs">
+  <div class="shead"><h2>Specifications</h2><span class="rule"></span>
+    <a class="ppg pg" href="https://gamechangeraudio.com/wp-content/uploads/2020/09/PLUS_manual_download.pdf#page=8" target="_blank" rel="noopener">pg. 15</a></div>
+  <div class="tw">
+    <table>
+      <tbody>
+        <tr><td><b>Power</b></td><td class="mono">200 mA, 9V DC centre negative, 2.1 × 5.5 mm · 1.8 W</td></tr>
+        <tr><td><b>Conversion</b></td><td class="mono">26 kHz sample rate · 16 bit</td></tr>
+        <tr><td><b>Frequency response</b></td><td class="mono">20 Hz–22 kHz analog / 13 kHz digital</td></tr>
+        <tr><td><b>Inputs</b></td><td class="mono">IN, RETURN · 1/4" unbalanced TS · 1 MΩ · max +6.8 dBu</td></tr>
+        <tr><td><b>Outputs</b></td><td class="mono">OUT, CLEAN OUT, SEND · 1/4" unbalanced TS · 100 Ω · max +6.8 dBu</td></tr>
+        <tr><td><b>Noise</b></td><td class="mono">S/N −97 dB (A) · THD −84 dB at 6 dBu, 1 kHz</td></tr>
+        <tr><td><b>Controls</b></td><td class="mono">2-position foot pedal · BLEND, SUSTAIN, RISE, TAIL · GROUP/SINGLE, SPLIT/MIX · footswitch input</td></tr>
+        <tr><td><b>Indicator</b></td><td class="mono">3-level check and pedal state indicator</td></tr>
+        <tr><td><b>Size and weight</b></td><td class="mono">90 × 195 × 72 mm (3.55 × 7.7 × 2.8 in) · 1020 g (2.25 lbs)</td></tr>
+        <tr><td><b>Footswitch</b></td><td class="mono">58 × 66 × 46 mm · 230 g</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ manual index ============ -->
+<section id="manual">
+  <div class="shead"><h2>Find it in the manual</h2><span class="rule"></span></div>
+  <p class="sdek">This page is a companion, not a replacement — when you want Gamechanger's own
+  words, or want to check something here against the source, these open the manual at the right
+  page. The numbers are the ones printed in the manual.</p>
+  <div class="mindex" id="mindex"></div>
+</section>
+
+<footer class="end">
+  <span>Condensed from the PLUS Pedal user's manual. Original PLUS Pedal.</span>
+  <span><a href="https://gamechangeraudio.com/" target="_blank" rel="noopener">gamechangeraudio.com</a></span>
+</footer>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = s => document.querySelector(s);
+const clamp = (v,a=0,b=1) => Math.min(b, Math.max(a, v));
+const ang = v => -150 + v*300;
+const near = (v,t,e=.035) => Math.abs(v-t) < e;
+const pct = v => Math.round(v*100) + "%";
+
+function clockOf(v){
+  /* 0 here means twelve, so anything just past noon reads 12:30, not 0:30 */
+  let r = Math.round(((ang(v)/30 + 12) % 12) * 2) / 2;
+  if (r >= 12) r -= 12;
+  if (r === 0) return "12 noon";
+  if (r < 1)   return "12:30";
+  const hh = Math.floor(r);
+  return hh + ":" + ((r - hh) >= .5 ? "30" : "00");
+}
+
+/* ---------- printed page -> PDF page ----------
+   The PDF is landscape and carries two printed pages to a sheet: PDF page N holds
+   printed pages 2N-1 on the left and 2N on the right. So printed p is PDF page
+   ceil(p/2) — verified by extracting each sheet and reading the numbers it prints. */
+const MANUAL = "https://gamechangeraudio.com/wp-content/uploads/2020/09/PLUS_manual_download.pdf";
+const pdfPage = p => Math.ceil(p/2);
+
+/* ---------- state ---------- */
+const S = {
+  k: { blend:.5, sustain:.5, rise:.3, tail:.35 },
+  group: false,       /* the SINGLE / GROUP slide switch */
+  split: false,       /* the SPLIT / MIX slide switch, false = MIX */
+  press: "off",       /* off | half | full */
+  layers: [],         /* newest last */
+  nextId: 1,
+  attackGap: .34      /* the timing scrubber, 0 = right on the attack */
+};
+
+/* SUSTAIN in Group mode is a layer count. The manual names the minimum (one layer)
+   and around 10 o'clock (two), which an even five-way split of the sweep matches. */
+const layerCap = () => S.group ? Math.min(5, Math.floor(S.k.sustain * 5) + 1) : 5;
+
+/* Illustrative only — the manual gives no times for either knob. */
+const riseSecs = () => S.k.rise < .02 ? 0 : 0.12 * Math.pow(60, S.k.rise);
+const tailSecs = () => S.k.tail < .02 ? 0 : (S.k.tail > .97 ? Infinity : 0.35 * Math.pow(30, S.k.tail));
+
+/* ---------- knob descriptions, quoted from printed pages 6 and 8 ---------- */
+const D = {
+  blend: v =>
+      near(v,.5,.03) ? "At 12 o'clock. Printed page 6: <span class='maker'>“The medium ‘12 o’clock’ position (indicated by a special indent in the potentiometer’s path) represents an even volume between the input signal and the WET signal, but, this can vary with different instruments, or playing styles.”</span>"
+    : v < .02 ? "At minimum, so no WET signal reaches the output. Printed page 6: <span class='maker'>“Controls the volume of the WET Signal produced by the PLUS Pedal.”</span>"
+    : "At " + pct(v) + " of the sweep. Printed page 6: <span class='maker'>“Controls the volume of the WET Signal produced by the PLUS Pedal.”</span> The detent at 12 o'clock marks the even point.",
+
+  sustain: v => S.group
+    ? "Group mode. <b>" + layerCap() + (layerCap() === 1 ? " layer" : " layers") + "</b> allowed at once. Printed page 8: <span class='maker'>“the SUSTAIN knob allows you to reduce the number of layers allowed simultaneously – you can choose from 1 to 5 layers”.</span>"
+      + (layerCap() === 1 ? " <span class='maker'>“This is indicated by the main LED, which will produce a single flash when the SUSTAIN knob is turned all the way down.”</span>" : "")
+    : ( v > .97 ? "At the ∞ mark. Printed page 8: <span class='maker'>“the SUSTAIN knob will keep the sustained note/chord completely static for as long as the foot-pedal is pressed down, without applying any frequency filters.”</span>"
+      : v < .03 ? "At minimum. Printed page 8: <span class='maker'>“When set to minimum, it will emulate the natural decaying properties of a ringing string – gradual reduction of high frequencies. In our experience, this is incredibly useful when playing jazz, blues, and classical music.”</span>"
+      : "At " + pct(v) + " of the sweep. Printed page 8: <span class='maker'>“the SUSTAIN knob allows you to control the behavior of the hold-function (while the foot-pedal is pressed down).”</span> <span class='flag'>It describes what happens at the minimum and at the ∞ mark, and nothing about the positions in between.</span>" ),
+
+  rise: v =>
+      v < .02 ? "At minimum. Printed page 6: <span class='maker'>“A minimum setting will let you bring in new tones instantly”.</span>"
+    : v > .97 ? "At maximum. Printed page 6: <span class='maker'>“the maximum setting will result in extended gradual swells.”</span>"
+    : "At " + pct(v) + " of the sweep. Printed page 6: <span class='maker'>“Sets the fade-in speed of all new sustain layers, generated by the PLUS Pedal.”</span>"
+      + (v >= .2 && v <= .5 ? " That is inside the range printed page 6 recommends: <span class='maker'>“In our experience – the sweet-spot for a smooth transition between your instrument and the generated tone is somewhere between 9 and 12 o’clock”.</span>" : "")
+      + (v > .5 ? " That is past 12 o'clock, and printed page 6 says <span class='maker'>“longer settings are excellent for creating soundscapes and cinematic ambiance.”</span>" : ""),
+
+  tail: v =>
+      v < .02 ? "At zero. Printed page 6: <span class='maker'>“When the TAIL knob is set to zero there will be no spillover signal – the sustained tone will cut out instantly as you release your foot from the pedal.”</span>"
+    : v > .97 ? "At the ∞ mark. Printed page 6: <span class='maker'>“When TAIL is set to Maximum (infinity sign) – Each layer of sustain will keep ringing infinitely even after the pedal has been released. As before – you can add up to 5 new layers on top of each other to create very rich polyphony.”</span>"
+    : near(v,.2,.04) ? "At 9 o'clock. Printed page 6: <span class='maker'>“A 9 o’clock setting will produce just enough spillover signal to create smooth transitions between different chords. This is useful when you are stepping outside of diatonic harmonies.”</span>"
+    : v < .5 ? "At " + pct(v) + " of the sweep, below 9 o'clock. Printed page 6: <span class='maker'>“Lets you adjust the amount of spillover signal after you release your foot from the pedal.”</span> <span class='flag'>It names zero, 9 o’clock and above 12 o’clock, and nothing for this position.</span>"
+    : "At " + pct(v) + " of the sweep. Printed page 6: <span class='maker'>“Setting the TAIL knob above 12 o’clock will result in long, gradual fade-outs, thus giving you enough time to start building multiple layers of chords – sampling a new chord while the previous one is still ringing.”</span>"
+};
+
+const ROWS = [
+  { k:"blend",   name:"BLEND",   sub:"volume of the WET signal", d:D.blend },
+  { k:"sustain", name:"SUSTAIN", sub:"", d:D.sustain },
+  { k:"rise",    name:"RISE",    sub:"fade-in of new layers",    d:D.rise },
+  { k:"tail",    name:"TAIL",    sub:"spillover after release",  d:D.tail }
+];
+
+/* ---------- knobs ---------- */
+let activeK = null;
+document.querySelectorAll(".knob").forEach(el => {
+  const k = el.dataset.k;
+  let startY = 0, startV = 0;
+  el.addEventListener("pointerdown", e => {
+    el.setPointerCapture(e.pointerId);
+    el.classList.add("active"); activeK = k;
+    startY = e.clientY; startV = S.k[k]; render();
+  });
+  el.addEventListener("pointermove", e => {
+    if (!el.hasPointerCapture(e.pointerId)) return;
+    S.k[k] = clamp(startV + (startY - e.clientY) / 190);
+    render();
+  });
+  const end = () => { el.classList.remove("active"); activeK = null; render(); };
+  el.addEventListener("pointerup", end);
+  el.addEventListener("pointercancel", end);
+  el.addEventListener("keydown", e => {
+    const step = e.shiftKey ? .01 : .04;
+    let d = 0;
+    if (e.key === "ArrowUp" || e.key === "ArrowRight") d = step;
+    else if (e.key === "ArrowDown" || e.key === "ArrowLeft") d = -step;
+    else if (e.key === "Home") { S.k[k] = 0; }
+    else if (e.key === "End") { S.k[k] = 1; }
+    else return;
+    e.preventDefault();
+    if (d) S.k[k] = clamp(S.k[k] + d);
+    activeK = k; render();
+  });
+  el.addEventListener("focus", () => { activeK = k; render(); });
+  el.addEventListener("blur", () => { if (activeK === k) activeK = null; render(); });
+});
+
+/* ---------- the two slide switches ---------- */
+$("#swMode").addEventListener("click", () => { S.group = !S.group; render(); });
+$("#swOut").addEventListener("click", () => { S.split = !S.split; render(); });
+$("#pMix").addEventListener("click", () => { S.split = false; render(); });
+$("#pSplit").addEventListener("click", () => { S.split = true; render(); });
+
+/* ---------- the treadle ---------- */
+let hintText = "Press the treadle to sample whatever you just played.";
+let hintLive = false;
+const say = (t, live) => { hintText = t; hintLive = !!live; };
+
+function addLayer(muffled){
+  const cap = layerCap();
+  if (S.layers.length >= cap) S.layers.shift();     /* rotational: the oldest goes */
+  S.layers.push({ id: S.nextId++, g: 0, muffled: !!muffled, held: true });
+}
+function press(level){
+  if (S.press === level){
+    say("Already held there. Printed page 4: “each new note or chord you’d like to sustain will require a separate foot-pedal input.” Release, then press again.", true);
+    render(); return;
+  }
+  if (S.press !== "off"){
+    /* already down — moving between half and full changes the held layers' character */
+    S.press = level;
+    S.layers.forEach(l => { if (l.held) l.muffled = (level === "half"); });
+    say(level === "half"
+      ? "Moved to the half position. Printed page 4: “the sustained tones produced by the PLUS Pedal will be slightly muffled and lower volume.”"
+      : "Moved to a full press. The held layers come back up to full level and full tone.", true);
+    render(); return;
+  }
+  S.press = level;
+  if (S.group) S.layers.forEach(l => l.held = true);
+  else S.layers.forEach(l => l.held = false);
+  addLayer(level === "half");
+  say(S.group
+    ? "Group mode: the whole group of active layers is being held."
+    : "Single mode: the newest layer is held, and the earlier ones keep fading out at the TAIL speed.", true);
+  render();
+}
+function release(){
+  if (S.press === "off") return;
+  S.press = "off";
+  S.layers.forEach(l => l.held = false);
+  say(S.k.tail < .02
+    ? "Released. TAIL is at zero, so everything cuts out instantly."
+    : (S.k.tail > .97 ? "Released. TAIL is at ∞ — the layers keep ringing." : "Released. The layers spill over and fade at the TAIL speed."), true);
+  render();
+}
+function tapFull(){
+  S.press = "off"; S.layers = [];
+  say("Short full tap — the kill switch. Every active layer of sustain is gone.", true);
+  render();
+}
+function tapHalf(){
+  S.press = "off";
+  if (S.layers.length){ S.layers.pop(); say("Short half tap — only the last recorded layer is removed.", true); }
+  else say("Short half tap, but there was no layer to remove.", true);
+  render();
+}
+$("#bHalf").addEventListener("click", () => press("half"));
+$("#bFull").addEventListener("click", () => press("full"));
+$("#bRel").addEventListener("click", release);
+$("#bTapFull").addEventListener("click", tapFull);
+$("#bTapHalf").addEventListener("click", tapHalf);
+$("#trbtn").addEventListener("click", () => { S.press === "off" ? press("full") : release(); });
+
+/* ---------- animation of the slots ---------- */
+let last = performance.now();
+function frame(now){
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  let changed = false;
+  const rs = riseSecs(), ts = tailSecs();
+  S.layers.forEach(l => {
+    if (l.held){
+      const ceilg = l.muffled ? .55 : 1;
+      if (l.g < ceilg){ l.g = rs === 0 ? ceilg : Math.min(ceilg, l.g + dt / rs); changed = true; }
+      else if (l.g > ceilg){ l.g = Math.max(ceilg, l.g - dt * 2); changed = true; }
+    } else {
+      if (ts === 0){ if (l.g > 0){ l.g = 0; changed = true; } }
+      else if (ts !== Infinity){
+        if (l.g > 0){ l.g = Math.max(0, l.g - dt / ts); changed = true; }
+      } else if (l.g < 1 && rs > 0){ l.g = Math.min(1, l.g + dt / rs); changed = true; }
+    }
+  });
+  const before = S.layers.length;
+  S.layers = S.layers.filter(l => l.g > .002 || l.held);
+  if (S.layers.length !== before) changed = true;
+  if (changed) renderSlots();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ---------- render ---------- */
+/* The LED flash count that reports the Group-mode layer limit. */
+let flashTimer = null, lastCap = null;
+function flashCount(n){
+  const led = $("#statled");
+  clearInterval(flashTimer);
+  let i = 0;
+  flashTimer = setInterval(() => {
+    led.dataset.lvl = (i % 2 === 0) ? "full" : "off";
+    if (++i >= n*2){ clearInterval(flashTimer); flashTimer = null; led.dataset.lvl = S.press; }
+  }, 170);
+}
+
+function renderSlots(){
+  const cap = layerCap();
+  let h = "";
+  for (let i = 0; i < 5; i++){
+    const l = S.layers[i];
+    const beyond = i >= cap;
+    const g = l ? l.g : 0;
+    const st = !l ? (beyond ? "locked out" : "empty")
+      : l.held ? (l.muffled ? "held · muffled" : "held") : "fading";
+    h += '<div class="slot" data-held="' + (!!l && l.held) + '" data-muffled="' + (!!l && l.muffled) +
+      '" data-off="' + (!l) + '">' +
+      '<span class="sn">' + (i+1) + '</span>' +
+      '<span class="bar"><i style="width:' + (g*100).toFixed(1) + '%"></i></span>' +
+      '<span class="st">' + st + '</span></div>';
+  }
+  $("#slots").innerHTML = h;
+  const active = S.layers.length;
+  $("#slotCap").innerHTML = active + " of " + cap + " slot" + (cap === 1 ? "" : "s") + " in use" +
+    (S.group ? " · SUSTAIN is capping the count at " + cap : " · Single mode allows all five") +
+    (active >= cap && cap > 0 ? " · the next sound replaces slot 1" : "");
+}
+
+function render(){
+  /* knobs */
+  document.querySelectorAll(".knob").forEach(el => {
+    el.querySelector(".cap").style.transform = "rotate(" + ang(S.k[el.dataset.k]) + "deg)";
+  });
+
+  /* switches */
+  $("#swMode").dataset.on = S.group ? "b" : "a";
+  $("#tagMode").innerHTML = S.group ? "SINGLE<br><b>GROUP</b>" : "<b>SINGLE</b><br>GROUP";
+  $("#swOut").dataset.on = S.split ? "a" : "b";
+  $("#tagOut").innerHTML = S.split ? "<b>SPLIT</b><br>MIX" : "SPLIT<br><b>MIX</b>";
+  $("#modeMeta").textContent = S.group ? "Group mode" : "Single mode";
+  $("#pMix").setAttribute("aria-pressed", String(!S.split));
+  $("#pSplit").setAttribute("aria-pressed", String(S.split));
+
+  /* signal path */
+  $("#pDry").classList.toggle("pt-mute", S.split);
+  $("#pLblDry").textContent = S.split ? "dry, muted" : "dry";
+  $("#pLblOut").textContent = S.split ? "wet only" : "dry + wet";
+
+  /* pedal press + LED. In Group mode the LED reports the layer limit as a flash count. */
+  $("#pedal").dataset.press = S.press;
+  const cap = layerCap();
+  if (S.group && S.press === "off" && cap !== lastCap) flashCount(cap);
+  lastCap = S.group ? cap : null;
+  if (!flashTimer) $("#statled").dataset.lvl = S.press;
+
+  /* rows */
+  $("#rows").innerHTML = ROWS.map(r => {
+    const v = S.k[r.k];
+    const sub = r.k === "sustain"
+      ? (S.group ? "layer limit, in Group mode" : "behaviour of the hold, in Single mode")
+      : r.sub;
+    return '<div class="krow' + (activeK === r.k ? " active" : "") + '">' +
+      '<span class="pname">' + r.name + '<small>' + sub + '</small></span>' +
+      '<span class="val"><span class="clock">' + clockOf(v) + '</span>' +
+      '<span class="pct">' + pct(v) + ' of sweep</span></span>' +
+      '<span class="pdesc">' + r.d(v) + '</span></div>';
+  }).join("");
+
+  /* hint */
+  const hint = $("#hint");
+  hint.textContent = hintText;
+  hint.dataset.live = String(hintLive);
+
+  renderSlots();
+}
+
+/* ---------- the timing scrubber ---------- */
+const TL = { x0: 24, x1: 372, y0: 96 };
+function envY(x){
+  /* attack at x0, then an exponential ring-out */
+  const t = (x - TL.x0) / (TL.x1 - TL.x0);
+  if (t < 0) return TL.y0;
+  const a = t < .045 ? t / .045 : Math.exp(-(t - .045) * 3.4);
+  return TL.y0 - a * 66;
+}
+function envPath(from, to){
+  let d = "M" + from + " " + TL.y0;
+  for (let x = from; x <= to; x += 3) d += " L" + x.toFixed(1) + " " + envY(x).toFixed(1);
+  d += " L" + to + " " + TL.y0 + " Z";
+  return d;
+}
+function renderTL(){
+  const x = TL.x0 + S.attackGap * (TL.x1 - TL.x0);
+  $("#tlEnv").setAttribute("d", envPath(TL.x0, TL.x1));
+  const capEnd = Math.min(TL.x1, x + 52);
+  $("#tlCap").setAttribute("d", envPath(x, capEnd));
+  $("#tlLine").setAttribute("x1", x); $("#tlLine").setAttribute("x2", x);
+  $("#tlGrab").setAttribute("cx", x);
+  const tag = $("#tlTag");
+  tag.setAttribute("x", Math.min(TL.x1 - 20, Math.max(TL.x0 + 26, x)));
+
+  /* the captured snippet, repeating */
+  let loops = "";
+  const w = capEnd - x, h = TL.y0 - envY(x + w/2);
+  for (let i = 1; i <= 3 && x + w*i + w <= TL.x1 + 26; i++){
+    const lx = x + w*i;
+    loops += '<rect class="tl-loop" x="' + lx.toFixed(1) + '" y="' + (TL.y0 - h).toFixed(1) +
+      '" width="' + (w - 3).toFixed(1) + '" height="' + h.toFixed(1) + '" rx="2"></rect>';
+  }
+  $("#tlLoop").innerHTML = loops;
+
+  const g = S.attackGap;
+  let txt;
+  if (g < .22) txt = "<b>Pressed close to the attack.</b> Printed page 3: “For a synthetic/distorted sound – follow the note attack quickly with the foot-pedal.”";
+  else if (g > .55) txt = "<b>Pressed well into the ring-out.</b> Printed page 3: “For a smoother, more detailed tone – allow a longer interval between the note attack and the foot pedal.”";
+  else txt = "<b>Between the two.</b> Printed page 3 describes the ends only: “For a synthetic/distorted sound – follow the note attack quickly with the foot-pedal. For a smoother, more detailed tone – allow a longer interval between the note attack and the foot pedal.”";
+  $("#tlOut").innerHTML = txt;
+}
+(function tlDrag(){
+  const svg = $("#tl");
+  let on = false;
+  const set = e => {
+    const r = svg.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width) * 400;
+    S.attackGap = clamp((x - TL.x0) / (TL.x1 - TL.x0), 0, .96);
+    renderTL();
+  };
+  svg.addEventListener("pointerdown", e => { on = true; svg.setPointerCapture(e.pointerId); set(e); });
+  svg.addEventListener("pointermove", e => { if (on) set(e); });
+  svg.addEventListener("pointerup", () => { on = false; });
+  svg.addEventListener("pointercancel", () => { on = false; });
+})();
+
+/* ---------- the recommended settings ---------- */
+const PRESETS = [
+  { name:"NATURAL", mode:"Single mode",
+    d:"“This setting will give you a clear and transparent tone that fades in and out very smoothly; a short TAIL lets you interchange chords seamlessly. This is perfect for creating a temporary harmonic backdrop in a blues, rock context.”",
+    known:"BLEND, RISE and SUSTAIN." },
+  { name:"FAST", mode:"Single mode",
+    d:"“When playing high tempo songs, where harmonies change quickly, it is useful to keep the RISE and TAIL knobs turned all the way down. This way you can do chromatic moves without getting any dissonance from the previous sustain layers.”",
+    known:"BLEND and SUSTAIN." },
+  { name:"DREAMY", mode:"Single mode",
+    d:"“Slow and airy layers of sound rising up from the amp. This setting is great for creating ambiance, soundscapes and all sorts of space-textures. And now try this in WET mode... ;)”",
+    known:"All four." },
+  { name:"LATCHING", mode:"Group mode",
+    d:"“When in GROUP mode - try setting the TAIL to infinity and the number of layers to just one (SUSTAIN knob). Now you can latch on to layers indefinitely and just replace them as you go.”",
+    known:"BLEND and RISE." }
+];
+$("#presetGrid").innerHTML = PRESETS.map(p =>
+  '<div class="preset"><div class="pt"><h3>' + p.name + '</h3><span class="md">' + p.mode + '</span></div>' +
+  '<p>' + p.d + '</p>' +
+  '<div class="known"><span class="lbl">Knobs the text leaves to the diagram</span>' +
+  p.known + '</div></div>').join("");
+
+/* ---------- the manual index ---------- */
+const MANUAL_INDEX = [
+  ["How it works", 2],
+  ["Real Time Sampling", 3],
+  ["Using the foot-pedal", 3],
+  ["Gradual control and short taps", 4],
+  ["Features and jacks", 5],
+  ["BLEND, RISE and TAIL", 6],
+  ["Slot rotation", 7],
+  ["Single mode and Group mode", 7],
+  ["SUSTAIN", 8],
+  ["Outputs, SPLIT and MIX", 9],
+  ["CLEAN OUT/FSW and stereo", 10],
+  ["The WET Only Footswitch", 11],
+  ["Using microphones", 12],
+  ["FX loop", 13],
+  ["Recommended settings", 14],
+  ["Technical specifications", 15],
+  ["Warranty and compliance", 16]
+];
+$("#mindex").innerHTML = MANUAL_INDEX.map(([t,p]) =>
+  '<a href="' + MANUAL + '#page=' + pdfPage(p) + '" target="_blank" rel="noopener">' +
+  '<span class="t">' + t + '</span><span class="n">pg. ' + p + '</span></a>').join("");
+
+render();
+renderTL();
+})();
+</script>

@@ -23,7 +23,10 @@ self.addEventListener('fetch', event => {
       }
       return response;
     } catch (offline) {
-      const cached = await caches.match(event.request);
+      // ignoreSearch so a shared ?s= setting link still opens offline: the
+      // payload is read from location by the page itself, and the bytes it
+      // needs are the ones already cached against the bare URL.
+      const cached = await caches.match(event.request, { ignoreSearch: true });
       if (cached) return cached;
       throw offline;
     }

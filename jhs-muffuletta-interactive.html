@@ -31,6 +31,474 @@
   });
 })();
 </script>
+
+<script>
+/* Share & presets. The settings live in ?s=, and a saved preset is that same payload
+   under a name — one codec, both destinations. Copied into each companion the way the
+   theme script is, since the pages are self-contained. The page supplies its own schema:
+   see the PedalShare.init() call at the foot of the page script. CLAUDE.md, "Every
+   setting has an address". */
+(function(){
+"use strict";
+
+const CSS = [
+".sharewrap{flex:none;position:relative;display:inline-flex}",
+".sharebtn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;",
+"  border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink-3);cursor:pointer;",
+"  transition:color .15s,border-color .15s}",
+".sharebtn:hover{color:var(--ink);border-color:var(--ink-3)}",
+".sharebtn svg{display:block;width:15px;height:15px}",
+".sharebtn[data-mod='1']::after{content:'';position:absolute;top:2px;right:2px;width:5px;height:5px;border-radius:50%;",
+"  background:var(--acc-text,var(--accent-text));box-shadow:0 0 0 2px var(--surface)}",
+".sharepop{position:absolute;top:38px;right:0;z-index:60;width:min(330px,calc(100vw - 32px));",
+"  background:var(--surface);border:1px solid var(--line);border-radius:var(--r,12px);box-shadow:var(--shadow);",
+"  padding:14px;font-family:'Archivo',system-ui,sans-serif;font-size:13px;line-height:1.45;color:var(--ink);",
+"  text-align:left;text-transform:none;letter-spacing:0;font-weight:400}",
+".sharepop[hidden]{display:none}",
+".sharepop h3{font-size:9.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);margin:0 0 8px}",
+".sharepop .sec+.sec{margin-top:13px;padding-top:12px;border-top:1px solid var(--line-soft,var(--line))}",
+".sp-b{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 11px;",
+"  border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);",
+"  font:inherit;font-weight:600;cursor:pointer;transition:border-color .14s,color .14s}",
+".sp-b:hover{border-color:var(--ink-3)}",
+".sp-b.wide{width:100%}",
+".sp-b.go{background:var(--acc-text,var(--accent-text));border-color:transparent;color:var(--surface)}",
+".sp-b.go:hover{filter:brightness(1.1)}",
+".sp-row{display:flex;gap:7px;align-items:center}",
+".sp-row input{flex:1;min-width:0;padding:7px 9px;border:1px solid var(--line);border-radius:8px;",
+"  background:var(--bg);color:var(--ink);font:inherit}",
+".sp-row input:focus{outline:none;border-color:var(--ink-3)}",
+".sp-list{list-style:none;margin:0;padding:0;max-height:198px;overflow-y:auto}",
+".sp-list li{display:flex;align-items:center;gap:2px;padding:3px 0;border-bottom:1px solid var(--line-soft,var(--line))}",
+".sp-list li:last-child{border-bottom:0}",
+".sp-name{flex:1;min-width:0;text-align:left;padding:5px 7px;border:0;border-radius:6px;background:none;",
+"  color:var(--ink);font:inherit;font-weight:600;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+".sp-name:hover{background:var(--surface-2)}",
+".sp-name[disabled]{color:var(--ink-3);cursor:default}",
+".sp-name[disabled]:hover{background:none}",
+".sp-name small{display:block;font-weight:400;font-size:10.5px;color:var(--ink-3);white-space:normal}",
+".sp-ico{flex:none;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;padding:0;",
+"  border:0;border-radius:6px;background:none;color:var(--ink-3);cursor:pointer}",
+".sp-ico:hover{background:var(--surface-2);color:var(--ink)}",
+".sp-ico svg{width:13px;height:13px;display:block}",
+".sp-empty{color:var(--ink-3);font-size:12px;margin:0}",
+".sp-note{margin:9px 0 0;font-size:11.5px;line-height:1.5;color:var(--ink-3)}",
+"@media (max-width:560px){.sharepop{right:auto;left:0}}"
+].join("\n");
+
+/* ---------------- paths ---------------- */
+const get = (o, p) => { const a = p.split("."); for (let i = 0; i < a.length; i++){ if (o == null) return undefined; o = o[a[i]]; } return o; };
+const set = (o, p, v) => { const a = p.split("."); for (let i = 0; i < a.length - 1; i++){ if (o[a[i]] == null) o[a[i]] = {}; o = o[a[i]]; } o[a[a.length - 1]] = v; };
+
+/* ---------------- bits ---------------- */
+function Writer(){ this.b = []; }
+Writer.prototype.w = function(v, n){ for (let i = n - 1; i >= 0; i--) this.b.push((v >> i) & 1); };
+Writer.prototype.bytes = function(){
+  const out = []; let byte = 0, k = 0;
+  for (let i = 0; i < this.b.length; i++){ byte = (byte << 1) | this.b[i]; if (++k === 8){ out.push(byte); byte = 0; k = 0; } }
+  if (k) out.push(byte << (8 - k));
+  return out;
+};
+function Reader(bytes){
+  this.b = [];
+  for (let i = 0; i < bytes.length; i++) for (let j = 7; j >= 0; j--) this.b.push((bytes[i] >> j) & 1);
+  this.i = 0;
+}
+Reader.prototype.r = function(n){
+  if (this.i + n > this.b.length) throw new Error("short");
+  let v = 0;
+  for (let i = 0; i < n; i++) v = (v << 1) | this.b[this.i++];
+  return v;
+};
+
+const bitsFor = n => Math.max(1, Math.ceil(Math.log(n) / Math.LN2));
+const num = v => (typeof v === "number" && isFinite(v)) ? v : 0;
+
+/* ---------------- field types ----------------
+   Every field declares its own width, so the payload is positional and field names
+   never go on the wire. pick() pins its own value list rather than indexing into the
+   page's render data, which gets reordered for drawing. */
+const F = {
+  unit(path, bits){
+    bits = bits || 8; const max = (1 << bits) - 2;   /* even, so 0, noon and full are all exact */
+    return { bits,
+      write(w, s){ w.w(Math.round(Math.min(1, Math.max(0, num(get(s, path)))) * max), bits); },
+      read(r, s){ set(s, path, r.r(bits) / max); } };
+  },
+  bipolar(path, bits){
+    bits = bits || 8; const max = (1 << bits) - 2;   /* even, so 0, noon and full are all exact */
+    return { bits,
+      write(w, s){ w.w(Math.round((Math.min(1, Math.max(-1, num(get(s, path)))) + 1) / 2 * max), bits); },
+      read(r, s){ const v = r.r(bits) / max * 2 - 1; set(s, path, Math.abs(v) < 1.5 / max ? 0 : v); } };
+  },
+  bool(path){
+    return { bits: 1,
+      write(w, s){ w.w(get(s, path) ? 1 : 0, 1); },
+      read(r, s){ set(s, path, !!r.r(1)); } };
+  },
+  flag(path){                          /* the same switch, stored as 0/1 rather than a boolean */
+    return { bits: 1,
+      write(w, s){ w.w(get(s, path) ? 1 : 0, 1); },
+      read(r, s){ set(s, path, r.r(1)); } };
+  },
+  pick(path, vals){
+    const n = bitsFor(vals.length);
+    return { bits: n,
+      write(w, s){ const i = vals.indexOf(get(s, path)); w.w(i < 0 ? 0 : i, n); },
+      read(r, s){ const i = r.r(n); if (i >= vals.length) throw new Error("range"); set(s, path, vals[i]); } };
+  },
+  keyed(path, keys, toKey, fromKey){   /* an index into page data, carried as a pinned name */
+    const n = bitsFor(keys.length);
+    return { bits: n,
+      write(w, s){ const i = keys.indexOf(toKey(get(s, path))); w.w(i < 0 ? 0 : i, n); },
+      read(r, s){
+        const i = r.r(n);
+        if (i >= keys.length) throw new Error("range");
+        const v = fromKey(keys[i]);
+        if (v === undefined || v === -1) throw new Error("range");
+        set(s, path, v);
+      } };
+  },
+  flags(path, keys){                   /* an object of 0/1 switches, in the order given */
+    return { bits: keys.length,
+      write(w, s){ const o = get(s, path) || {}; keys.forEach(k => w.w(o[k] ? 1 : 0, 1)); },
+      read(r, s){ let o = get(s, path); if (!o){ o = {}; set(s, path, o); } keys.forEach(k => { o[k] = r.r(1); }); } };
+  },
+  each(path, n, make){                 /* an array of records, each built by make(itemPath) */
+    let subs = [];
+    for (let i = 0; i < n; i++) subs = subs.concat(make(path + "." + i));
+    return { bits: subs.reduce((a, f) => a + f.bits, 0),
+      write(w, s){ subs.forEach(f => f.write(w, s)); },
+      read(r, s){ subs.forEach(f => f.read(r, s)); } };
+  }
+};
+
+/* ---------------- payload ----------------
+   [version][id hash][fields…][checksum], base64url. The version refuses a payload
+   written against a different schema, the id hash refuses one meant for another pedal,
+   and the checksum refuses one a mail client has cut in half. */
+const hash8 = s => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 255; return h; };
+const check = b => { let c = 0x5A; for (let i = 0; i < b.length; i++) c = ((((c << 1) | (c >>> 7)) & 255) + b[i]) & 255; return c; };
+const b64 = b => { let s = ""; for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]); return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); };
+const unb64 = str => {
+  let s = String(str).replace(/-/g, "+").replace(/_/g, "/");
+  while (s.length % 4) s += "=";
+  const bin = atob(s), out = [];
+  for (let i = 0; i < bin.length; i++) out.push(bin.charCodeAt(i));
+  return out;
+};
+
+function encode(cfg, state){
+  const w = new Writer();
+  cfg.fields.forEach(f => f.write(w, state));
+  const body = [cfg.v & 255, hash8(cfg.id)].concat(w.bytes());
+  return b64(body.concat([check(body)]));
+}
+
+/* Reads into a throwaway copy first, so a payload that runs out of bits partway cannot
+   leave the page holding half of somebody else's setting. */
+function decode(cfg, str, state){
+  let bytes;
+  try { bytes = unb64(str); } catch(e){ return { err: "unreadable" }; }
+  if (bytes.length < 4) return { err: "unreadable" };
+  const body = bytes.slice(0, bytes.length - 1);
+  if (check(body) !== bytes[bytes.length - 1]) return { err: "damaged" };
+  if (body[0] !== (cfg.v & 255)) return { err: "version" };
+  if (body[1] !== hash8(cfg.id)) return { err: "other" };
+  const rest = body.slice(2);
+  try {
+    const draft = JSON.parse(JSON.stringify(state)), r = new Reader(rest);
+    cfg.fields.forEach(f => f.read(r, draft));
+  } catch(e){ return { err: "damaged" }; }
+  return { ok: true, apply(){ const r = new Reader(rest); cfg.fields.forEach(f => f.read(r, state)); } };
+}
+
+const WHY = {
+  unreadable: "That link isn’t readable.",
+  damaged:    "That link arrived cut short — copy the whole thing.",
+  version:    "Saved by an older version of this page.",
+  other:      "That link belongs to a different pedal."
+};
+
+/* ---------------- the bank ---------------- */
+const PREFIX = "pedal-presets:";
+function bank(id){
+  try {
+    const raw = localStorage.getItem(PREFIX + id);
+    if (!raw) return [];
+    const o = JSON.parse(raw);
+    return (o && Array.isArray(o.items)) ? o.items : [];
+  } catch(e){ return []; }
+}
+function keep(id, items){
+  try { localStorage.setItem(PREFIX + id, JSON.stringify({ v: 1, items })); return true; } catch(e){ return false; }
+}
+function everything(){
+  const banks = {};
+  try {
+    for (let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if (k && k.indexOf(PREFIX) === 0){
+        const items = bank(k.slice(PREFIX.length));
+        if (items.length) banks[k.slice(PREFIX.length)] = items;
+      }
+    }
+  } catch(e){}
+  return { kind: "pedal-presets", at: new Date().toISOString(), banks };
+}
+
+const LINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.6 13.4a3.7 3.7 0 0 0 5.5.4l2.9-2.9a3.7 3.7 0 0 0-5.2-5.2l-1.7 1.6"/><path d="M14.4 10.6a3.7 3.7 0 0 0-5.5-.4L6 13.1a3.7 3.7 0 0 0 5.2 5.2l1.7-1.6"/></svg>';
+const XMARK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+async function copy(text){
+  try { await navigator.clipboard.writeText(text); return true; } catch(e){}
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.setAttribute("readonly", "");
+    ta.style.cssText = "position:fixed;top:-999px;opacity:0";
+    document.body.appendChild(ta); ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch(e){ return false; }
+}
+
+/* ---------------- mount ---------------- */
+function init(cfg){
+  const state = cfg.state, redraw = cfg.render;
+  const DEFAULT = encode(cfg, state);        /* captured before any link is applied */
+
+  const style = document.createElement("style");
+  style.textContent = CSS;
+  document.head.appendChild(style);
+
+  const anchor = document.querySelector(".brandline .themetoggle");
+  if (!anchor) return;
+  const wrap = document.createElement("span");
+  wrap.className = "sharewrap";
+  wrap.innerHTML =
+    '<button class="sharebtn" type="button" aria-haspopup="dialog" aria-expanded="false" ' +
+      'aria-label="Share this setting, and saved settings" title="Share this setting">' + LINK + '</button>' +
+    '<div class="sharepop" role="dialog" aria-label="Share and saved settings" hidden></div>';
+  anchor.parentNode.insertBefore(wrap, anchor);
+
+  const btn = wrap.querySelector(".sharebtn"), pop = wrap.querySelector(".sharepop");
+
+  const linkFor = payload => {
+    const u = new URL(location.href);
+    u.searchParams.set("s", payload);
+    return u.href;
+  };
+
+  let note = "";
+  const say = t => {
+    note = t; draw();
+    setTimeout(() => { if (note === t){ note = ""; if (!pop.hidden) draw(); } }, 3200);
+  };
+
+  /* What the popover currently shows, so a sync that changes none of it leaves the
+     reader's half-typed name alone. */
+  let drawnFor = null;
+  const signature = () => encode(cfg, state) + "|" + bank(cfg.id).length + "|" + note;
+
+  function draw(){
+    const items = bank(cfg.id), now = encode(cfg, state);
+    const before = pop.querySelector("input");
+    const carried = before ? before.value : "";
+    const hadFocus = before && document.activeElement === before;
+    const rows = items.length
+      ? '<ul class="sp-list">' + items.map((it, i) => {
+          const bad = decode(cfg, it.s, state).err;
+          const sub = bad ? '<small>' + WHY[bad] + '</small>' : (it.s === now ? '<small>on the pedal now</small>' : '');
+          return '<li>' +
+            '<button class="sp-name" data-load="' + i + '"' + (bad ? ' disabled' : '') + '>' + esc(it.n) + sub + '</button>' +
+            (bad ? '' : '<button class="sp-ico" data-copy="' + i + '" title="Copy link" aria-label="Copy a link to ' + esc(it.n) + '">' + LINK + '</button>') +
+            '<button class="sp-ico" data-del="' + i + '" title="Delete" aria-label="Delete ' + esc(it.n) + '">' + XMARK + '</button>' +
+          '</li>';
+        }).join("") + '</ul>'
+      : '<p class="sp-empty">Nothing saved yet.</p>';
+
+    pop.innerHTML =
+      '<div class="sec">' +
+        '<h3>This setting</h3>' +
+        '<button class="sp-b go wide" data-act="copylink">Copy link to this setting</button>' +
+        '<div class="sp-row" style="margin-top:8px">' +
+          '<input type="text" placeholder="Name it to save" maxlength="60" aria-label="Name for this setting">' +
+          '<button class="sp-b" data-act="save">Save</button>' +
+        '</div>' +
+        (now === DEFAULT ? ''
+          : '<p class="sp-note">Not the setting the page opens on. ' +
+            '<button class="sp-b" style="padding:1px 7px;font-size:11.5px;vertical-align:1px" data-act="reset">Reset</button></p>') +
+      '</div>' +
+      '<div class="sec">' +
+        '<h3>Saved' + (items.length ? ' · ' + items.length : '') + '</h3>' + rows +
+        '<p class="sp-note">Kept in this browser only. Clearing site data removes them, and ' +
+          'another browser or another machine won’t have them — Export keeps a copy, and a ' +
+          'copied link works anywhere.</p>' +
+      '</div>' +
+      '<div class="sec">' +
+        '<div class="sp-row">' +
+          '<button class="sp-b" data-act="export" style="flex:1">Export all</button>' +
+          '<button class="sp-b" data-act="import" style="flex:1">Import</button>' +
+        '</div>' +
+        (note ? '<p class="sp-note">' + esc(note) + '</p>' : '') +
+      '</div>';
+
+    const after = pop.querySelector("input");
+    if (after && carried){
+      after.value = carried;
+      if (hadFocus){ after.focus(); after.setSelectionRange(carried.length, carried.length); }
+    }
+    drawnFor = signature();
+  }
+
+  function open(){ draw(); pop.hidden = false; btn.setAttribute("aria-expanded", "true"); }
+  function shut(){ pop.hidden = true; btn.setAttribute("aria-expanded", "false"); note = ""; }
+
+  btn.addEventListener("click", () => { if (pop.hidden) open(); else shut(); });
+  document.addEventListener("click", e => { if (!pop.hidden && !wrap.contains(e.target)) shut(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !pop.hidden){ shut(); btn.focus(); } });
+  pop.addEventListener("keydown", e => {
+    if (e.key === "Enter" && e.target.tagName === "INPUT"){ e.preventDefault(); pop.querySelector('[data-act="save"]').click(); }
+  });
+
+  pop.addEventListener("click", async e => {
+    const t = e.target.closest("[data-act],[data-load],[data-copy],[data-del]");
+    if (!t) return;
+    const items = bank(cfg.id);
+
+    if (t.dataset.act === "copylink"){
+      const ok = await copy(linkFor(encode(cfg, state)));
+      say(ok ? "Link copied." : "Copy failed — this browser blocked it.");
+      return;
+    }
+    if (t.dataset.act === "save"){
+      const input = pop.querySelector("input"), name = input.value.trim();
+      if (!name){ input.focus(); return; }
+      const at = items.findIndex(i => i.n.toLowerCase() === name.toLowerCase());
+      const entry = { n: name, t: Date.now(), s: encode(cfg, state) };
+      if (at >= 0) items[at] = entry; else items.push(entry);
+      const ok = keep(cfg.id, items);
+      if (ok) input.value = "";
+      say(ok ? (at >= 0 ? "Replaced “" + name + "”." : "Saved “" + name + "”.")
+             : "Couldn’t save — this browser is blocking storage.");
+      return;
+    }
+    if (t.dataset.act === "reset"){
+      const d = decode(cfg, DEFAULT, state);
+      if (d.ok){ d.apply(); redraw(); sync(); draw(); }
+      return;
+    }
+    if (t.dataset.act === "export"){
+      const url = URL.createObjectURL(new Blob([JSON.stringify(everything(), null, 2)], { type: "application/json" }));
+      const a = document.createElement("a");
+      a.href = url; a.download = "pedal-presets.json";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      say("Exported every pedal’s saved settings.");
+      return;
+    }
+    if (t.dataset.act === "import"){
+      const f = document.createElement("input");
+      f.type = "file"; f.accept = "application/json,.json";
+      f.addEventListener("change", () => {
+        const file = f.files && f.files[0];
+        if (!file) return;
+        const rd = new FileReader();
+        rd.onload = () => {
+          let o;
+          try { o = JSON.parse(rd.result); } catch(err){ say("That file isn’t readable."); return; }
+          if (!o || o.kind !== "pedal-presets" || !o.banks){ say("That isn’t a preset export."); return; }
+          let added = 0, mine = 0;
+          Object.keys(o.banks).forEach(id => {
+            const incoming = o.banks[id];
+            if (!Array.isArray(incoming)) return;
+            const have = bank(id);
+            incoming.forEach(it => {
+              if (!it || typeof it.n !== "string" || typeof it.s !== "string") return;
+              const at = have.findIndex(x => x.n.toLowerCase() === it.n.toLowerCase());
+              const entry = { n: it.n.slice(0, 60), t: Number(it.t) || Date.now(), s: it.s };
+              if (at >= 0) have[at] = entry; else have.push(entry);
+              added++; if (id === cfg.id) mine++;
+            });
+            keep(id, have);
+          });
+          say(added
+            ? "Imported " + added + " setting" + (added === 1 ? "" : "s") + " · " + (mine ? mine + " for this pedal" : "none for this pedal")
+            : "Nothing in that file to import.");
+        };
+        rd.readAsText(file);
+      });
+      f.click();
+      return;
+    }
+    if (t.dataset.load !== undefined){
+      const d = decode(cfg, items[+t.dataset.load].s, state);
+      if (d.err){ say(WHY[d.err]); return; }
+      d.apply(); redraw(); sync(); shut();
+      return;
+    }
+    if (t.dataset.copy !== undefined){
+      const ok = await copy(linkFor(items[+t.dataset.copy].s));
+      say(ok ? "Link copied." : "Copy failed — this browser blocked it.");
+      return;
+    }
+    if (t.dataset.del !== undefined){
+      items.splice(+t.dataset.del, 1);
+      keep(cfg.id, items);
+      draw();
+      return;
+    }
+  });
+
+  /* The URL must never describe a state the page is not in, so the moment the reader
+     moves anything away from what arrived, ?s= goes. */
+  function sync(){
+    const now = encode(cfg, state);
+    btn.dataset.mod = now === DEFAULT ? "" : "1";
+    let u;
+    try { u = new URL(location.href); } catch(e){ return; }
+    const had = u.searchParams.get("s");
+    if (had && had !== now){
+      u.searchParams.delete("s");
+      history.replaceState(null, "", u.pathname + u.search + u.hash);
+    }
+    if (!pop.hidden && drawnFor !== signature()) draw();
+  }
+
+  /* Any interaction can move the pedal, whichever handler owns it — so watch the page
+     rather than instrumenting every control. */
+  let queued = false;
+  const later = () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => { queued = false; sync(); });
+  };
+  ["pointerup", "keyup", "change", "click"].forEach(ev => document.addEventListener(ev, later, true));
+
+  /* Arriving on a link. */
+  let arrived = null;
+  try { arrived = new URL(location.href).searchParams.get("s"); } catch(e){}
+  if (arrived){
+    const d = decode(cfg, arrived, state);
+    if (d.ok){ d.apply(); redraw(); }
+    else {
+      try {
+        const u = new URL(location.href);
+        u.searchParams.delete("s");
+        history.replaceState(null, "", u.pathname + u.search + u.hash);
+      } catch(e){}
+      setTimeout(() => { open(); say(WHY[d.err] + " Showing the page’s own setting instead."); }, 80);
+    }
+  }
+  sync();
+}
+
+window.PedalShare = { init, F, encode, decode };
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=DM+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap">
@@ -582,6 +1050,19 @@ KNOBS.forEach(kn => {
     setSel(S.sel + d);
   });
 })();
+
+/* ---------------- share & presets ----------------
+   The selector travels as the circuit's own id rather than as its index, so
+   reordering CIRCUITS cannot repoint links already sent. */
+const F = PedalShare.F;
+PedalShare.init({
+  id:"muffuletta", v:1, state:S, render:render,
+  fields:[
+    F.keyed("sel", ["civil","russian","pi","triangle","rams","jhs"],
+            i => CIRCUITS[i].id, k => CIRCUITS.findIndex(c => c.id === k)),
+    F.bool("on"), F.unit("vals.vol"), F.unit("vals.tone"), F.unit("vals.sus")
+  ]
+});
 
 render();
 })();

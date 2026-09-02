@@ -111,7 +111,7 @@ body{
   line-height:1.62;
   -webkit-font-smoothing:antialiased;
 }
-#app{max-width:1160px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 96px}
+#app{max-width:1480px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 96px}
 h1,h2,h3,h4,.lbl,.mono,button,input,.badge{font-family:"Archivo",system-ui,-apple-system,"Helvetica Neue",sans-serif}
 h1,h2,h3{text-wrap:balance;margin:0}
 .mono{font-family:"DM Mono","SFMono-Regular",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
@@ -126,14 +126,17 @@ a{color:var(--accent-text)}
 /* ---------- masthead ---------- */
 header.top{padding:clamp(40px,7vw,84px) 0 clamp(26px,4vw,40px)}
 /* The page follows the OS until the reader picks a side; after that [data-theme] on
-   <html> wins, and the pick is remembered. The sun shows when the page is dark. */
-:root{color-scheme:light}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark}}
-:root[data-theme="dark"]{color-scheme:dark}
+   <html> wins, and the pick is remembered. The button is an invitation to swap, so it
+   wears the theme it offers: a moon in dark colours on a light page, a sun in light
+   colours on a dark page. --tt-* is the opposite palette, cross-wired for that reason,
+   and held here rather than beside the tokens it inverts. */
+:root{color-scheme:light;--tt-surface:#1A1816;--tt-line:#2F2A25;--tt-ink:#EDE6DA;--tt-ink-3:#736B60}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;--tt-surface:#F8F5EE;--tt-line:#D6CCBB;--tt-ink:#1D1A15;--tt-ink-3:#8A8073}}
+:root[data-theme="dark"]{color-scheme:dark;--tt-surface:#F8F5EE;--tt-line:#D6CCBB;--tt-ink:#1D1A15;--tt-ink-3:#8A8073}
 .themetoggle{flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;
-  border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink-3);cursor:pointer;
+  border:1px solid var(--tt-line);border-radius:8px;background:var(--tt-surface);color:var(--tt-ink-3);cursor:pointer;
   transition:color .15s,border-color .15s}
-.themetoggle:hover{color:var(--ink);border-color:var(--ink-3)}
+.themetoggle:hover{color:var(--tt-ink);border-color:var(--tt-ink-3)}
 .themetoggle svg{display:block;width:15px;height:15px}
 .themetoggle .i-sun{display:none}
 @media (prefers-color-scheme: dark){
@@ -413,13 +416,15 @@ const PEDALS = [
   {
     brand:"JHS", name:"PackRat", img:"jhs-packrat.webp", cat:"dirt",
     blurb:"Nine Rat-style distortions on a rotary, from the 1979 \"Big Box\" original through the LED-clipping Turbo, the grunge-era BRAT and JHS's own.",
-    status:"soon",
+    status:"live",
+    interactive:"jhs-packrat-interactive.html",
     src:{label:"jhspedals.info", href:"https://jhspedals.info/products/packrat"}
   },
   {
     brand:"JHS", name:"Muffuletta", img:"jhs-muffuletta.webp", cat:"dirt",
     blurb:"Six Big Muff circuits — Triangle, Rams Head, Pi, Civil War, Russian — plus JHS's own, on one selector.",
-    status:"soon",
+    status:"live",
+    interactive:"jhs-muffuletta-interactive.html",
     doc:{label:"Manual (web page)", href:"https://jhspedals.info/products/muffuletta"},
     docs:[],
     src:{label:"jhspedals.info", href:"https://jhspedals.info/products/muffuletta"}

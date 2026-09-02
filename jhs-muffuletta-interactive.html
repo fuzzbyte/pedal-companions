@@ -1,0 +1,588 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Muffuletta Circuit by Circuit</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23424E2F'/><path d='M16 7.5 26 25H6Z' fill='%23D7C72D'/></svg>">
+<script>
+/* Theme: apply the reader's stored pick before first paint, then wire the header toggle. */
+(function(){
+  var root = document.documentElement, KEY = "pedal-theme";
+  try {
+    var saved = localStorage.getItem(KEY);
+    if (saved === "light" || saved === "dark") root.dataset.theme = saved;
+  } catch(e){}
+  var isDark = function(){
+    return root.dataset.theme ? root.dataset.theme === "dark"
+                              : matchMedia("(prefers-color-scheme: dark)").matches;
+  };
+  addEventListener("DOMContentLoaded", function(){
+    var btn = document.querySelector(".themetoggle");
+    if (!btn) return;
+    var sync = function(){
+      var label = "Switch to the " + (isDark() ? "light" : "dark") + " theme";
+      btn.setAttribute("aria-label", label);
+      btn.title = label;
+    };
+    btn.addEventListener("click", function(){
+      root.dataset.theme = isDark() ? "light" : "dark";
+      try { localStorage.setItem(KEY, root.dataset.theme); } catch(e){}
+      sync();
+    });
+    sync();
+  });
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=DM+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap">
+
+<style>
+/* ---------- tokens: light is the bare :root, dark redefines ---------- */
+:root{
+  --bg:#EFEBE1; --surface:#F8F5EE; --surface-2:#E7E3D6;
+  --line:#D5CFBE; --line-soft:#E2DDCD;
+  --ink:#1B1C16; --ink-2:#575A48; --ink-3:#878975;
+  --tint:#0D0E09;
+  --shadow:0 1px 0 rgba(27,28,22,.04), 0 12px 32px -20px rgba(27,28,22,.45);
+
+  /* the enclosure, sampled from JHS's own product photograph */
+  --panel:#4B5735; --panel-dark:#3A442A;
+  --panel-ink:#D7C72D; --panel-ink-2:rgba(215,199,45,.5);
+  --knob-ring:#141410; --knob-face:#F2F1EA;
+
+  --acc:#D7C72D;
+  --acc-text:color-mix(in oklab, var(--acc) 68%, var(--tint));
+  --warn:#C05621;
+  --r:14px; --step:clamp(2.6rem, 5vw, 4.4rem);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121310; --surface:#1A1B16; --surface-2:#22241C;
+    --line:#2E3126; --line-soft:#262820;
+    --ink:#EBE9DA; --ink-2:#A5A692; --ink-3:#727463;
+    --tint:#FFFBE9;
+    --shadow:0 1px 0 rgba(255,255,255,.02), 0 16px 40px -24px rgba(0,0,0,.9);
+    --warn:#E0A05C;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121310; --surface:#1A1B16; --surface-2:#22241C;
+  --line:#2E3126; --line-soft:#262820;
+  --ink:#EBE9DA; --ink-2:#A5A692; --ink-3:#727463;
+  --tint:#FFFBE9;
+  --shadow:0 1px 0 rgba(255,255,255,.02), 0 16px 40px -24px rgba(0,0,0,.9);
+  --warn:#E0A05C;
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Newsreader",Georgia,"Times New Roman",serif;
+  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
+#app{max-width:1160px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 96px}
+h1,h2,h3,h4,.lbl,.mono,button{font-family:"Archivo",system-ui,-apple-system,"Helvetica Neue",sans-serif}
+h1,h2,h3{text-wrap:balance;margin:0}
+.mono,code{font-family:"DM Mono","SFMono-Regular",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+a{color:var(--acc-text)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:3px;border-radius:4px}
+.lbl{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.lbl-a{color:var(--acc-text)}
+
+header.top{padding:clamp(40px,7vw,84px) 0 clamp(30px,5vw,48px)}
+.backlink{flex:none;display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);text-decoration:none;padding-right:12px;border-right:1px solid var(--line)}
+.backlink:hover{color:var(--ink)}
+.backlink .bk-arrow{font-size:13px;letter-spacing:0;transition:transform .14s ease}
+.backlink:hover .bk-arrow{transform:translateX(-3px)}
+@media (max-width:560px){.brandline{flex-wrap:wrap}.backlink{flex-basis:100%;border-right:0;padding-right:0;margin-bottom:2px}}
+/* The page follows the OS until the reader picks a side; after that [data-theme] on
+   <html> wins, and the pick is remembered. The button is an invitation to swap, so it
+   wears the theme it offers: a moon in dark colours on a light page, a sun in light
+   colours on a dark page. --tt-* is the opposite palette, cross-wired for that reason,
+   and held here rather than beside the tokens it inverts. */
+:root{color-scheme:light;--tt-surface:#1A1B16;--tt-line:#2E3126;--tt-ink:#EBE9DA;--tt-ink-3:#727463}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;--tt-surface:#F8F5EE;--tt-line:#D5CFBE;--tt-ink:#1B1C16;--tt-ink-3:#878975}}
+:root[data-theme="dark"]{color-scheme:dark;--tt-surface:#F8F5EE;--tt-line:#D5CFBE;--tt-ink:#1B1C16;--tt-ink-3:#878975}
+.themetoggle{flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;
+  border:1px solid var(--tt-line);border-radius:8px;background:var(--tt-surface);color:var(--tt-ink-3);cursor:pointer;
+  transition:color .15s,border-color .15s}
+.themetoggle:hover{color:var(--tt-ink);border-color:var(--tt-ink-3)}
+.themetoggle svg{display:block;width:15px;height:15px}
+.themetoggle .i-sun{display:none}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .themetoggle .i-moon{display:none}
+  :root:not([data-theme="light"]) .themetoggle .i-sun{display:block}
+}
+:root[data-theme="dark"] .themetoggle .i-moon{display:none}
+:root[data-theme="dark"] .themetoggle .i-sun{display:block}
+.brandline{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.brandline .unoff{font-weight:700;color:var(--acc-text)}
+.brandline .rule{flex:1;height:1px;background:var(--line)}
+h1{font-size:clamp(2.7rem,10vw,6.2rem);font-weight:700;letter-spacing:-.045em;line-height:.88;text-transform:uppercase}
+h1 .thin{display:block;font-weight:500;font-size:.3em;letter-spacing:.2em;color:var(--ink-3);margin-top:1.05em}
+
+/* Two links to what JHS themselves publish. No paragraph: every quotation on the
+   page already names where it came from, and saying so again is writing about the page. */
+.srclinks{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.srclinks a{display:inline-flex;align-items:center;gap:9px;text-decoration:none;
+  font-family:"Archivo",sans-serif;font-size:.86rem;font-weight:600;
+  padding:9px 15px;border-radius:10px;background:var(--surface);border:1px solid var(--line);
+  transition:border-color .15s,background .15s}
+.srclinks a:hover{border-color:var(--acc);background:var(--surface-2)}
+.srclinks a::after{content:"\2192";font-weight:500}
+
+.console{display:grid;grid-template-columns:minmax(260px,352px) 1fr;gap:clamp(20px,3vw,40px);align-items:start}
+@media (max-width:880px){ .console{grid-template-columns:1fr} }
+.pedal-col{position:sticky;top:20px;display:flex;flex-direction:column;gap:12px}
+@media (max-width:880px){ .pedal-col{position:static} }
+
+/* ---------- the drawn pedal ---------- */
+.pedal{position:relative;width:100%;max-width:max(260px, calc((100vh - 150px) * 0.5));margin:0 auto;aspect-ratio:390/700;
+  background:linear-gradient(178deg, var(--panel), var(--panel-dark));
+  border-radius:7% / 3.9%;
+  box-shadow:0 30px 60px -34px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.14);
+  color:var(--panel-ink);container-type:inline-size;touch-action:none;user-select:none}
+
+.knob{position:absolute;width:30.3cqw;aspect-ratio:1;transform:translate(-50%,-50%);
+  border-radius:50%;cursor:ns-resize;background:none;border:0;padding:0;z-index:2}
+.knob[data-k="vol"]{left:27%;top:16.7%}
+.knob[data-k="sus"]{left:73%;top:16.7%}
+.knob[data-k="tone"]{left:27%;top:39.9%}
+.knob[data-k="sel"]{left:73%;top:39.9%;cursor:pointer}
+/* JHS fit a fluted skirt, not a smooth barrel: eight shallow lobes round the cap. */
+.knob .cap{clip-path:polygon(50.0% 0.0%,53.2% 0.6%,56.3% 2.4%,59.0% 4.8%,61.4% 7.4%,63.7% 9.6%,66.1% 11.0%,68.9% 11.7%,72.1% 11.8%,75.6% 11.7%,79.2% 11.9%,82.6% 12.8%,85.4% 14.6%,87.2% 17.4%,88.1% 20.8%,88.3% 24.4%,88.2% 27.9%,88.3% 31.1%,89.0% 33.9%,90.4% 36.3%,92.6% 38.6%,95.2% 41.0%,97.6% 43.7%,99.4% 46.8%,100.0% 50.0%,99.4% 53.2%,97.6% 56.3%,95.2% 59.0%,92.6% 61.4%,90.4% 63.7%,89.0% 66.1%,88.3% 68.9%,88.2% 72.1%,88.3% 75.6%,88.1% 79.2%,87.2% 82.6%,85.4% 85.4%,82.6% 87.2%,79.2% 88.1%,75.6% 88.3%,72.1% 88.2%,68.9% 88.3%,66.1% 89.0%,63.7% 90.4%,61.4% 92.6%,59.0% 95.2%,56.3% 97.6%,53.2% 99.4%,50.0% 100.0%,46.8% 99.4%,43.7% 97.6%,41.0% 95.2%,38.6% 92.6%,36.3% 90.4%,33.9% 89.0%,31.1% 88.3%,27.9% 88.2%,24.4% 88.3%,20.8% 88.1%,17.4% 87.2%,14.6% 85.4%,12.8% 82.6%,11.9% 79.2%,11.7% 75.6%,11.8% 72.1%,11.7% 68.9%,11.0% 66.1%,9.6% 63.7%,7.4% 61.4%,4.8% 59.0%,2.4% 56.3%,0.6% 53.2%,0.0% 50.0%,0.6% 46.8%,2.4% 43.7%,4.8% 41.0%,7.4% 38.6%,9.6% 36.3%,11.0% 33.9%,11.7% 31.1%,11.8% 27.9%,11.7% 24.4%,11.9% 20.8%,12.8% 17.4%,14.6% 14.6%,17.4% 12.8%,20.8% 11.9%,24.4% 11.7%,27.9% 11.8%,31.1% 11.7%,33.9% 11.0%,36.3% 9.6%,38.6% 7.4%,41.0% 4.8%,43.7% 2.4%,46.8% 0.6%)}
+.knob .cap{position:absolute;inset:0;border-radius:50%;background:var(--knob-ring);
+  box-shadow:0 3px 8px -3px rgba(0,0,0,.65), inset 0 0 0 1px rgba(255,255,255,.07);
+  transition:transform .05s linear}
+.knob .cap::before{content:"";position:absolute;inset:14%;border-radius:50%;
+  background:radial-gradient(circle at 36% 28%, #3A3A32, #101010 74%)}
+.knob .cap::after{content:"";position:absolute;left:50%;top:8%;width:8.5%;height:34%;transform:translateX(-50%);
+  border-radius:2px;background:var(--knob-face)}
+.knob:focus-visible{outline:none}
+.knob:focus-visible .cap{outline:2px solid var(--panel-ink);outline-offset:4px}
+.knob.active .cap{box-shadow:0 0 0 2px var(--panel-ink), 0 3px 8px -3px rgba(0,0,0,.65)}
+
+.kmin{position:absolute;width:2.4cqw;aspect-ratio:1;border-radius:50%;background:var(--knob-face);
+  transform:translate(-50%,-50%);opacity:.85;pointer-events:none}
+.klabel{position:absolute;transform:translateX(-50%);text-align:center;
+  font-family:"Archivo",sans-serif;font-size:4cqw;font-weight:700;letter-spacing:.09em;
+  color:var(--panel-ink);pointer-events:none}
+.klabel[data-k="vol"]{left:27%;top:27.1%}
+.klabel[data-k="sus"]{left:73%;top:27.1%}
+.klabel[data-k="tone"]{left:27%;top:50.3%}
+
+/* the six icons printed in an arc below the selector */
+.arc{position:absolute;left:73%;top:39.9%;width:52cqw;aspect-ratio:1;
+  transform:translate(-50%,-50%);overflow:visible;z-index:1}
+.arc .slot{cursor:pointer}
+.arc .hit{fill:transparent}
+.arc .halo{fill:none;stroke:var(--panel-ink);stroke-width:1.1;opacity:0}
+.arc .slot[data-on="true"] .halo{opacity:.9}
+
+/* one icon set, two sizes: the enclosure arc and the cards below */
+.ico{fill:none;stroke:var(--panel-ink-2);stroke-linecap:round;stroke-linejoin:round;transition:stroke .15s,fill .15s}
+.ico.solid{fill:var(--panel-ink-2);stroke:none}
+text.ico{font-family:"Archivo",sans-serif;font-weight:700;font-size:13px;fill:var(--panel-ink-2);stroke:none}
+.arc .ico{stroke-width:4}
+.arc .slot[data-on="true"] .ico,.arc .slot:hover .ico{stroke:var(--panel-ink)}
+.arc .slot[data-on="true"] .ico.solid,.arc .slot:hover .ico.solid{fill:var(--panel-ink);stroke:none}
+.arc .slot[data-on="true"] text.ico,.arc .slot:hover text.ico{fill:var(--panel-ink);stroke:none}
+.badge .ico{stroke-width:2.7;stroke:var(--panel-ink)}
+.badge .ico.solid{fill:var(--panel-ink);stroke:none}
+.badge text.ico{fill:var(--panel-ink);stroke:none}
+
+.sandwich{position:absolute;left:49%;top:68%;width:56cqw;transform:translate(-50%,-50%);pointer-events:none}
+.sandwich svg{width:100%;height:auto;display:block}
+
+.fsw{position:absolute;left:50%;top:88.4%;width:25cqw;aspect-ratio:1;transform:translate(-50%,-50%);
+  cursor:pointer;padding:0;border:0;background:linear-gradient(168deg,#E4E4E0,#8E8E88);
+  clip-path:polygon(50% 0%,93.3% 25%,93.3% 75%,50% 100%,6.7% 75%,6.7% 25%);
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.55))}
+.fsw::after{content:"";position:absolute;inset:20%;border-radius:50%;
+  background:radial-gradient(circle at 38% 30%, #F4F4F1, #A8A8A2 72%, #7C7C77);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.22)}
+.fsw:active{transform:translate(-50%,-50%) scale(.95)}
+.dcjack{position:absolute;left:50%;top:-1.1%;width:11cqw;height:2.6cqw;transform:translateX(-50%);
+  border-radius:2px 2px 0 0;background:#15150F;box-shadow:inset 0 -1px 0 rgba(255,255,255,.08)}
+
+.fled{position:absolute;left:80%;top:88.4%;width:6cqw;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);
+  background:#2B2B18;box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.5);transition:background .15s,box-shadow .15s}
+.fled[data-on="true"]{background:#FFF6B0;box-shadow:0 0 12px 2px rgba(255,240,120,.75), inset 0 0 0 1.5px rgba(0,0,0,.3)}
+
+.hint{min-height:48px;display:flex;align-items:center;padding:10px 14px;
+  border:1px dashed var(--line);border-radius:10px;background:var(--surface);
+  font-size:.86rem;color:var(--ink-2);line-height:1.45}
+.hint[data-live="true"]{border-style:solid;border-color:var(--acc);color:var(--ink)}
+
+/* ---------- the readout ---------- */
+button.btn{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  padding:8px 13px;border-radius:8px;cursor:pointer;background:var(--surface);color:var(--ink);
+  border:1px solid var(--line);transition:background .15s,border-color .15s,color .15s}
+button.btn:hover{border-color:var(--acc);color:var(--acc-text)}
+button.btn[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#17170F}
+
+.readout{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden;box-shadow:var(--shadow)}
+.seltabs{display:flex;flex-wrap:wrap;gap:6px;padding:14px 18px;border-bottom:1px solid var(--line-soft);background:var(--surface-2)}
+.seltabs button{font-size:11px;padding:7px 10px}
+.rhead{padding:18px 20px 16px;border-bottom:1px solid var(--line-soft)}
+.rhead .rtop{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:baseline;justify-content:space-between}
+.rhead h2{font-size:1.6rem;font-weight:700;letter-spacing:-.025em}
+.rhead .era{font-family:"DM Mono",monospace;font-size:.82rem;color:var(--ink-3);white-space:nowrap}
+.rhead blockquote{margin:12px 0 0;padding:0 0 0 13px;border-left:2px solid var(--acc);
+  font-size:1.02rem;line-height:1.5}
+.rhead blockquote.pg{border-left-color:var(--line);font-size:.96rem;color:var(--ink-2)}
+.rhead .attrib{display:block;margin-top:6px;font-family:"Archivo",sans-serif;font-size:10px;
+  font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.rhead .players{margin:14px 0 0;font-size:.92rem;color:var(--ink-2)}
+.rhead .players b{display:block;font-family:"Archivo",sans-serif;font-size:9px;font-weight:600;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);margin-bottom:2px}
+
+.krow{padding:14px 20px;border-bottom:1px solid var(--line-soft);cursor:default;
+  transition:background .15s}
+.krow.active{background:color-mix(in oklab, var(--acc) 13%, transparent)}
+.krow:last-of-type{border-bottom:0}
+.krow .pname{display:block;font-family:"Archivo",sans-serif;font-weight:600;font-size:1rem;letter-spacing:-.01em}
+.krow .pdesc{display:block;font-size:.93rem;color:var(--ink-2);margin-top:2px}
+
+.rfoot{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;
+  padding:14px 20px;border-top:1px solid var(--line-soft);background:var(--surface-2);font-size:.88rem;color:var(--ink-2)}
+.rfoot .marked{display:flex;align-items:flex-start;gap:10px;flex:1 1 300px}
+.rfoot .marked b{font-family:"Archivo",sans-serif;font-weight:600;color:var(--ink)}
+.rfoot .badge{width:30px;height:30px;flex:none;border-radius:8px;display:grid;place-items:center;
+  background:var(--panel);box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
+.rfoot .badge svg{width:21px;height:21px;display:block}
+.rfoot a{white-space:nowrap}
+
+/* ---------- generic page furniture ---------- */
+section{padding-top:var(--step)}
+.shead{display:flex;align-items:baseline;gap:14px;margin-bottom:18px}
+.shead h2{font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:700;letter-spacing:-.03em}
+.shead .rule{flex:1;height:1px;background:var(--line)}
+.sdek{max-width:66ch;color:var(--ink-2);margin:-4px 0 24px}
+.sdek + .sdek{margin-top:-14px}
+
+footer.end{margin-top:var(--step);padding-top:22px;border-top:1px solid var(--line);color:var(--ink-3);
+  font-size:.88rem;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important;transition-duration:.001ms !important}
+}
+</style>
+
+<div id="app">
+
+<header class="top">
+  <div class="brandline">
+    <a class="backlink" href="index.html"><span class="bk-arrow" aria-hidden="true">&#8592;</span>All manuals</a>
+    <span class="lbl">JHS Pedals</span>
+    <span class="rule"></span>
+    <span class="lbl unoff">Unofficial companion to the manual · not affiliated with JHS Pedals</span>
+    <button class="themetoggle" type="button" aria-label="Switch theme"><svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg><svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2M12 19.4v2M4.6 4.6 6 6M18 18l1.4 1.4M2.6 12h2M19.4 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg></button>
+  </div>
+  <h1>Muffuletta<span class="thin">Six Big Muff circuits · one selector</span></h1>
+
+  <div class="srclinks">
+    <a href="https://jhspedals.info/products/muffuletta" target="_blank" rel="noopener">JHS on the Muffuletta</a>
+    <a href="https://www.youtube.com/watch?v=y7h-GEgnB0E" target="_blank" rel="noopener">JHS's video</a>
+  </div>
+</header>
+
+<div class="console">
+  <div class="pedal-col">
+    <div class="pedal" id="pedal">
+      <span class="klabel" data-k="vol">VOLUME</span>
+      <span class="klabel" data-k="sus">SUSTAIN</span>
+      <span class="klabel" data-k="tone">TONE</span>
+
+      <span class="kmin" style="left:18%;top:25.4%"></span>
+      <span class="kmin" style="left:64%;top:25.4%"></span>
+      <span class="kmin" style="left:18%;top:48.6%"></span>
+
+      <svg class="arc" id="arc" viewBox="0 0 100 100" aria-hidden="true"></svg>
+
+      <button class="knob" data-k="vol"  aria-label="Volume knob"><span class="cap"></span></button>
+      <button class="knob" data-k="sus"  aria-label="Sustain knob"><span class="cap"></span></button>
+      <button class="knob" data-k="tone" aria-label="Tone knob"><span class="cap"></span></button>
+      <button class="knob" data-k="sel"  aria-label="Version selector"><span class="cap"></span></button>
+
+      <span class="sandwich" aria-hidden="true">
+        <svg viewBox="0 0 200 124" fill="none" stroke="#D7C72D" stroke-width="3"
+             stroke-linecap="round" stroke-linejoin="round">
+          <!-- steam -->
+          <path d="M80 3c-6 6 3 10-3 16M100 0c-6 7 4 11-2 17M120 4c-5 6 3 10-3 15"/>
+          <!-- the domed top half of the roll, scored across -->
+          <path d="M12 64C12 44 34 33 100 33s88 11 88 31"/>
+          <path d="M34 52c7-5 17-8 27-9M62 44c9-2 20-3 30-3M96 41c11 0 22 1 31 4M132 48c9 2 17 5 23 9"/>
+          <!-- the cut, and the filling hanging out of it -->
+          <path d="M12 64c30 6 146 6 176 0"/>
+          <path d="M18 68l8 9 9-9 8 9 9-9 8 9 9-9 8 9 9-9 8 9 9-9 8 9 9-9 8 9 9-9 8 9 9-9 8 9 9-9"/>
+          <path d="M22 84c14 5 30-3 44 2s28-4 42 1 28-4 42 1 14 0 18-2"/>
+          <!-- the bottom half, a shallow tray -->
+          <path d="M12 68c-5 16 5 28 26 32 26 5 98 5 124 0 21-4 31-16 26-32"/>
+          <path d="M36 100c16 4 36 2 52-2M104 102c16 3 34 1 46-4"/>
+        </svg>
+      </span>
+
+      <span class="dcjack" aria-hidden="true"></span>
+      <span class="fled" id="fled" data-on="true"></span>
+      <button class="fsw" id="fsw" aria-label="Bypass footswitch"></button>
+    </div>
+
+    <div class="hint" id="hint" data-live="false"></div>
+    <p style="margin:0;font-size:.8rem;color:var(--ink-3);line-height:1.45">
+      Click an icon or a name to change circuit, or focus the selector and use the arrow
+      keys. Turn Volume, Tone or Sustain to pick out its row.
+    </p>
+  </div>
+
+  <div class="readout">
+    <div class="seltabs" id="seltabs"></div>
+    <div class="rhead">
+      <div class="rtop">
+        <h2 id="cName">—</h2>
+        <span class="era" id="cEra"></span>
+      </div>
+      <blockquote id="cQuote"></blockquote>
+      <blockquote class="pg" id="cPage"></blockquote>
+      <p class="players" id="cPlayers"></p>
+    </div>
+    <div id="krows"></div>
+    <div class="rfoot" id="rfoot"></div>
+  </div>
+</div>
+
+<footer class="end">
+  <span>JHS Pedal Manual booklet, January 2019 · Muffuletta on printed page 10</span>
+  <span><a href="https://jhspedals.info/products/muffuletta" target="_blank" rel="noopener">jhspedals.info/products/muffuletta</a></span>
+</footer>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = s => document.querySelector(s);
+const clamp = (v,a=0,b=1) => Math.min(b, Math.max(a, v));
+/* the three continuous knobs sweep the usual 300 degrees, -150 to +150 from noon */
+const ang = v => -150 + v*300;
+/* ---------------- the six icons ----------------
+   Drawn from JHS's product photograph. Each is a 32x32 viewBox so the same markup
+   serves the enclosure arc and the cards below. */
+const ICON = {
+  cannon:'<g class="ico"><path d="M3 24h11"/><circle cx="9.5" cy="22.5" r="4.6"/>'
+        +'<path d="M4 26.5 15 22M15 22l12-9"/>'
+        +'<path d="M25.5 10.5 30 12.5 27.5 17Z" class="ico solid"/>'
+        +'<path d="M14 24h9"/></g>',
+  star:'<g class="ico"><path d="M13 4.5 16 11.5 23.5 12 17.8 16.8 19.6 24 13 20.2 6.4 24 8.2 16.8 2.5 12 10 11.5Z"/>'
+      +'<path d="M18.5 15.5c3.5.5 6.5 2.5 8.5 5.5M24 15c2 2.5 3.5 5.5 4 9"/></g>',
+  pi:'<g class="ico solid"><path d="M5.5 9.5h21a2.6 2.6 0 0 1 0 5.2h-21a2.6 2.6 0 0 1 0-5.2Z"/>'
+    +'<path d="M11.6 13.6c2 0 3.2 1 3.2 2.8 0 3-1.4 5.2-4.2 6.6-1.8.9-2.6 2-2.4 3.4.2 1.4-.6 2.2-2 2.2-1.5 0-2.3-.9-2.2-2.4.2-2.6 1.7-4.4 4.3-5.6 1.5-.7 2.2-1.8 2.1-3.4-.1-2.4.3-3.6 1.2-3.6Z"/>'
+    +'<path d="M21.4 13.6c2 0 2.9 1.1 2.8 3.3-.1 3.4.6 5.6 2.2 6.6 1.3.8 1.9 1.9 1.7 3.2-.2 1.4-1.1 2.1-2.6 1.9-3.1-.4-5-3.2-5.6-8.4-.3-2.6.2-4.4 1.5-6.6Z"/></g>',
+  triangle:'<g class="ico"><path d="M16 3.5 29.5 27.5H2.5Z"/><path d="M16 12 23 25H9Z"/></g>',
+  ram:'<g class="ico"><path d="M20 8c-6-3-13-1-15 4-1.6 4 .6 8 4.6 9.2 3 .9 5.8-.4 6.6-3 .6-2-.4-3.8-2.2-4.3-1.4-.4-2.6.3-3 1.4"/>'
+     +'<path d="M20 8c3.4-.6 6.6.6 8.4 3.2"/>'
+     +'<path d="M17.5 18.5c1.5 3.5 4 6 7.5 7.5M21 20.5c-.5 3-2 5.5-4.5 7.5"/></g>',
+  jhs:'<text class="ico" x="16" y="16" text-anchor="middle" dominant-baseline="central">JHS</text>'
+};
+
+/* ---------------- the circuits ----------------
+   `jhs` is verbatim from the combined booklet, printed page 10.
+   `era`, `ver` and `players` are from JHS's product page and appear nowhere in the booklet.
+   Order and angle follow the arc printed on the enclosure, left to right. */
+const CIRCUITS = [
+  { id:"civil", name:"Civil War", era:"1991–1993", ver:"V7", deg:285, icon:"cannon",
+    iconName:"A cannon",
+    jhs:"More midrange, brighter overall tone, and less gain.",
+    page:"The old-style Civil War-era font and navy and gray colors found on these pedals’ enclosures dictate their name. They are best known for having more midrange and having a brighter overall tone with less gain.",
+    players:"Thurston Moore, John Fogerty, Jeff Tweedy, Mike Mills, Peter Buck" },
+  { id:"russian", name:"Russian", era:"1999–2009", ver:"V8", deg:243, icon:"star",
+    iconName:"A five-pointed star",
+    jhs:"Less clarity, less low end.",
+    page:"The Russian Muff is named by the “Made in Russia” text found on the back of the pedals. It sports less clarity and less low end than other models. A great garage-type sound.",
+    players:"Dan Auerbach, Chris Wolstenholme, Robin Finck" },
+  { id:"pi", name:"Pi", era:"1977–1978", ver:"V3", deg:201, icon:"pi",
+    iconName:"The Greek letter pi",
+    jhs:"Best known for a more aggressive sound.",
+    page:"An instantly recognizable red Pi symbol gives this pedal its moniker. This is not to be confused with the later redesigned NYC version released in 2000. It features a more aggressive sound.",
+    players:"Frank Zappa, Billy Corgan, Jack White, The Edge, Beck, Pete Townshend" },
+  { id:"triangle", name:"Triangle", era:"1969–1970", ver:"V1", deg:159, icon:"triangle",
+    iconName:"A triangle",
+    jhs:"More low end and more articulate.",
+    page:"The Triangle Muff is so named for the triangle arrangement of the knobs. It boasts more low-end response while being more articulate.",
+    players:"Santana, David Gilmour, John Lennon, Kevin Shields, possibly Jimi Hendrix" },
+  { id:"rams", name:"Rams Head", era:"1973–1977", ver:"V2", deg:117, icon:"ram",
+    iconName:"A ram’s head",
+    jhs:"Scooped midrange, less gain, and overall darker tone.",
+    page:"The ’73 Rams Head gets its name for the strange little face that appears on the lower right corner of the original pedal. It is best known for having a scooped midrange, less gain, and being darker.",
+    players:"David Gilmour, Ernie Isley, J. Mascis" },
+  { id:"jhs", name:"JHS 2015", era:"2015", ver:"JHS’s own", deg:75, icon:"jhs",
+    iconName:"The JHS logo",
+    jhs:"More powerful, less compressed, and a more haunting midrange. Also best for bass guitar.",
+    page:"The JHS Muff is a JHS original take on the classic circuit. You will find this version more powerful and less compressed, with a more haunting midrange. It is also the best for bass guitar.",
+    players:null }
+];
+
+/* ---------------- the three knobs ----------------
+   The booklet's wording, printed page 10, and the same sentence wherever the knob is
+   set — so the page states it once rather than dressing it up as a readout. */
+const KNOBS = [
+  { k:"vol",  name:"Volume",  d:"“Controls the output volume. Left is less volume, right is more.” — JHS, pg. 10" },
+  { k:"tone", name:"Tone",    d:"“The tone on the Muffuletta is its own animal. Left is darker and more ‘muffy’. Right is brighter with a pleasing shrillness. You will also find that the tone sweep changes the character of the pedal in ways that normal tone knobs do not.” — JHS, pg. 10" },
+  { k:"sus",  name:"Sustain", d:"“Controls the amount of fuzz which increases the sustain when turned up, just like the vintage units.” — JHS, pg. 10" }
+];
+
+/* ---------------- state ---------------- */
+const S = { sel:0, on:true, vals:{vol:.5, tone:.5, sus:.5}, active:null };
+
+/* ---------------- the icon arc on the enclosure ---------------- */
+const R = 38, ICO = 13;
+(function buildArc(){
+  const parts = CIRCUITS.map((c,i) => {
+    const t = c.deg * Math.PI/180;
+    const x = 50 + R*Math.sin(t), y = 50 - R*Math.cos(t);
+    const s = ICO/32;
+    return '<g class="slot" data-i="'+i+'" role="button" tabindex="-1">' +
+      '<circle class="hit" cx="'+x.toFixed(2)+'" cy="'+y.toFixed(2)+'" r="9"/>' +
+      '<circle class="halo" cx="'+x.toFixed(2)+'" cy="'+y.toFixed(2)+'" r="9"/>' +
+      '<g transform="translate('+(x-ICO/2).toFixed(2)+','+(y-ICO/2).toFixed(2)+') scale('+s.toFixed(4)+')">' +
+      ICON[c.icon] + '</g></g>';
+  }).join("");
+  $("#arc").innerHTML = parts;
+})();
+
+/* ---------------- the tabs and the cards ---------------- */
+$("#seltabs").innerHTML = CIRCUITS.map((c,i) =>
+  '<button class="btn" data-i="'+i+'" aria-pressed="false">'+c.name+'</button>').join("");
+
+$("#krows").innerHTML = KNOBS.map(k =>
+  '<div class="krow" data-k="' + k.k + '"><span class="pname">' + k.name + '</span>' +
+  '<span class="pdesc">' + k.d + '</span></div>').join("");
+
+/* ---------------- render ---------------- */
+const pedal = $("#pedal");
+function render(){
+  const c = CIRCUITS[S.sel];
+
+  KNOBS.forEach(k => {
+    const el = pedal.querySelector('.knob[data-k="' + k.k + '"]');
+    el.querySelector(".cap").style.transform = "rotate(" + ang(S.vals[k.k]) + "deg)";
+    el.classList.toggle("active", S.active === k.k);
+    document.querySelector('.krow[data-k="' + k.k + '"]')
+      .classList.toggle("active", S.active === k.k);
+  });
+  pedal.querySelector('.knob[data-k="sel"] .cap').style.transform = "rotate(" + c.deg + "deg)";
+  pedal.querySelectorAll('#arc .slot').forEach(g =>
+    g.setAttribute("data-on", String(+g.dataset.i === S.sel)));
+  $("#fled").setAttribute("data-on", String(S.on));
+
+  document.querySelectorAll('#seltabs button').forEach(b =>
+    b.setAttribute("aria-pressed", String(+b.dataset.i === S.sel)));
+
+  $("#cName").textContent = c.name;
+  $("#cEra").textContent = c.era + (c.ver ? " · " + c.ver : "");
+  $("#cQuote").innerHTML = "“" + c.jhs + "”" +
+    '<span class="attrib">JHS, booklet pg. 10</span>';
+  $("#cPage").innerHTML = "“" + c.page + "”" +
+    '<span class="attrib">JHS, product page</span>';
+  $("#cPlayers").innerHTML = c.players
+    ? '<b>JHS name as players of the original</b>' + c.players : "";
+  $("#cPlayers").hidden = !c.players;
+
+  $("#rfoot").innerHTML =
+    '<span class="marked"><span class="badge"><svg viewBox="0 0 32 32" aria-hidden="true">' +
+    ICON[c.icon] + '</svg></span><span>Marked on the enclosure with ' +
+    c.iconName.charAt(0).toLowerCase() + c.iconName.slice(1) + '.</span></span>' +
+    '<a href="https://jhspedals.info/products/muffuletta" target="_blank" rel="noopener">JHS’s page for the Muffuletta</a>';
+
+  if (!$("#hint").dataset.touched)
+    $("#hint").textContent = "Selector at " + c.name + ". Volume, Tone and Sustain do not move with it.";
+}
+
+/* ---------------- interaction ---------------- */
+function setSel(i, why){
+  S.sel = Math.max(0, Math.min(CIRCUITS.length - 1, i));   /* clamp, don't wrap */
+  const h = $("#hint");
+  h.dataset.touched = "1"; h.dataset.live = "true";
+  h.textContent = why || ("Selector moved to " + CIRCUITS[S.sel].name + ".");
+  render();
+}
+$("#arc").addEventListener("click", e => {
+  const g = e.target.closest(".slot");
+  if (g) setSel(+g.dataset.i);
+});
+document.querySelectorAll('#seltabs button').forEach(b =>
+  b.addEventListener("click", () => setSel(+b.dataset.i)));
+$("#fsw").addEventListener("click", () => {
+  S.on = !S.on;
+  const h = $("#hint");
+  h.dataset.touched = "1"; h.dataset.live = "true";
+  h.textContent = S.on ? "Engaged. The LED is lit." : "Bypassed. The LED is dark.";
+  render();
+});
+
+function setActive(k){ S.active = k; render(); }
+
+/* drag and keyboard on the three pots: they turn, and the row they belong to lights */
+KNOBS.forEach(kn => {
+  const el = pedal.querySelector('.knob[data-k="' + kn.k + '"]');
+  let base = 0, start = 0;
+  const set = v => { S.vals[kn.k] = clamp(v); render(); };
+  el.addEventListener("pointerdown", e => {
+    start = e.clientY; base = S.vals[kn.k];
+    S.active = kn.k; render();
+    try { el.setPointerCapture(e.pointerId); } catch(_){ /* no active pointer */ }
+    e.preventDefault(); el.focus();
+  });
+  el.addEventListener("pointermove", e => {
+    if (!el.hasPointerCapture(e.pointerId)) return;
+    set(base + (start - e.clientY) / 180);
+  });
+  const up = e => { try{ el.releasePointerCapture(e.pointerId); }catch(_){} };
+  el.addEventListener("pointerup", up);
+  el.addEventListener("pointercancel", up);
+  el.addEventListener("keydown", e => {
+    const step = e.shiftKey ? .02 : .05;
+    if (e.key === "Home"){ e.preventDefault(); return set(0); }
+    if (e.key === "End"){ e.preventDefault(); return set(1); }
+    const d = (e.key === "ArrowUp" || e.key === "ArrowRight") ? 1
+            : (e.key === "ArrowDown" || e.key === "ArrowLeft") ? -1 : 0;
+    if (!d) return;
+    e.preventDefault(); set(S.vals[kn.k] + d*step);
+  });
+  el.addEventListener("focus", () => setActive(kn.k));
+  el.addEventListener("blur",  () => { if (S.active === kn.k) setActive(null); });
+  const row = document.querySelector('.krow[data-k="' + kn.k + '"]');
+  row.addEventListener("pointerenter", () => setActive(kn.k));
+  row.addEventListener("pointerleave", () => { if (S.active === kn.k) setActive(null); });
+});
+
+/* drag and keyboard on the selector */
+(function(){
+  const el = pedal.querySelector('.knob[data-k="sel"]');
+  let start = 0, base = 0;
+
+  el.addEventListener("pointerdown", e => {
+    el.classList.add("active");
+    start = e.clientY; base = S.sel;
+    try { el.setPointerCapture(e.pointerId); } catch(_){ /* no active pointer */ }
+    e.preventDefault();
+    el.focus();   /* the page tells the reader to use the arrow keys */
+  });
+  el.addEventListener("pointermove", e => {
+    if (!el.hasPointerCapture(e.pointerId)) return;
+    setSel(base + Math.round((start - e.clientY) / 26));
+  });
+  const up = e => { try{ el.releasePointerCapture(e.pointerId); }catch(_){} el.classList.remove("active"); };
+  el.addEventListener("pointerup", up);
+  el.addEventListener("pointercancel", up);
+
+  el.addEventListener("keydown", e => {
+    if (e.key === "Home") { e.preventDefault(); return setSel(0); }
+    if (e.key === "End")  { e.preventDefault(); return setSel(CIRCUITS.length - 1); }
+    const d = (e.key === "ArrowUp" || e.key === "ArrowRight") ? 1
+            : (e.key === "ArrowDown" || e.key === "ArrowLeft") ? -1 : 0;
+    if (!d) return;
+    e.preventDefault();
+    setSel(S.sel + d);
+  });
+})();
+
+render();
+})();
+</script>

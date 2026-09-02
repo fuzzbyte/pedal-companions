@@ -174,14 +174,17 @@ header.top{padding:clamp(22px,3.5vw,40px) 0 clamp(16px,2.4vw,24px)}
 .backlink:hover .bk-arrow{transform:translateX(-3px)}
 @media (max-width:560px){.brandline{flex-wrap:wrap}.backlink{flex-basis:100%;border-right:0;padding-right:0;margin-bottom:2px}}
 /* The page follows the OS until the reader picks a side; after that [data-theme] on
-   <html> wins, and the pick is remembered. The sun shows when the page is dark. */
-:root{color-scheme:light}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark}}
-:root[data-theme="dark"]{color-scheme:dark}
+   <html> wins, and the pick is remembered. The button is an invitation to swap, so it
+   wears the theme it offers: a moon in dark colours on a light page, a sun in light
+   colours on a dark page. --tt-* is the opposite palette, cross-wired for that reason,
+   and held here rather than beside the tokens it inverts. */
+:root{color-scheme:light;--tt-surface:#1B1917;--tt-line:#312C25;--tt-ink:#EFE8DB;--tt-ink-3:#7A7263}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;--tt-surface:#FAF7F1;--tt-line:#D8D0C1;--tt-ink:#1C1A17;--tt-ink-3:#877F73}}
+:root[data-theme="dark"]{color-scheme:dark;--tt-surface:#FAF7F1;--tt-line:#D8D0C1;--tt-ink:#1C1A17;--tt-ink-3:#877F73}
 .themetoggle{flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;
-  border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink-3);cursor:pointer;
+  border:1px solid var(--tt-line);border-radius:8px;background:var(--tt-surface);color:var(--tt-ink-3);cursor:pointer;
   transition:color .15s,border-color .15s}
-.themetoggle:hover{color:var(--ink);border-color:var(--ink-3)}
+.themetoggle:hover{color:var(--tt-ink);border-color:var(--tt-ink-3)}
 .themetoggle svg{display:block;width:15px;height:15px}
 .themetoggle .i-sun{display:none}
 @media (prefers-color-scheme: dark){
@@ -431,6 +434,13 @@ h1 .thin{display:block;font-weight:500;font-size:.24em;letter-spacing:.22em;colo
   border-radius:10px;background:var(--surface);font-size:.86rem;color:var(--ink-2);line-height:1.45}
 .hint[data-live="true"]{border-style:solid;border-color:var(--acc);color:var(--ink)}
 .hint b{font-family:"Archivo",sans-serif;font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;color:var(--acc-text)}
+/* A dip switch answers in two voices: Chase Bliss's sentence, in quotation marks with the
+   page it is on, and then ours underneath it carrying no page number -- which is how the
+   reader tells one from the other without being told. */
+.hint .hbody{flex:1 1 auto;min-width:0}
+.hint .hq{color:var(--ink)}
+.hint .hpg{font-family:"DM Mono",monospace;font-size:.72rem;white-space:nowrap}
+.hint .hgl{color:var(--ink-2)}
 .pedal-actions{display:flex;gap:8px;flex-wrap:wrap}
 
 /* which enclosure you own */
@@ -485,7 +495,9 @@ button.btn[aria-pressed="true"],button.btn.on{background:var(--acc);border-color
 .chan[data-ch="R"] .code{background:var(--accR)}
 .chan h3{font-size:1.18rem;font-weight:700;letter-spacing:-.02em}
 .chan .fam{font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
-.chan .blurb{font-size:.92rem;color:var(--ink-2);margin:6px 0 12px}
+/* Five lines held open: at this column width the twelve blurbs run three to five, so
+   reserving the tallest keeps the knob grid still while MODIFY sweeps the modes. */
+.chan .blurb{font-size:.92rem;color:var(--ink-2);margin:6px 0 10px;min-height:calc(1.62em * 5)}
 .chan.dim{opacity:.5}
 /* One column, not two: the knob's name and what it does on this mode belong on the
    same line. The old 74px rail held a clock reading that the drawn knob now shows. */
@@ -505,6 +517,9 @@ button.btn[aria-pressed="true"],button.btn.on{background:var(--acc);border-color
 .prow .pval{flex:none;font-family:"DM Mono",monospace;font-size:.74rem;font-weight:400;
   letter-spacing:0;color:var(--ink-3)}
 .prow .pv{font-size:.88rem;color:var(--ink-2);margin-top:1px}
+/* Recall / Save on the preset row read as labels, not emphasis -- same 600 the other
+   inline <b> in these notes uses, so the two halves of the flow are scannable. */
+.prow .pv b{font-weight:600;color:var(--ink)}
 .prow.active{background:color-mix(in oklab, var(--acc) 10%, transparent);border-radius:7px;
   padding-left:8px;padding-right:8px;margin:0 -8px}
 .prow .ppg{margin-left:auto;font-family:"DM Mono",monospace;font-size:.72rem;font-weight:400;white-space:nowrap;flex:none}
@@ -685,31 +700,41 @@ section{padding-top:var(--step)}
   box-shadow:var(--shadow);overflow:hidden}
 .bch{padding:13px 15px 14px}
 .bch.dim{opacity:.5}
-.bh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+.bh{display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap;margin-bottom:9px}
 .whobox{display:flex;align-items:center;gap:9px}
 /* a switch, not a label: bypassed should look like something you are meant to flip */
-.ben{
+.ben, .bswap{
   display:inline-flex;align-items:center;gap:7px;padding:0;border:0;background:none;cursor:pointer;
   color:var(--ink-3);font-family:"Archivo",sans-serif;font-size:9.5px;font-weight:700;
   letter-spacing:.1em;text-transform:uppercase;transition:color .14s;
 }
-.ben .track{
+.ben .track, .bswap .track{
   width:30px;height:17px;border-radius:999px;position:relative;flex:none;
   background:var(--surface-2);border:1px solid var(--line);transition:background .16s,border-color .16s;
 }
-.ben .thumb{
+.ben .thumb, .bswap .thumb{
   position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:var(--ink-3);
   transition:transform .16s cubic-bezier(.2,.8,.3,1),background .16s;
 }
-.ben:hover{color:var(--ink)}
+.ben:hover, .bswap:hover{color:var(--ink)}
 .ben:hover .track{border-color:var(--acc)}
+/* the nudge is for a bypassed channel, which is a thing you probably meant to switch on.
+   A SWAP switch that is down is exactly where it belongs, so it stays still. */
 .ben[aria-pressed="false"] .track{animation:nudge 2.4s ease-in-out infinite}
 @keyframes nudge{0%,86%,100%{transform:translateX(0)}91%{transform:translateX(2px)}96%{transform:translateX(0)}}
-.ben[aria-pressed="true"] .thumb{transform:translateX(13px);background:var(--chip-ink)}
+.ben[aria-pressed="true"] .thumb, .bswap[aria-pressed="true"] .thumb{transform:translateX(13px);background:var(--chip-ink)}
 .bch[data-ch="L"] .ben[aria-pressed="true"]{color:var(--accL)}
 .bch[data-ch="R"] .ben[aria-pressed="true"]{color:var(--accR)}
 .bch[data-ch="L"] .ben[aria-pressed="true"] .track{background:var(--accL);border-color:var(--accL)}
 .bch[data-ch="R"] .ben[aria-pressed="true"] .track{background:var(--accR);border-color:var(--accR)}
+/* SWAP is a dip switch inside the pedal, three along a strip of sixteen, and it decides
+   which six modes this box is even showing -- so it belongs beside them rather than only
+   on the enclosure. Amber rather than the channel accent, because it is not the channel's
+   own control and because the note it raises below is amber too. */
+.bswap:hover .track{border-color:var(--warn)}
+.bswap[aria-pressed="true"]{color:var(--warn)}
+.bswap[aria-pressed="true"] .track{background:var(--warn);border-color:var(--warn)}
+.bswap .bswn{letter-spacing:.13em}
 .bh .who{font-family:"Archivo",sans-serif;font-size:11px;font-weight:700;letter-spacing:.13em;text-transform:uppercase}
 .bch[data-ch="L"] .bh .who{color:var(--accL)} .bch[data-ch="R"] .bh .who{color:var(--accR)}
 .bh .silk{font-family:"DM Mono",monospace;font-size:10.5px;color:var(--ink-3)}
@@ -1051,42 +1076,80 @@ const IDX = {}; MODES.forEach((m,i) => IDX[m.code] = i);
 const LSET = MODES.filter(m => m.set === "L");
 const RSET = MODES.filter(m => m.set === "R");
 
-/* ---------------- dip switches ---------------- */
+/* ---------------- dip switches ----------------
+   Two voices per switch, kept apart. `cb` holds Chase Bliss's own sentences with the
+   printed page each is on, quoted rather than paraphrased; `gloss` is this page's words,
+   printed under the quotation with no page number, so a reader can tell whose is whose
+   without being told.
+
+   The eight yellow switches each get a description of their own on pg. 40 and 41, so all
+   eight are quotable. The eight red ones never do: pg. 42 names them in a diagram and
+   then teaches ramping as four numbered steps, which leaves BOUNCE, SWEEP and POLARITY
+   defined nowhere. Where a sentence about ramping covers one of them it is quoted here
+   too; POLARITY has no quote at all, because the manual gets as far as "3. Choose the
+   polarity." and no further. */
+const RAMPON = "Ramping is engaged as soon as the dip switch for a corresponding knob is set to ON. At this point, the MIX knob automatically changes to control the ramp speed.";
+const EXPSAME = "CV and expression are set up the same way as ramping using the dip switches on the top of the pedal.";
 const DIPS = [
-  ["miso","MISO","yellow","Mono in, stereo out. Splits a mono input across a stereo output."],
-  ["spread","SPREAD","yellow","Stereo processing on. Every mode generates its stereo image its own way, so this is twelve different switches really."],
-  ["latch","LATCH","yellow","The footswitch hold becomes a latch: press to start the secondary function, press again to end it."],
-  ["lswap","L SWAP","yellow","The Left Channel is given the Right Channel's six modes. Half of the point of the pedal is behind this switch."],
-  ["rswap","R SWAP","yellow","The Right Channel is given the Left Channel's six modes."],
-  ["unsync","UNSYNC","yellow","Cuts the two channels loose from the tempo and from each other. Free, asynchronous effects, and a much smoother response from TIME."],
-  ["trails","TRAILS","yellow","Effects fade out naturally after you bypass instead of being cut off."],
-  ["bank","BANK","yellow","Swaps to the second bank of internal presets — slots 3 and 4 on the same toggle."],
-  ["rLtime","L TIME","ramp","Hands the Left TIME knob to ramping, or to whatever you plug into the expression jack."],
-  ["rLmodify","L MODIFY","ramp","Hands the Left MODIFY knob to ramping, or to whatever you plug into the expression jack. Because MODIFY picks the mode either side of noon, automation can walk the channel across that gap into the other mode."],
-  ["rblend","BLEND","ramp","Hands the BLEND knob to ramping, or to whatever you plug into the expression jack. In parallel this pans between the two channels; in series it rides the mix of the second effect."],
-  ["rRmodify","R MODIFY","ramp","Hands the Right MODIFY knob to ramping, or to whatever you plug into the expression jack. Because MODIFY picks the mode either side of noon, automation can walk the channel across that gap into the other mode."],
-  ["rRtime","R TIME","ramp","Hands the Right TIME knob to ramping, or to whatever you plug into the expression jack."],
-  ["bounce","BOUNCE","ramp","Continuous motion rather than a one-shot. Off, the selected knobs move once at power-up and stay put."],
-  ["sweep","SWEEP","ramp","Whether a selected knob's own position is the top of its travel or the bottom."],
-  ["polarity","POLARITY","ramp","Which end of the expression or CV range corresponds to which end of the sweep."]
+  {k:"miso", nm:"MISO", kind:"yellow",
+   cb:[["Mono In, Stereo Out. Splits a mono input signal into a stereo output signal.",40]]},
+  {k:"spread", nm:"SPREAD", kind:"yellow",
+   cb:[["Turns on stereo processing. Each mode has its own unique approach to generating a stereo image.",40]]},
+  {k:"latch", nm:"LATCH", kind:"yellow",
+   cb:[["Changes the hold function for each footswitch from momentary to latching, so that it will remain engaged until the footswitch is held again.",40]]},
+  {k:"lswap", nm:"L SWAP", kind:"yellow",
+   cb:[["Replaces the effects in the Left Channel with those from the Right Channel (pg. 34).",40]]},
+  {k:"rswap", nm:"R SWAP", kind:"yellow",
+   cb:[["Replaces the effects in the Right Channel with those from the Left Channel (pg. 34).",40]]},
+  {k:"unsync", nm:"UNSYNC", kind:"yellow",
+   cb:[["Disconnects the tempo of the two channels, allowing you to explore free, asynchronous effects and a smoother response from the TIME knob.",41]]},
+  {k:"trails", nm:"TRAILS", kind:"yellow",
+   cb:[["Allows the effects to naturally fade out after the pedal is bypassed.",41]]},
+  {k:"bank", nm:"BANK", kind:"yellow",
+   cb:[["Switches over to an alternate bank of internal presets, giving you access to two additional slots on the pedal (Presets 3 and 4). Save and recall are performed as usual (pg. 16).",41]],
+   gloss:"The preset toggle keeps its two positions; this is which pair of slots they land on."},
+  {k:"rLtime", nm:"L TIME", kind:"ramp", cb:[[RAMPON,43],[EXPSAME,44]]},
+  {k:"rLmodify", nm:"L MODIFY", kind:"ramp", cb:[[RAMPON,43],[EXPSAME,44]],
+   gloss:"MODIFY picks the mode either side of noon, so a movement wide enough to cross noon carries the channel into the other mode."},
+  {k:"rblend", nm:"BLEND", kind:"ramp", cb:[[RAMPON,43],[EXPSAME,44]],
+   gloss:"In the parallel routing that pans between the two channels; in series it rides how much of the second effect you hear."},
+  {k:"rRmodify", nm:"R MODIFY", kind:"ramp", cb:[[RAMPON,43],[EXPSAME,44]],
+   gloss:"MODIFY picks the mode either side of noon, so a movement wide enough to cross noon carries the channel into the other mode."},
+  {k:"rRtime", nm:"R TIME", kind:"ramp", cb:[[RAMPON,43],[EXPSAME,44]]},
+  {k:"bounce", nm:"BOUNCE", kind:"ramp",
+   cb:[["Ramping gives you the ability to automate Lost + Found’s knobs, either as a one-time movement (ramp) or continuous motion (bounce).",42],
+       ["Ramp is the same idea, but the movement only happens once when you turn the pedal on. Your chosen knob(s) either rise or fall to the position set by the knob, then stay there.",43]],
+   gloss:"Up is bounce, down is ramp. Neither does anything until one of the five knob switches to its left is up — those pick which knobs move, this one picks whether they keep moving."},
+  {k:"sweep", nm:"SWEEP", kind:"ramp",
+   cb:[["The position of the knob you’re controlling is important because it either sets the maximum or minimum point of the range (depending on the SWEEP setting).",43]],
+   gloss:"Chase Bliss label the two positions (B)ottom and (T)op. Either way the knob stays where you left it and that becomes one end of the travel; SWEEP is which end, and the movement runs to the other."},
+  {k:"polarity", nm:"POLARITY", kind:"ramp",
+   gloss:"Which end of an expression pedal or CV signal lines up with which end of the sweep — whether heel-down is the bottom of the range or the top. Ramping and bouncing have no outside signal to orient against, so this one only bites with something plugged into the EXP/CV jack."}
 ];
+const DIP = {}; DIPS.forEach(d => DIP[d.k] = d);
+
+/* Two renderings of an entry: one for the hint strip, which can carry a link to the page
+   the quotation is on, and one for a title attribute, which cannot. */
+function dipHint(d){
+  const q = (d.cb || []).map(([t,pg]) =>
+    '<span class="hq">\u201c' + t + '\u201d</span> <a class="hpg" href="' + MANUAL + '#page=' + pdfPage(pg) +
+    '" target="_blank" rel="noopener">pg. ' + pg + '</a>').join(" ");
+  return '<span class="hbody">' + q + (d.gloss ? (q ? " " : "") + '<span class="hgl">' + d.gloss + '</span>' : "") + '</span>';
+}
+function dipText(d){
+  return (d.cb || []).map(([t,pg]) => '\u201c' + t + '\u201d \u2014 Chase Bliss, pg. ' + pg)
+    .concat(d.gloss ? [d.gloss] : []).join("\n\n");
+}
 
 /* ---------------- presets ----------------
-   The toggle between the footswitches recalls a slot on the real pedal. This page does
-   not recall: the manual documents what Chase Bliss shipped in each slot, never the
-   knob positions, so recalling here would mean inventing them. The toggle throws, says
-   which slot it is on and what came in it, and leaves the pedal alone.
-   Slot names and descriptions are Chase Bliss's own, from Presets (pg. 16). */
-const PRESET_SLOTS = [
-  {n:"End Credits",
-   d:"A very big synth run through a very big reverb. It\u2019s a nice gateway to what\u2019s possible on Lost + Found."},
-  {n:"Light Sleeper",
-   d:"This is the sound of a vintage pitch shifter recorded to tape. An instantly satisfying dose of double nostalgia."},
-  {n:"Synth Tower",
-   d:"A resonator and a synthesizer in parallel, both tracking your playing. This preset is a fast way to access the combos made possible by L SWAP."},
-  {n:"Candy",
-   d:"The sound of spectral distortion run through a very deep chorus. This setting is a nice way to sample the unique distortion tucked within the Spectral Modulator mode, and is a beautiful pair for rhythm guitar and chords."}
-];
+   A slot is a whole snapshot of the pedal, so this toggle is only the recall half. The
+   half a reader actually has to be told is the write, and it is a footswitch gesture
+   nowhere near the toggle -- so each slot position states its own gesture. The manual
+   spells the order out for the right slot and leaves the left as "the opposite order".
+   The four sounds Chase Bliss shipped stay on pg. 16, one click away on the row: a slot
+   holds whatever was last saved over them, which makes them a starting point rather
+   than the contents. This page does not recall either -- the manual prints no knob
+   positions for the slots, so moving the pedal would mean inventing them. */
 /* left and right are slots 1 and 2, or 3 and 4 with BANK up (pg. 41) */
 const slotIx  = p => (S.dips.bank ? 2 : 0) + (p === 0 ? 0 : 1);
 const slotNum = p => slotIx(p) + 1;
@@ -1174,20 +1237,27 @@ const SPILL_D = "Pours your dry signal into the second effect of a series chain 
 const EQ_D = "Two-sided EQ. Counter-clockwise removes highs, clockwise removes lows, noon is flat.";
 const MIX_D = "Sets the balance between your input signal and Lost + Found, controlling both channels at once. If ramping is engaged, this knob’s function changes to the ramping speed.";
 const BLEND_D = "Sets the balance of the two channels.";
-const PRESET_D = "\u201cPresets are recalled using the toggle between the footswitches. The left and right positions each contain a preset, and the middle position is a \u2018live\u2019 state that matches the current controls of the pedal.\u201d \u201cAll controls and knob positions \u2014 including the dip switches \u2014 are saved.\u201d To save the right slot, \u201chold down the right footswitch for three seconds, then add the left footswitch for another three seconds\u201d; the middle LED blinks to confirm, and the opposite order saves the left.";
+const PRESET_SAVED = "\u201cAll controls and knob positions \u2014 including the dip switches \u2014 are saved.\u201d";
+const PRESET_LIVE  = "\u201cPresets are recalled using the toggle between the footswitches. The left and right positions each contain a preset, and the middle position is a \u2018live\u2019 state that matches the current controls of the pedal.\u201d";
 /* Every page here is a companion, so where this one declines to act it should still
    put the reader in front of the maker's own words -- which is what the pg. 16 link
    on the row is for. This says why there is nothing to press. */
-const PRESET_NOTE = " <span style='color:var(--ink-3)'>Throwing it changes nothing here: the manual names what shipped in each slot, never the knob positions.</span>";
+const PRESET_NOTE = " <span style='color:var(--ink-3)'>Throwing it changes nothing here: the manual prints no knob positions for the slots. Page 16 names and describes the four Chase Bliss shipped.</span>";
 function presetTitle(){
   return S.preset === 1 ? "Live \u2014 the controls as they stand"
-    : "Preset " + slotNum(S.preset) + " \u00b7 " + PRESET_SLOTS[slotIx(S.preset)].n;
+    : "Preset " + slotNum(S.preset) + " \u00b7 the " + (S.preset === 0 ? "left" : "right") + " slot";
 }
 function presetDesc(){
-  if (S.preset !== 1)
-    return "Chase Bliss on what shipped in this slot: \u201c" + PRESET_SLOTS[slotIx(S.preset)].d +
-           "\u201d A slot holds whatever was last saved to it, so that is the starting point, not the contents." + PRESET_NOTE;
-  return PRESET_D + (S.dips.bank ? "" : " BANK up reaches two more, presets 3 and 4.") + PRESET_NOTE;
+  if (S.preset === 1)
+    return PRESET_LIVE + " " + PRESET_SAVED + " Recall is this toggle. Saving is a footswitch gesture instead, " +
+      "and the order of the two presses is what picks the slot it writes to \u2014 throw the toggle to a slot for " +
+      "that slot\u2019s order." + (S.dips.bank ? "" : " BANK up swaps both slots for presets 3 and 4.") + PRESET_NOTE;
+  const own = S.preset === 0 ? "left" : "right", other = S.preset === 0 ? "right" : "left";
+  return "<b>Recall</b> is the throw you just made \u2014 preset " + slotNum(S.preset) + " loads over everything. " +
+    PRESET_SAVED + " <b>Save</b> the pedal as it stands into this slot by holding the " + own +
+    " footswitch for three seconds, then adding the " + other + " for another three: the slot\u2019s own footswitch " +
+    "goes down first. \u201cThe middle LED will blink to indicate success.\u201d" +
+    (S.dips.bank ? " BANK is up, so this is one of the alternate pair." : "") + PRESET_NOTE;
 }
 const ROUTE_NAME = ["L → R  series", "L + R  parallel", "L ← R  series"];
 const ROUTE_D = [
@@ -1243,10 +1313,11 @@ Object.keys(LPOS).forEach(l => {
   el.style.left = LPOS[l][0] + "%"; el.style.top = LPOS[l][1] + "%";
 });
 
-$("#dipsA").innerHTML = DIPS.slice(0,8).map(d =>
-  '<button class="dip" data-d="'+d[0]+'" data-kind="'+d[2]+'" aria-pressed="false" title="'+d[3].replace(/"/g,"&quot;")+'"><span class="sw"><i></i></span><span class="nm">'+d[1]+'</span></button>').join("");
-$("#dipsB").innerHTML = DIPS.slice(8).map(d =>
-  '<button class="dip" data-d="'+d[0]+'" data-kind="'+d[2]+'" aria-pressed="false" title="'+d[3].replace(/"/g,"&quot;")+'"><span class="sw"><i></i></span><span class="nm">'+d[1]+'</span></button>').join("");
+const dipBtn = d =>
+  '<button class="dip" data-d="'+d.k+'" data-kind="'+d.kind+'" aria-pressed="false" title="'+
+  dipText(d).replace(/"/g,"&quot;")+'"><span class="sw"><i></i></span><span class="nm">'+d.nm+'</span></button>';
+$("#dipsA").innerHTML = DIPS.slice(0,8).map(dipBtn).join("");
+$("#dipsB").innerHTML = DIPS.slice(8).map(dipBtn).join("");
 
 /* the face artwork: the confetti scatter and the cut-out logotype.
    Colours come from the colorway (--c1..--c4), so the same scatter works green or black. */
@@ -1379,11 +1450,19 @@ function renderBoard(){
     const set = setOf(ch), c = S[ch], nul = isNull(ch);
     const swapped = ch === "L" ? S.dips.lswap : S.dips.rswap;
     const silk = SILK[ch+"sw"];
+    /* Which six modes this box can even show is decided by a dip switch inside the pedal,
+       so it belongs here as well as on the strip -- same switch, same state, either one
+       flips it. */
+    const swd = DIP[ch === "L" ? "lswap" : "rswap"];
     let h = '<div class="bch'+((!c.on && S.layer !== "hidden") ? " dim" : "")+'" data-ch="'+ch+'">' +
       '<div class="bh"><span class="whobox"><span class="who">'+(ch === "L" ? "Left" : "Right")+' Channel</span>' +
       '<button class="ben" data-eng="'+ch+'" aria-pressed="'+String(!!c.on)+'" role="switch">' +
       '<span class="track"><span class="thumb"></span></span>' +
       '<span class="bent">'+(c.on ? "Engaged" : "Bypassed")+'</span></button></span>' +
+      '<button class="bswap" data-swap="'+swd.k+'" aria-pressed="'+String(!!swapped)+'" role="switch" title="'+
+        dipText(swd).replace(/"/g,"&quot;")+'">' +
+      '<span class="track"><span class="thumb"></span></span>' +
+      '<span class="bswn">'+swd.nm+'</span></button>' +
       '</div>';
     h += '<div class="bcols"><span>Type</span>' +
       [0,1].map(side => '<span class="'+(!nul && ((c.modify < .5) === (side === 0)) ? "on" : "")+'">' +
@@ -1408,6 +1487,8 @@ function renderBoard(){
 [$("#boardL"), $("#boardR")].forEach(el => el.addEventListener("click", e => {
   /* the footswitch on the drawing is the real control, but nothing says so — this is the
      same act, next to the name of the channel it belongs to */
+  const swb = e.target.closest("button[data-swap]");
+  if (swb){ flipDip(swb.dataset.swap); return; }
   const eng = e.target.closest("button[data-eng]");
   if (eng){
     const ch = eng.dataset.eng;
@@ -1528,17 +1609,22 @@ function renderChan(ch){
   const nul = isNull(ch);
   const swapped = ch === "L" ? S.dips.lswap : S.dips.rswap;
 
-  /* Identity, then the controls, then the prose. The blurb changes length with the mode,
-     so it sits below the grid -- above it, it shoved the knobs around as you turned. */
-  let html = '<div class="ch-h"><span class="code">'+(nul ? m.num : m.code)+'</span><h3>'+(nul ? "No effect" : m.name)+'</h3>' +
-    (nul ? '' : '<a class="chpg" href="'+MANUAL+'#page='+pdfPage(m.pg)+'" target="_blank" rel="noopener">manual pg. '+m.pg+'</a>') + '</div>' +
-    '';
+  /* The name, then what the mode is, then the controls: the mode's own line is what the
+     reader wants the moment MODIFY lands on it, so it sits against the name rather than
+     under the knob grid. It changes length with the mode, which used to shove the knobs
+     down the page as you turned -- .blurb reserves five lines for it. The SWAP caveat
+     stays below the grid: it appears on one channel at a time, so carrying it up here
+     would drop that channel's knobs out of line with the other's. */
   const blurb = '<div class="blurb">'+(nul
       ? "MODIFY is at noon, so this channel makes no sound of its own. Engage it anyway and you have GLUE as a standalone compressor and saturator."
-      : m.blurb)+'</div>' +
-    '<div class="chnote">' + (swapped
+      : m.blurb)+'</div>';
+  const chnote = '<div class="chnote">' + (swapped
     ? '<div class="hold" style="margin:0"><b>'+ch+' SWAP is up</b>The silkscreen still reads '+(ch==="L"?"1 2 3":"4 5 6")+' \u2014 it always does \u2014 but this toggle is selecting '+(ch==="L"?"4, 5 and 6":"1, 2 and 3")+'. Right now it is on '+m.num+'.</div>'
     : '') + '</div>';
+
+  let html = '<div class="ch-h"><span class="code">'+(nul ? m.num : m.code)+'</span><h3>'+(nul ? "No effect" : m.name)+'</h3>' +
+    (nul ? '' : '<a class="chpg" href="'+MANUAL+'#page='+pdfPage(m.pg)+'" target="_blank" rel="noopener">manual pg. '+m.pg+'</a>') + '</div>' +
+    blurb;
 
   /* Two knobs, two jobs each -- that is the hardware, so that is the grid. A row is one
      physical knob; the right-hand column is what it becomes with both switches held.
@@ -1561,7 +1647,7 @@ function renderChan(ch){
       knobCell("dark", "thin", c.eq, true, ch+".eq"), true, ch+"eq") +
     '</div>';
 
-  html += blurb;
+  html += chnote;
   html += '<div class="hold"><b>Hold the '+ch.toLowerCase()+' footswitch \u2014 '+m.hold.n+'</b>'+m.hold.d+'</div>';
   html += '<div class="tip">Manual&rsquo;s tip: '+m.tip+'</div>';
   el.innerHTML = html;
@@ -1844,10 +1930,11 @@ function setTog(t, i){
     if (i === 1){
       setHint("Centre. “The middle position is a ‘live’ state that matches the current controls of the pedal.”", true);
     } else {
-      const sl = PRESET_SLOTS[slotIx(i)];
-      setHint("<b style='display:inline'>Preset " + slotNum(i) + "</b> — the " + (i === 0 ? "left" : "right") +
-        " slot" + (S.dips.bank ? ", reached because BANK is up" : "") + ". Chase Bliss shipped <b style='display:inline'>" +
-        sl.n + "</b> in it. Nothing on the pedal moves \u2014 the manual prints no knob positions for the slots.", true);
+      const own = i === 0 ? "left" : "right";
+      setHint("<b style='display:inline'>Preset " + slotNum(i) + "</b> — the " + own +
+        " slot" + (S.dips.bank ? ", reached because BANK is up" : "") + ". The throw is the recall; to save to it, hold " +
+        "the " + own + " footswitch three seconds, then add the " + (i === 0 ? "right" : "left") + " for another three. " +
+        "Nothing on the pedal moves here \u2014 the manual prints no knob positions for the slots.", true);
     }
   }
 }
@@ -1899,13 +1986,14 @@ function enterHidden(on){
 $("#btnHidden").addEventListener("click", () => enterHidden(S.layer !== "hidden"));
 
 /* ---------------- dips ---------------- */
-document.querySelectorAll(".dip").forEach(b => b.addEventListener("click", () => {
-  const d = b.dataset.d;
-  S.dips[d] = S.dips[d] ? 0 : 1;
+function flipDip(k){
+  S.dips[k] = S.dips[k] ? 0 : 1;
   render();
-  const row = DIPS.find(x => x[0] === d);
-  setHint("<b style='display:inline'>"+row[1]+" "+(S.dips[d] ? "up" : "down")+"</b> "+row[3], true);
-}));
+  const d = DIP[k];
+  setHint("<b style='display:inline'>"+d.nm+" "+(S.dips[k] ? "up" : "down")+"</b> " + dipHint(d), true);
+}
+document.querySelectorAll(".dip").forEach(b =>
+  b.addEventListener("click", () => flipDip(b.dataset.d)));
 
 /* ---------------- reset ---------------- */
 $("#btnReset").addEventListener("click", () => {

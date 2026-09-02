@@ -1,0 +1,710 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PackRat, Mode by Mode</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23C0392B'/><circle cx='16' cy='16' r='8.5' fill='none' stroke='%23FFFFFF' stroke-width='3'/><path d='M16 16 L10.2 10.2' stroke='%23FFFFFF' stroke-width='3.4' stroke-linecap='round'/></svg>">
+<script>
+/* Theme: apply the reader's stored pick before first paint, then wire the header toggle. */
+(function(){
+  var root = document.documentElement, KEY = "pedal-theme";
+  try {
+    var saved = localStorage.getItem(KEY);
+    if (saved === "light" || saved === "dark") root.dataset.theme = saved;
+  } catch(e){}
+  var isDark = function(){
+    return root.dataset.theme ? root.dataset.theme === "dark"
+                              : matchMedia("(prefers-color-scheme: dark)").matches;
+  };
+  addEventListener("DOMContentLoaded", function(){
+    var btn = document.querySelector(".themetoggle");
+    if (!btn) return;
+    var sync = function(){
+      var label = "Switch to the " + (isDark() ? "light" : "dark") + " theme";
+      btn.setAttribute("aria-label", label);
+      btn.title = label;
+    };
+    btn.addEventListener("click", function(){
+      root.dataset.theme = isDark() ? "light" : "dark";
+      try { localStorage.setItem(KEY, root.dataset.theme); } catch(e){}
+      sync();
+    });
+    sync();
+  });
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=DM+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap">
+
+<style>
+/* ---------- tokens: light is the bare :root, dark redefines ---------- */
+:root{
+  --bg:#EFEDE8;
+  --surface:#FAF8F4;
+  --surface-2:#E6E2DA;
+  --line:#D5D0C6;
+  --line-soft:#E3DED5;
+  --ink:#1A1917;
+  --ink-2:#54504A;
+  --ink-3:#847E74;
+  --tint:#0E0C09;
+  --shadow:0 1px 0 rgba(26,25,23,.04), 0 12px 32px -20px rgba(26,25,23,.45);
+
+  --accent:#B3392A;
+  --accent-text:color-mix(in oklab, var(--accent) 84%, var(--tint));
+  --warn:#9A6212;
+
+  /* the enclosure's own colours, sampled from JHS's product shot. They belong to
+     the object, so they do not follow the page's light/dark theme. */
+  --panel:#3A3936;
+  --panel-2:#2C2B29;
+  --panel-ink:#F1EFEA;
+  --panel-ink-2:rgba(241,239,234,.62);
+  --knob:#141413;
+  --knob-line:#F4F2ED;
+  --led:#E23B2B;
+
+  --r:14px;
+  --step:clamp(2.6rem, 5vw, 4.4rem);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131211;
+    --surface:#1B1A18;
+    --surface-2:#232120;
+    --line:#312D28;
+    --line-soft:#272422;
+    --ink:#EFE9DE;
+    --ink-2:#A89F93;
+    --ink-3:#7A7367;
+    --tint:#FFF7EA;
+    --shadow:0 1px 0 rgba(255,255,255,.02), 0 16px 40px -24px rgba(0,0,0,.9);
+    --accent:#E4675A;
+    --accent-text:color-mix(in oklab, var(--accent) 88%, var(--tint));
+    --warn:#D9A055;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131211; --surface:#1B1A18; --surface-2:#232120;
+  --line:#312D28; --line-soft:#272422;
+  --ink:#EFE9DE; --ink-2:#A89F93; --ink-3:#7A7367; --tint:#FFF7EA;
+  --shadow:0 1px 0 rgba(255,255,255,.02), 0 16px 40px -24px rgba(0,0,0,.9);
+  --accent:#E4675A; --accent-text:color-mix(in oklab, var(--accent) 88%, var(--tint));
+  --warn:#D9A055;
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Newsreader",Georgia,"Times New Roman",serif;
+  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
+#app{max-width:1160px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 96px}
+h1,h2,h3,h4,.lbl,.mono,button,th{font-family:"Archivo",system-ui,-apple-system,"Helvetica Neue",sans-serif}
+h1,h2,h3{text-wrap:balance;margin:0}
+.mono,code{font-family:"DM Mono","SFMono-Regular",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+a{color:var(--accent-text)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+.lbl{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.lbl-a{color:var(--accent-text)}
+
+/* ---------- masthead ---------- */
+header.top{padding:clamp(40px,7vw,84px) 0 clamp(28px,4vw,44px)}
+.backlink{flex:none;display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);text-decoration:none;padding-right:12px;border-right:1px solid var(--line)}
+.backlink:hover{color:var(--ink)}
+.backlink .bk-arrow{font-size:13px;letter-spacing:0;transition:transform .14s ease}
+.backlink:hover .bk-arrow{transform:translateX(-3px)}
+@media (max-width:560px){.brandline{flex-wrap:wrap}.backlink{flex-basis:100%;border-right:0;padding-right:0;margin-bottom:2px}}
+/* The page follows the OS until the reader picks a side; after that [data-theme] on
+   <html> wins, and the pick is remembered. The button is an invitation to swap, so it
+   wears the theme it offers: a moon in dark colours on a light page, a sun in light
+   colours on a dark page. --tt-* is the opposite palette, cross-wired for that reason,
+   and held here rather than beside the tokens it inverts. */
+:root{color-scheme:light;--tt-surface:#1B1A18;--tt-line:#312D28;--tt-ink:#EFE9DE;--tt-ink-3:#7A7367}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;--tt-surface:#FAF8F4;--tt-line:#D5D0C6;--tt-ink:#1A1917;--tt-ink-3:#847E74}}
+:root[data-theme="dark"]{color-scheme:dark;--tt-surface:#FAF8F4;--tt-line:#D5D0C6;--tt-ink:#1A1917;--tt-ink-3:#847E74}
+.themetoggle{flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;
+  border:1px solid var(--tt-line);border-radius:8px;background:var(--tt-surface);color:var(--tt-ink-3);cursor:pointer;
+  transition:color .15s,border-color .15s}
+.themetoggle:hover{color:var(--tt-ink);border-color:var(--tt-ink-3)}
+.themetoggle svg{display:block;width:15px;height:15px}
+.themetoggle .i-sun{display:none}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .themetoggle .i-moon{display:none}
+  :root:not([data-theme="light"]) .themetoggle .i-sun{display:block}
+}
+:root[data-theme="dark"] .themetoggle .i-moon{display:none}
+:root[data-theme="dark"] .themetoggle .i-sun{display:block}
+.brandline{display:flex;align-items:center;gap:12px;margin-bottom:22px;flex-wrap:wrap}
+.brandline .rule{flex:1;height:1px;background:var(--line);min-width:30px}
+.brandline .unoff{font-weight:700;color:var(--accent-text)}
+h1{font-size:clamp(3rem,10.5vw,6.6rem);font-weight:700;letter-spacing:-.045em;line-height:.86;text-transform:uppercase}
+h1 .thin{display:block;font-weight:500;font-size:.24em;letter-spacing:.22em;color:var(--ink-3);margin-top:1.2em}
+
+/* Two links to what JHS themselves publish. No paragraph: every quotation on the
+   page already names where it came from, and saying so again is writing about the page. */
+.srclinks{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.srclinks a{display:inline-flex;align-items:center;gap:9px;text-decoration:none;
+  font-family:"Archivo",sans-serif;font-size:.86rem;font-weight:600;
+  padding:9px 15px;border-radius:10px;background:var(--surface);border:1px solid var(--line);
+  transition:border-color .15s,background .15s}
+.srclinks a:hover{border-color:var(--accent);background:var(--surface-2)}
+.srclinks a::after{content:"\2192";font-weight:500}
+
+/* ---------- console ---------- */
+.console{display:grid;grid-template-columns:minmax(280px,400px) 1fr;gap:clamp(20px,3vw,38px);align-items:start}
+@media (max-width:880px){ .console{grid-template-columns:1fr} }
+.pedal-col{position:sticky;top:20px;display:flex;flex-direction:column;gap:12px}
+@media (max-width:880px){ .pedal-col{position:static} }
+
+.pedal{
+  position:relative;width:100%;max-width:max(280px, calc((100vh - 170px) * 0.579));
+  margin:0 auto;aspect-ratio:395/682;border-radius:5% / 2.9%;
+  background:linear-gradient(174deg, var(--panel) 0%, var(--panel-2) 100%);
+  box-shadow:0 30px 60px -34px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.12);
+  color:var(--panel-ink);container-type:inline-size;touch-action:none;user-select:none;
+  transition:filter .2s;
+}
+.pedal::before{ /* the powder-coat speckle */
+  content:"";position:absolute;inset:0;border-radius:5% / 2.9%;pointer-events:none;opacity:.5;
+  background-image:radial-gradient(rgba(255,255,255,.20) .5px, transparent .5px),
+                   radial-gradient(rgba(0,0,0,.5) .5px, transparent .5px);
+  background-size:6px 6px, 9px 9px;background-position:0 0, 3px 4px;
+}
+.pedal[data-on="false"]{filter:saturate(.55) brightness(.86)}
+
+.knob{position:absolute;width:26.4cqw;aspect-ratio:1;transform:translate(-50%,-50%);
+  border-radius:50%;cursor:ns-resize;background:none;border:0;padding:0;z-index:2}
+/* JHS fit a fluted skirt, not a smooth barrel: eight shallow lobes round the cap. */
+.knob .cap{clip-path:polygon(50.0% 0.0%,53.2% 0.6%,56.3% 2.4%,59.0% 4.8%,61.4% 7.4%,63.7% 9.6%,66.1% 11.0%,68.9% 11.7%,72.1% 11.8%,75.6% 11.7%,79.2% 11.9%,82.6% 12.8%,85.4% 14.6%,87.2% 17.4%,88.1% 20.8%,88.3% 24.4%,88.2% 27.9%,88.3% 31.1%,89.0% 33.9%,90.4% 36.3%,92.6% 38.6%,95.2% 41.0%,97.6% 43.7%,99.4% 46.8%,100.0% 50.0%,99.4% 53.2%,97.6% 56.3%,95.2% 59.0%,92.6% 61.4%,90.4% 63.7%,89.0% 66.1%,88.3% 68.9%,88.2% 72.1%,88.3% 75.6%,88.1% 79.2%,87.2% 82.6%,85.4% 85.4%,82.6% 87.2%,79.2% 88.1%,75.6% 88.3%,72.1% 88.2%,68.9% 88.3%,66.1% 89.0%,63.7% 90.4%,61.4% 92.6%,59.0% 95.2%,56.3% 97.6%,53.2% 99.4%,50.0% 100.0%,46.8% 99.4%,43.7% 97.6%,41.0% 95.2%,38.6% 92.6%,36.3% 90.4%,33.9% 89.0%,31.1% 88.3%,27.9% 88.2%,24.4% 88.3%,20.8% 88.1%,17.4% 87.2%,14.6% 85.4%,12.8% 82.6%,11.9% 79.2%,11.7% 75.6%,11.8% 72.1%,11.7% 68.9%,11.0% 66.1%,9.6% 63.7%,7.4% 61.4%,4.8% 59.0%,2.4% 56.3%,0.6% 53.2%,0.0% 50.0%,0.6% 46.8%,2.4% 43.7%,4.8% 41.0%,7.4% 38.6%,9.6% 36.3%,11.0% 33.9%,11.7% 31.1%,11.8% 27.9%,11.7% 24.4%,11.9% 20.8%,12.8% 17.4%,14.6% 14.6%,17.4% 12.8%,20.8% 11.9%,24.4% 11.7%,27.9% 11.8%,31.1% 11.7%,33.9% 11.0%,36.3% 9.6%,38.6% 7.4%,41.0% 4.8%,43.7% 2.4%,46.8% 0.6%)}
+.knob .cap{position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 42% 26%, #4A4947 0%, #22211F 34%, var(--knob) 74%, #050505 100%);
+  box-shadow:0 .7cqw 1.5cqw -.4cqw rgba(0,0,0,.85), inset 0 .25cqw .4cqw rgba(255,255,255,.22);
+  transition:transform .05s linear}
+.knob .cap::after{content:"";position:absolute;left:50%;top:9%;width:6.5%;height:34%;
+  transform:translateX(-50%);border-radius:1.4cqw;background:var(--knob-line)}
+.knob .cap::before{content:"";position:absolute;left:50%;bottom:5.5%;width:9%;aspect-ratio:1;
+  transform:translateX(-50%);border-radius:50%;background:var(--knob-line);opacity:.9}
+.knob:focus-visible{outline:none}
+.knob:focus-visible .cap{outline:2px solid #fff;outline-offset:.5cqw}
+.knob.active .cap{box-shadow:0 0 0 .35cqw #fff, 0 .7cqw 1.5cqw -.4cqw rgba(0,0,0,.85)}
+
+.klbl{position:absolute;transform:translateX(-50%);width:40cqw;text-align:center;
+  font-family:"Archivo",sans-serif;font-size:3.4cqw;font-weight:700;letter-spacing:.09em;
+  color:var(--panel-ink);pointer-events:none}
+
+/* the mode ring */
+.mlbl{position:absolute;transform:translate(-50%,-50%);
+  font-family:"Archivo",sans-serif;font-size:2.7cqw;font-weight:700;letter-spacing:.05em;
+  color:var(--panel-ink-2);background:none;border:0;padding:.4cqw .5cqw;cursor:pointer;
+  white-space:nowrap;line-height:1;z-index:3;border-radius:.8cqw}
+.mlbl[data-on="true"]{color:var(--panel-ink)}
+.mlbl:hover{color:var(--panel-ink)}
+.mlbl:focus-visible{outline:1.5px solid #fff;outline-offset:1px}
+.mlbl svg{width:3.6cqw;height:3.6cqw;display:block}
+.mring{position:absolute;transform:translate(-50%,-50%);width:44cqw;aspect-ratio:1;
+  pointer-events:none;z-index:1;overflow:visible}
+.mring circle{fill:none;stroke:var(--panel-ink);stroke-width:1.4;opacity:.16}
+
+/* the rat printed across the lower half of the enclosure */
+.ratart{position:absolute;left:53%;top:66.5%;width:60cqw;transform:translate(-50%,-50%);
+  color:var(--panel-ink);pointer-events:none;z-index:1}
+.ratart svg{width:100%;height:auto;display:block}
+.ratart .eye{fill:var(--led);stroke:none}
+
+.fsw{position:absolute;left:50.5%;top:89.7%;width:20cqw;aspect-ratio:1;border-radius:50%;
+  transform:translate(-50%,-50%);cursor:pointer;padding:0;
+  background:radial-gradient(circle at 36% 28%, #E9E9EA, #8E8E90 76%);
+  border:1px solid rgba(0,0,0,.45);box-shadow:0 .8cqw 2cqw -.8cqw rgba(0,0,0,.8)}
+.fsw::after{content:"";position:absolute;inset:26%;border-radius:50%;
+  background:radial-gradient(circle at 40% 32%, #C9C9CB, #6E6E70 80%)}
+.fsw:active{transform:translate(-50%,-50%) scale(.94)}
+.pled{position:absolute;left:76%;top:89.7%;width:6.4cqw;aspect-ratio:1;border-radius:50%;
+  transform:translate(-50%,-50%);background:#3A1512;box-shadow:inset 0 0 .8cqw rgba(0,0,0,.7)}
+.pled[data-on="true"]{background:var(--led);box-shadow:0 0 3cqw var(--led), inset 0 0 .6cqw rgba(255,255,255,.5)}
+
+.selq{margin:0;font-size:.84rem;color:var(--ink-2);line-height:1.5}
+.selq q{quotes:"\201C" "\201D";font-style:italic;color:var(--ink)}
+.selq .src{margin-top:5px}
+
+.hint{min-height:54px;display:flex;align-items:center;gap:10px;padding:11px 14px;
+  border:1px dashed var(--line);border-radius:10px;background:var(--surface);
+  font-size:.87rem;color:var(--ink-2);line-height:1.45}
+.hint[data-live="true"]{border-style:solid;border-color:var(--accent);color:var(--ink)}
+.hint b{font-family:"Archivo",sans-serif;font-size:.72rem;letter-spacing:.11em;text-transform:uppercase;color:var(--accent-text)}
+
+/* ---------- readout ---------- */
+.readout{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);
+  overflow:hidden;box-shadow:var(--shadow)}
+.rhead{padding:20px 22px 16px;border-bottom:1px solid var(--line-soft);background:var(--surface-2)}
+.rhead .rtop{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.rhead h2{font-size:1.65rem;font-weight:700;letter-spacing:-.028em}
+.rhead .yr{font-family:"DM Mono",monospace;font-size:.95rem;color:var(--ink-3)}
+.rhead .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.chip{font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;padding:5px 9px;border-radius:6px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink-3);white-space:nowrap}
+.chip.on{border-color:var(--accent);color:var(--accent-text)}
+
+.rbody{padding:18px 22px}
+.rbody q{quotes:"\201C" "\201D";font-style:italic;color:var(--ink);display:block;line-height:1.55}
+.src{display:inline-block;margin-top:8px;font-family:"Archivo",sans-serif;font-size:.66rem;
+  font-weight:600;letter-spacing:.09em;text-transform:uppercase;white-space:nowrap;
+  color:var(--ink-3)}
+a.src{color:var(--accent-text);text-decoration:none;border-bottom:1px solid currentColor}
+.changes{margin-top:16px;padding-top:14px;border-top:1px solid var(--line-soft)}
+.changes .k{display:block;font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:4px}
+.changes p{margin:0;font-size:.95rem;color:var(--ink-2)}
+.changes q{quotes:"\201C" "\201D";font-style:italic;color:var(--ink);display:block;line-height:1.55}
+.changes .src{margin-top:6px}
+.changes p.none{color:var(--ink-3);font-style:italic}
+.neigh{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:16px;padding-top:14px;
+  border-top:1px solid var(--line-soft);font-size:.84rem;color:var(--ink-3)}
+
+.krow{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start;padding:14px 22px;
+  border-top:1px solid var(--line-soft);transition:background .18s}
+.krow.active{background:color-mix(in oklab, var(--accent) 9%, transparent)}
+.krow .pname{font-family:"Archivo",sans-serif;font-weight:700;font-size:.95rem;letter-spacing:.06em;text-transform:uppercase}
+.krow .pdesc{font-size:.92rem;color:var(--ink-2);margin-top:3px}
+.krow .pdesc q{quotes:"\201C" "\201D";font-style:italic;color:var(--ink)}
+.krow .pdesc .src{display:block;width:fit-content;margin-top:6px}
+.krow .pdesc .extra{display:block;margin-top:8px;padding-top:8px;border-top:1px solid var(--line-soft)}
+.krow .pdesc em{color:var(--warn);font-style:normal}
+.krow .val{text-align:right;font-size:.92rem;line-height:1.35;white-space:nowrap}
+.krow .val .clock{font-family:"DM Mono",monospace;font-weight:500;color:var(--ink)}
+.krow .val .pct{display:block;font-family:"DM Mono",monospace;color:var(--ink-3);font-size:.8rem}
+
+button.btn{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  padding:8px 13px;border-radius:8px;cursor:pointer;background:var(--surface);color:var(--ink);
+  border:1px solid var(--line);transition:background .15s,border-color .15s,color .15s}
+button.btn:hover{border-color:var(--accent);color:var(--accent-text)}
+button.btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#FBF7F2}
+
+/* ---------- sections ---------- */
+section{padding-top:var(--step)}
+.shead{display:flex;align-items:baseline;gap:14px;margin-bottom:18px}
+.shead h2{font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:700;letter-spacing:-.03em}
+.shead .rule{flex:1;height:1px;background:var(--line)}
+.sdek{max-width:68ch;color:var(--ink-2);margin:-4px 0 24px}
+
+.seltabs{display:flex;flex-wrap:wrap;gap:6px;padding:14px 20px;
+  border-bottom:1px solid var(--line-soft);background:var(--surface-2)}
+.seltabs button{font-size:11px;padding:7px 10px}
+
+footer.end{margin-top:var(--step);padding-top:22px;border-top:1px solid var(--line);color:var(--ink-3);
+  font-size:.86rem;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer.end .tm{max-width:62ch;line-height:1.5}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+}
+</style>
+
+<div id="app">
+
+<header class="top">
+  <div class="brandline">
+    <a class="backlink" href="index.html"><span class="bk-arrow" aria-hidden="true">&#8592;</span>All manuals</a>
+    <span class="lbl">JHS Pedals</span>
+    <span class="rule"></span>
+    <span class="lbl unoff">Unofficial companion to the manual · not affiliated with JHS Pedals</span>
+    <button class="themetoggle" type="button" aria-label="Switch theme"><svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg><svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2M12 19.4v2M4.6 4.6 6 6M18 18l1.4 1.4M2.6 12h2M19.4 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg></button>
+  </div>
+  <h1>PackRat<span class="thin">Nine RAT circuits · one rotary · three knobs</span></h1>
+
+  <div class="srclinks">
+    <a href="https://jhspedals.info/products/packrat" target="_blank" rel="noopener">JHS on the PackRat</a>
+    <a href="https://www.youtube.com/watch?v=B_jtDX1_FZg" target="_blank" rel="noopener">JHS's video</a>
+  </div>
+</header>
+
+<div class="console">
+  <div class="pedal-col">
+    <div class="pedal" id="pedal" data-on="true">
+      <svg class="mring" id="mring" viewBox="0 0 100 100" aria-hidden="true"></svg>
+
+      <button class="knob" id="kVolume" style="left:24.8%;top:15.2%" aria-label="Volume knob"><span class="cap"></span></button>
+      <button class="knob" id="kDist" style="left:73.3%;top:15.2%" aria-label="Distortion knob"><span class="cap"></span></button>
+      <button class="knob" id="kFilter" style="left:24.8%;top:40.4%" aria-label="Filter knob"><span class="cap"></span></button>
+      <button class="knob" id="kMode" style="left:73.3%;top:40.4%" aria-label="Mode selector — nine positions"><span class="cap"></span></button>
+
+      <span class="klbl" style="left:24.8%;top:25.6%">VOLUME</span>
+      <span class="klbl" style="left:73.3%;top:25.6%">DISTORTION</span>
+      <span class="klbl" style="left:24.8%;top:50.8%">FILTER</span>
+
+      <span class="ratart" aria-hidden="true">
+        <svg viewBox="0 0 260 200" fill="none" stroke="currentColor"
+             stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+          <!-- skull, narrowing into the muzzle at the lower right -->
+          <path d="M106 56C84 68 66 92 61 120c-5 27 7 47 31 55 26 8 56 1 76-14 12-9 18-17 16-25
+                   -4-17-16-38-30-54C140 66 120 50 106 56Z"/>
+          <!-- left ear -->
+          <path d="M50 10c-8 30 2 61 26 82 17-9 29-23 30-38C88 38 70 21 50 10Z"/>
+          <path d="M63 33c-2 19 5 37 18 50"/>
+          <!-- right ear -->
+          <path d="M208 16c6 30-6 60-32 77-15-10-23-24-21-39 16-14 33-27 53-38Z"/>
+          <path d="M194 39c1 19-6 36-19 48"/>
+          <!-- the tuft of fur between the ears -->
+          <path d="M104 54c9-8 19-13 30-14-7 5-11 9-13 15 10-6 20-8 30-6-11 4-19 10-23 17"/>
+          <!-- brows: inner ends low, which is what makes the scowl -->
+          <path d="M74 96c14-1 27 4 38 15M166 92c-12-2-25 2-36 11"/>
+          <!-- eyes -->
+          <ellipse class="eye" cx="97" cy="119" rx="15" ry="6.5" transform="rotate(11 97 119)"/>
+          <ellipse class="eye" cx="145" cy="115" rx="15" ry="6.5" transform="rotate(-11 145 115)"/>
+          <!-- muzzle: nose at the tip, whiskers sweeping back -->
+          <circle cx="177" cy="133" r="9"/>
+          <path d="M177 142v20M177 155l-11 8M177 155l11 8"/>
+          <path d="M164 143c-14 5-30 7-45 6M162 155c-13 6-27 9-42 9"/>
+          <!-- jagged fur down the left cheek and along the jaw -->
+          <path d="M61 128c-7 4-10 10-9 17 6-3 12-3 17 1-6 4-9 10-8 17"/>
+          <path d="M88 172c-4 7-5 14-3 21 7-6 14-7 21-4"/>
+          <!-- bolts either side -->
+          <path d="M10 116l24-4 10 9"/>
+          <path d="M26 156l16-14 10 6 10-12"/>
+          <path d="M64 188l-8-14 13-2"/>
+          <path d="M216 74l14-13 12 4 14-11"/>
+          <path d="M212 106l19-4 10 9 17-4"/>
+          <path d="M204 140l16 6 13-7"/>
+        </svg>
+      </span>
+
+      <button class="fsw" id="fsw" aria-label="Footswitch"></button>
+      <span class="pled" id="pled" data-on="true"></span>
+    </div>
+
+    <div class="hint" id="hint" data-live="false"></div>
+    <p style="margin:0;font-size:.8rem;color:var(--ink-3);line-height:1.45">
+      Turn the selector with the arrow keys, or click a marking around it — or a name above
+      the readout — to jump straight to that mode. Turn Volume, Filter or Distortion to pick
+      out its row.
+    </p>
+    <p class="selq">JHS on the selector: <q>Selects between 9 different versions of classic and rare
+      RATs. Just rotate it to the mode you want and the pedal transforms itself instantly.</q>
+      <span class="src">JHS, PackRat manual</span></p>
+  </div>
+
+  <div class="readout">
+    <div class="seltabs" id="seltabs"></div>
+    <div class="rhead">
+      <div class="rtop">
+        <h2 id="mName">The OG</h2>
+        <span class="yr mono" id="mYear">1979</span>
+      </div>
+      <div class="meta" id="mMeta"></div>
+    </div>
+    <div class="rbody">
+      <q id="mQuote"></q>
+      <span class="src" id="mSrc">JHS, PackRat manual</span>
+      <div class="changes">
+        <span class="k">What JHS name as changed</span>
+        <p id="mChanges"></p>
+      </div>
+      <div class="changes">
+        <span class="k">Where it came from</span>
+        <p><q id="mHist"></q><span class="src">JHS, product page</span></p>
+      </div>
+    </div>
+    <div class="krow" data-k="volume"><div class="pname">Volume</div><div class="pdesc" id="dVolume"></div></div>
+    <div class="krow" data-k="filter"><div class="pname">Filter</div><div class="pdesc" id="dFilter"></div></div>
+    <div class="krow" data-k="dist"><div class="pname">Distortion</div><div class="pdesc" id="dDist"></div></div>
+  </div>
+</div>
+
+<footer class="end">
+  <span class="tm">From the manual: &ldquo;THE WORDS RAT, WHITE FACE, TURBO, BRAT, YOU DIRTY RAT,
+    IBANEZ, LANDGRAFF, AND WAVE CANNON MAY BE REGISTERED TRADEMARKS. THE JHS PEDALS PACKRAT IS IN
+    NO WAY AFFILIATED WITH OR ENDORSED BY PROCO, IBANEZ, OR LANDGRAFF.&rdquo;</span>
+  <span><a href="https://jhspedals.info/" target="_blank" rel="noopener">jhspedals.info</a></span>
+</footer>
+</div>
+
+<script>
+(() => {
+"use strict";
+
+const clamp = (v,a=0,b=1) => Math.min(b, Math.max(a,v));
+const ang   = v => -150 + v*300;          /* a normal pot: -150deg to +150deg */
+const pct   = v => Math.round(v*100) + "%";
+
+function clockOf(v){
+  let r = Math.round(((ang(v)/30 + 12) % 12) * 2) / 2;
+  if (r >= 12) r -= 12;
+  if (r === 0)  return "12 noon";
+  if (r < 1)    return "12:30";
+  const hh = Math.floor(r);
+  return hh + ":" + ((r - hh) >= .5 ? "30" : "00");
+}
+
+/* ---------------------------------------------------------------------------
+   The nine versions, in the manual's order. `blurb` is JHS's own wording,
+   transcribed from the manual's single sheet. `changes` quotes the run of that
+   same wording where JHS name what changed in the circuit; where they name
+   nothing it is null and the card says so rather than filling the gap in.
+
+   `deg` is where the marking sits around the selector, measured clockwise from
+   twelve o'clock. Those angles and the markings are read off JHS's own product
+   photograph, because the manual carries the artwork but no legend text.
+--------------------------------------------------------------------------- */
+const MODES = [
+  { mark:"OG",   name:"The OG",        year:"v1 · 79–83", deg:-36,
+    hist:"In 1978, one of the most versatile distortion pedals of all time was invented in Kalamazoo–the ProCo RAT.",
+    blurb:"A perfect recreation of the first production “Big Box” RATs ever made. THE classic RAT tone, sustain and attitude.",
+    changes:null },
+  { mark:"WHT",  name:"White Face",    year:"v3 · 84–86", deg:-72,
+    hist:"In 1984, the RAT transitioned to a smaller square enclosure with a new white rectangle logo.",
+    blurb:"The first “Small Box” RAT ever produced. Much like the OG but with a different taper Filter control.",
+    changes:"“a different taper Filter control”" },
+  { mark:"TRB",  name:"Turbo",         year:"v5 · 89", deg:-108,
+    hist:"The heart of the RAT tone comes from symmetrical hard clipping.",
+    blurb:"The first RAT pedal to use LEDs (Light Emitting Diodes) in its clipping section. This results in amazing touch dynamics (play light for less distortion, harder for more distortion) and better overdrive tones with the Distortion control turned down.",
+    changes:"“LEDs (Light Emitting Diodes) in its clipping section”" },
+  { mark:"BRAT", name:"BRAT",          year:"v6 · 97", deg:-144,
+    hist:"In 1997, ProCo got into the budget pedal game by releasing the BRAT and the Guitar Center exclusive Roadkill.",
+    blurb:"The ultimate “nineties grunge” tone. Adds an input buffer, soft clipping (in addition to the traditional hard clipping) and several capacitor changes.",
+    changes:"“an input buffer, soft clipping (in addition to the traditional hard clipping) and several capacitor changes”" },
+  { mark:"DRTY", name:"Dirty",         year:"v7 · 04", deg:180,
+    hist:"In 2002, ProCo released a 2-in-1 RAT pedal called the Deucetone.",
+    blurb:"Based on “You Dirty RAT,” this mode gives the most saturation and waveform clipping of any RAT version ever made. Several changes including germanium-style clipping diodes and capacitor changes make this mode as unique as it gets.",
+    changes:"“germanium-style clipping diodes and capacitor changes”" },
+  { mark:"LA",   name:"LA",            year:"86", deg:144,
+    hist:"In 1986, Ibanez released the 10 Series, which included three RAT style pedals.",
+    blurb:"Made by Ibanez in the eighties, it’s still one of the best-modified RAT circuits ever. Instead of relying on hard clipping from the traditional diode configuration found in most RATs, this circuit overloads the op amp and “clips the rails” to produce a very different flavor of rodent tone.",
+    changes:"“this circuit overloads the op amp and ‘clips the rails’”" },
+  { mark:"GRF",  name:"Landgraff MO’D", year:"99", deg:108,
+    hist:"Between 1999 and 2000, John Landgraff started building pedals by hand in Pensacola.",
+    blurb:"THE definitive boutique take on the RAT. Based on John Landgraff’s extremely rare MO-D Distortion, a distant cousin of the RAT with tons of versatility and attitude.",
+    changes:null },
+  { mark:"◇", name:"Caroline Wave Cannon", year:"10", deg:72, glyph:true,
+    hist:"A few years after starting JHS, I purchased a fascinating distortion pedal from a brand new company in South Carolina.",
+    blurb:"Philippe Herndon adapted his Wave Cannon Distortion (V1) just for us. It’s a seriously great take on the RAT circuit with all kinds of clever modifications.",
+    changes:null },
+  { mark:"JHS",  name:"JHS Mode",      year:"JHS’s own", deg:36,
+    hist:"In 2003, I managed a tiny guitar shop in Northwest Alabama.",
+    blurb:"Our classic modification that we performed on countless RATs for over a decade; it’s louder, bigger and has a huge range of tones. Try it for yourself!",
+    changes:null }
+];
+const NONE = "The manual names no component change here — JHS describe where the circuit came from instead.";
+
+/* Clockwise order around the selector, JHS at 1 o'clock through to OG at 11.
+   The sweep runs across the bottom, so the sort key has to be the angle taken
+   clockwise from twelve — otherwise DRTY at 6 o'clock sorts after BRAT at 7. */
+const RING = MODES.slice().sort((a,b) => ((a.deg+360)%360) - ((b.deg+360)%360));
+const ringIndex = m => RING.indexOf(m);
+
+const S = { mode:0, on:true, volume:.5, filter:.5, dist:.45, active:null };
+
+const $ = s => document.querySelector(s);
+const pedal = $("#pedal"), hintEl = $("#hint");
+
+/* ---------------- the marking ring ---------------- */
+const RING_R = 19.6;                     /* % of the pedal's width */
+const CX = 73.3, CY = 40.4;              /* selector centre, % of width / height */
+const ASPECT = 395/682;                  /* the pedal's own proportions */
+
+MODES.forEach((m,i) => {
+  const a = m.deg * Math.PI/180;
+  const x = CX + RING_R * Math.sin(a);
+  const y = CY - RING_R * Math.cos(a) * ASPECT;
+  const b = document.createElement("button");
+  b.className = "mlbl";
+  b.style.left = x.toFixed(2) + "%";
+  b.style.top  = y.toFixed(2) + "%";
+  b.dataset.m = String(i);
+  b.setAttribute("aria-label", m.name);
+  b.innerHTML = m.glyph
+    ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 21.5 12 12 21.5 2.5 12Z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/></svg>'
+    : m.mark;
+  b.addEventListener("click", () => {
+    setMode(i);
+    setHint("Selector at <b style='display:inline'>" + m.name + "</b>. On the pedal that is the marking "
+      + (m.glyph ? "Caroline's logo" : m.mark) + ", at " + oclock(m.deg) + ".", true);
+  });
+  pedal.appendChild(b);
+});
+
+/* the faint arc the markings sit on */
+(function drawRing(){
+  const svg = $("#mring");
+  svg.style.left = CX + "%";
+  svg.style.top  = CY + "%";
+  const r = 44, cx = 50, cy = 50;
+  const a0 = -36, a1 = 36;   /* OG at 11 o'clock, round the bottom, to JHS at 1 */
+  const pt = d => [cx + r*Math.sin(d*Math.PI/180), cy - r*Math.cos(d*Math.PI/180)];
+  const p0 = pt(a0), p1 = pt(a1);
+  svg.innerHTML = '<path d="M' + p0[0].toFixed(2) + ' ' + p0[1].toFixed(2) +
+    ' A' + r + ' ' + r + ' 0 1 0 ' + p1[0].toFixed(2) + ' ' + p1[1].toFixed(2) + '" ' +
+    'fill="none" stroke="currentColor" stroke-width="1.1" opacity=".18"/>';
+})();
+
+function oclock(deg){
+  let h = ((deg/30) + 12) % 12;
+  h = Math.round(h*2)/2;
+  if (h === 0 || h === 12) return "12 noon";
+  const hh = Math.floor(h);
+  return hh + ":" + ((h - hh) >= .5 ? "30" : "00") + " o’clock";
+}
+
+/* ---------------- knob descriptions ----------------
+   What each control does is the manual's to say and is quoted in the sections
+   below. These lines are the position readout, which is this page's addition. */
+const SRC = '<span class="src">JHS, PackRat manual</span>';
+const QK = {
+  volume:"Controls the output volume. Left is less, right is more.",
+  filter:"Controls the overall brightness of the circuit. Some modes get brighter as you turn " +
+         "this clockwise and some are reversed, getting darker instead. Each mode reacts exactly " +
+         "as the original circuit does.",
+  dist:"Controls the amount of gain/distortion within the circuit. Clockwise is more, " +
+       "counter-clockwise is less."
+};
+const q = t => "<q>" + t + "</q>";
+const extra = t => '<span class="extra">' + t + "</span>";
+
+/* Only the Filter answers to the selector: JHS write a different sentence about it for
+   White Face, and leave every other mode to the same open question. */
+function filterExtra(){
+  return extra(MODES[S.mode].mark === "WHT"
+    ? "White Face gets <q>a different taper Filter control</q>. <em>JHS do not say which way that taper runs.</em>"
+    : "<em>JHS say some modes reverse the Filter and name none of them, so which way this one runs is not documented.</em>");
+}
+
+/* the two rows that never change are written once */
+$("#dVolume").innerHTML = q(QK.volume) + SRC;
+$("#dDist").innerHTML   = q(QK.dist)   + SRC;
+
+/* The knobs turn, and turning one picks out its row. That highlight is the whole of
+   what a position can tell you here: JHS write one sentence for the whole sweep. */
+const POTS = {
+  volume: $("#kVolume"), filter: $("#kFilter"), dist: $("#kDist")
+};
+
+/* ---------------- render ---------------- */
+function render(){
+  const m = MODES[S.mode];
+
+  $("#dFilter").innerHTML = q(QK.filter) + SRC + filterExtra();
+
+  Object.keys(POTS).forEach(k => {
+    POTS[k].querySelector(".cap").style.transform = "rotate(" + ang(S[k]) + "deg)";
+    POTS[k].classList.toggle("active", S.active === k);
+    document.querySelector('.krow[data-k="' + k + '"]')
+      .classList.toggle("active", S.active === k);
+  });
+
+  /* the selector */
+  $("#kMode").querySelector(".cap").style.transform = "rotate(" + m.deg + "deg)";
+  $("#kMode").setAttribute("aria-label", "Mode selector — " + m.name + ", " + oclock(m.deg));
+  document.querySelectorAll(".mlbl").forEach(b =>
+    b.dataset.on = String(Number(b.dataset.m) === S.mode));
+
+  /* the readout */
+  $("#mName").textContent = m.name;
+  $("#mYear").textContent = m.year;
+  $("#mQuote").textContent = m.blurb;
+  $("#mHist").textContent = m.hist;
+  const ch = $("#mChanges");
+  ch.textContent = m.changes || NONE;
+  ch.classList.toggle("none", !m.changes);
+
+  $("#mMeta").innerHTML =
+    '<span class="chip on">' + (m.glyph ? "Caroline’s logo" : m.mark) + " on the enclosure</span>" +
+    '<span class="chip">' + oclock(m.deg) + "</span>" +
+    '<span class="chip">' + (ringIndex(m) + 1) + " of 9 clockwise</span>";
+
+  document.querySelectorAll("#seltabs button").forEach(b =>
+    b.setAttribute("aria-pressed", String(Number(b.dataset.m) === S.mode)));
+
+  /* footswitch */
+  pedal.dataset.on = String(S.on);
+  $("#pled").dataset.on = String(S.on);
+}
+
+function setHint(html, live){
+  hintEl.innerHTML = (live ? "<b>Live</b> " : "") + html;
+  hintEl.dataset.live = String(!!live);
+}
+setHint("Nine positions on one rotary, OG at 11 o\u2019clock round to JHS at 1.", false);
+
+function setMode(i){ S.mode = i; render(); }
+
+/* ---------------- the three pots ---------------- */
+Object.keys(POTS).forEach(k => {
+  const el = POTS[k];
+  let dragging = false, y0 = 0, v0 = 0;
+  const set = v => { S[k] = clamp(v); render(); };
+  el.addEventListener("pointerdown", e => {
+    dragging = true; y0 = e.clientY; v0 = S[k];
+    try { el.setPointerCapture(e.pointerId); } catch (err) { /* no active pointer */ }
+    S.active = k; render(); e.preventDefault(); el.focus();
+  });
+  el.addEventListener("pointermove", e => { if (dragging) set(v0 + (y0 - e.clientY) / 220); });
+  const stop = () => { dragging = false; };
+  el.addEventListener("pointerup", stop);
+  el.addEventListener("pointercancel", stop);
+  el.addEventListener("keydown", e => {
+    const step = e.shiftKey ? .01 : .05;
+    if (e.key === "Home"){ e.preventDefault(); return set(0); }
+    if (e.key === "End" ){ e.preventDefault(); return set(1); }
+    const d = (e.key === "ArrowUp" || e.key === "ArrowRight") ? 1
+            : (e.key === "ArrowDown" || e.key === "ArrowLeft") ? -1 : 0;
+    if (!d) return;
+    e.preventDefault(); set(S[k] + d*step);
+  });
+  el.addEventListener("focus", () => { S.active = k; render(); });
+  el.addEventListener("blur",  () => { if (S.active === k){ S.active = null; render(); } });
+  const row = document.querySelector('.krow[data-k="' + k + '"]');
+  row.addEventListener("pointerenter", () => { S.active = k; render(); });
+  row.addEventListener("pointerleave", () => { if (S.active === k){ S.active = null; render(); } });
+});
+
+/* ---------------- the selector: nine detents ---------------- */
+(function selector(){
+  const el = $("#kMode");
+  let dragging = false, y0 = 0, x0 = 0, i0 = 0;
+  const step = i => {
+    const n = clamp(i, 0, 8);
+    if (MODES.indexOf(RING[n]) === S.mode) return;
+    setMode(MODES.indexOf(RING[n]));
+    setHint("Selector at <b style='display:inline'>" + RING[n].name + "</b>, " + oclock(RING[n].deg) + ".", true);
+  };
+  el.addEventListener("pointerdown", e => {
+    dragging = true; y0 = e.clientY; x0 = e.clientX; i0 = ringIndex(MODES[S.mode]);
+    try { el.setPointerCapture(e.pointerId); } catch (err) { /* no active pointer */ }
+    e.preventDefault(); el.focus();
+  });
+  el.addEventListener("pointermove", e => {
+    if (!dragging) return;
+    step(i0 + Math.round((y0 - e.clientY) / 26));
+  });
+  const stop = () => { dragging = false; };
+  el.addEventListener("pointerup", stop);
+  el.addEventListener("pointercancel", stop);
+  el.addEventListener("keydown", e => {
+    const i = ringIndex(MODES[S.mode]);
+    if (e.key === "ArrowUp"   || e.key === "ArrowRight"){ step(i + 1); e.preventDefault(); }
+    if (e.key === "ArrowDown" || e.key === "ArrowLeft" ){ step(i - 1); e.preventDefault(); }
+    if (e.key === "Home"){ step(0); e.preventDefault(); }
+    if (e.key === "End" ){ step(8); e.preventDefault(); }
+  });
+})();
+
+/* ---------------- footswitch ---------------- */
+$("#fsw").addEventListener("click", () => {
+  S.on = !S.on; render();
+  setHint(S.on
+    ? "Engaged. The LED is lit."
+    : "Bypassed. The manual does not describe the footswitch or say whether the bypass is true bypass or buffered, so this is only the LED going out.", true);
+});
+
+/* ---------------- the mode tabs ---------------- */
+$("#seltabs").innerHTML = MODES.map((m,i) =>
+  '<button class="btn" data-m="' + i + '" aria-pressed="false">' + m.name + "</button>").join("");
+
+$("#seltabs").addEventListener("click", e => {
+  const b = e.target.closest("[data-m]"); if (!b) return;
+  const i = Number(b.dataset.m);
+  setMode(i);
+  setHint("Selector set to <b style='display:inline'>" + MODES[i].name + "</b>, " +
+    oclock(MODES[i].deg) + " on the ring.", true);
+});
+
+render();
+})();
+</script>

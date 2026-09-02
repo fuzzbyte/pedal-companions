@@ -135,14 +135,17 @@ header.top{padding:clamp(40px,7vw,84px) 0 clamp(24px,4vw,40px)}
 .backlink:hover .bk-arrow{transform:translateX(-3px)}
 @media (max-width:560px){.brandline{flex-wrap:wrap}.backlink{flex-basis:100%;border-right:0;padding-right:0;margin-bottom:2px}}
 /* The page follows the OS until the reader picks a side; after that [data-theme] on
-   <html> wins, and the pick is remembered. The sun shows when the page is dark. */
-:root{color-scheme:light}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark}}
-:root[data-theme="dark"]{color-scheme:dark}
+   <html> wins, and the pick is remembered. The button is an invitation to swap, so it
+   wears the theme it offers: a moon in dark colours on a light page, a sun in light
+   colours on a dark page. --tt-* is the opposite palette, cross-wired for that reason,
+   and held here rather than beside the tokens it inverts. */
+:root{color-scheme:light;--tt-surface:#1A1911;--tt-line:#33301F;--tt-ink:#EDE7D3;--tt-ink-3:#726D58}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;--tt-surface:#FAF7EE;--tt-line:#D6CEB6;--tt-ink:#1B1A12;--tt-ink-3:#8A8470}}
+:root[data-theme="dark"]{color-scheme:dark;--tt-surface:#FAF7EE;--tt-line:#D6CEB6;--tt-ink:#1B1A12;--tt-ink-3:#8A8470}
 .themetoggle{flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;
-  border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink-3);cursor:pointer;
+  border:1px solid var(--tt-line);border-radius:8px;background:var(--tt-surface);color:var(--tt-ink-3);cursor:pointer;
   transition:color .15s,border-color .15s}
-.themetoggle:hover{color:var(--ink);border-color:var(--ink-3)}
+.themetoggle:hover{color:var(--tt-ink);border-color:var(--tt-ink-3)}
 .themetoggle svg{display:block;width:15px;height:15px}
 .themetoggle .i-sun{display:none}
 @media (prefers-color-scheme: dark){

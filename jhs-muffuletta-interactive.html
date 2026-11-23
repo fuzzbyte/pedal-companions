@@ -88,9 +88,37 @@ const CSS = [
 "  border:0;border-radius:6px;background:none;color:var(--ink-3);cursor:pointer}",
 ".sp-ico:hover{background:var(--surface-2);color:var(--ink)}",
 ".sp-ico svg{width:13px;height:13px;display:block}",
+/* The label wraps inside its own box rather than truncating or pushing the buttons onto
+   a line of their own: the preset's name is the thing this line exists to say. */
+".sp-state{display:flex;align-items:center;gap:7px;margin:0 0 9px;font-size:12.5px;color:var(--ink-2)}",
+".sp-state .sp-lbl{flex:1 1 auto;min-width:0}",
+".sp-state b{font-weight:600;color:var(--ink)}",
+".sp-state .none{color:var(--ink-3)}",
+".sp-x{flex:none;padding:2px 8px;border:1px solid var(--line);border-radius:6px;",
+"  background:none;color:var(--ink-2);font:inherit;font-size:11.5px;font-weight:600;cursor:pointer}",
+".sp-x:hover{border-color:var(--ink-3);color:var(--ink)}",
+".sp-diff{list-style:none;margin:-1px 0 10px;padding:7px 10px;border:1px solid var(--line-soft,var(--line));",
+"  border-radius:8px;background:var(--bg);font-size:11.5px;max-height:148px;overflow-y:auto}",
+".sp-diff li{display:flex;align-items:baseline;gap:6px;padding:2px 0;color:var(--ink-3)}",
+".sp-diff li .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-2)}",
+".sp-diff li b{font-weight:600;color:var(--ink)}",
 ".sp-empty{color:var(--ink-3);font-size:12px;margin:0}",
 ".sp-note{margin:9px 0 0;font-size:11.5px;line-height:1.5;color:var(--ink-3)}",
-"@media (max-width:560px){.sharepop{right:auto;left:0}}"
+/* Once the reader has a preset, which one they are on stops being something to go
+   looking for. The bar rides under the brandline and exists only while there is a
+   preset to name, so a page nobody has saved anything on is untouched by it. */
+".presetbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-6px 0 20px;padding:9px 11px;",
+"  border:1px solid var(--line);border-radius:10px;background:var(--surface);",
+"  font-family:'Archivo',system-ui,sans-serif;font-size:12.5px;line-height:1.4;color:var(--ink-2)}",
+".presetbar[hidden]{display:none}",
+".presetbar b{font-weight:600;color:var(--ink)}",
+".presetbar .pb-dot{flex:none;width:7px;height:7px;border-radius:50%;background:var(--ink-3)}",
+".presetbar[data-dirty='1']{border-color:var(--ink-3)}",
+".presetbar[data-dirty='1'] .pb-dot{background:var(--acc-text,var(--accent-text))}",
+".presetbar .pb-txt{flex:0 1 auto;min-width:0}",
+".presetbar .pb-sp{flex:1 1 auto;min-width:0}",
+".presetbar .sp-diff{flex:0 0 100%;margin:1px 0 0}",
+"@media (max-width:560px){.sharepop{right:auto;left:0}.presetbar .pb-sp{display:none}}"
 ].join("\n");
 
 /* ---------------- paths ---------------- */
@@ -120,6 +148,22 @@ Reader.prototype.r = function(n){
 
 const bitsFor = n => Math.max(1, Math.ceil(Math.log(n) / Math.LN2));
 const num = v => (typeof v === "number" && isFinite(v)) ? v : 0;
+const pc = v => Math.round(v * 100) + "%";
+
+/* A reader-facing name for a dotted path, so the change list can say "l modify" and
+   "head 1 pan" without every page having to label its own fields. `k` and `vals` are
+   containers on these pages rather than anything the reader sees, so they drop out. */
+function nice(path){
+  const out = [];
+  path.split(".").forEach(s => {
+    if (/^\d+$/.test(s)){
+      out[out.length - 1] = out[out.length - 1].replace(/s$/, "") + " " + (+s + 1);
+    } else if (!/^(k|vals)$/.test(s)) {
+      out.push(s);
+    }
+  });
+  return out.join(" ").replace(/([a-z])([A-Z])/g, "$1 $2");
+}
 
 /* ---------------- field types ----------------
    Every field declares its own width, so the payload is positional and field names
@@ -130,31 +174,42 @@ const F = {
     bits = bits || 8; const max = (1 << bits) - 2;   /* even, so 0, noon and full are all exact */
     return { bits,
       write(w, s){ w.w(Math.round(Math.min(1, Math.max(0, num(get(s, path)))) * max), bits); },
-      read(r, s){ set(s, path, r.r(bits) / max); } };
+      read(r, s){ set(s, path, r.r(bits) / max); },
+      parts(s){ return [{ label: nice(path), value: pc(num(get(s, path))) }]; } };
   },
   bipolar(path, bits){
     bits = bits || 8; const max = (1 << bits) - 2;   /* even, so 0, noon and full are all exact */
     return { bits,
       write(w, s){ w.w(Math.round((Math.min(1, Math.max(-1, num(get(s, path)))) + 1) / 2 * max), bits); },
-      read(r, s){ const v = r.r(bits) / max * 2 - 1; set(s, path, Math.abs(v) < 1.5 / max ? 0 : v); } };
+      read(r, s){ const v = r.r(bits) / max * 2 - 1; set(s, path, Math.abs(v) < 1.5 / max ? 0 : v); },
+      parts(s){
+        const v = num(get(s, path));
+        return [{ label: nice(path),
+                  value: v === 0 ? "centre" : (v < 0 ? "L " : "R ") + pc(Math.abs(v)) }];
+      } };
   },
   bool(path){
     return { bits: 1,
       write(w, s){ w.w(get(s, path) ? 1 : 0, 1); },
-      read(r, s){ set(s, path, !!r.r(1)); } };
+      read(r, s){ set(s, path, !!r.r(1)); },
+      parts(s){ return [{ label: nice(path), value: get(s, path) ? "on" : "off" }]; } };
   },
   flag(path){                          /* the same switch, stored as 0/1 rather than a boolean */
     return { bits: 1,
       write(w, s){ w.w(get(s, path) ? 1 : 0, 1); },
-      read(r, s){ set(s, path, r.r(1)); } };
+      read(r, s){ set(s, path, r.r(1)); },
+      parts(s){ return [{ label: nice(path), value: get(s, path) ? "on" : "off" }]; } };
   },
   pick(path, vals){
     const n = bitsFor(vals.length);
     return { bits: n,
       write(w, s){ const i = vals.indexOf(get(s, path)); w.w(i < 0 ? 0 : i, n); },
-      read(r, s){ const i = r.r(n); if (i >= vals.length) throw new Error("range"); set(s, path, vals[i]); } };
+      read(r, s){ const i = r.r(n); if (i >= vals.length) throw new Error("range"); set(s, path, vals[i]); },
+      parts(s){ return [{ label: nice(path), value: String(get(s, path)) }]; } };
   },
-  keyed(path, keys, toKey, fromKey){   /* an index into page data, carried as a pinned name */
+  /* An index into page data, carried as a pinned name. `label` names the control in the
+     change list, since the field it lives on is usually called something internal. */
+  keyed(path, keys, toKey, fromKey, label){
     const n = bitsFor(keys.length);
     return { bits: n,
       write(w, s){ const i = keys.indexOf(toKey(get(s, path))); w.w(i < 0 ? 0 : i, n); },
@@ -164,19 +219,25 @@ const F = {
         const v = fromKey(keys[i]);
         if (v === undefined || v === -1) throw new Error("range");
         set(s, path, v);
-      } };
+      },
+      parts(s){ return [{ label: label || nice(path), value: String(toKey(get(s, path))) }]; } };
   },
   flags(path, keys){                   /* an object of 0/1 switches, in the order given */
     return { bits: keys.length,
       write(w, s){ const o = get(s, path) || {}; keys.forEach(k => w.w(o[k] ? 1 : 0, 1)); },
-      read(r, s){ let o = get(s, path); if (!o){ o = {}; set(s, path, o); } keys.forEach(k => { o[k] = r.r(1); }); } };
+      read(r, s){ let o = get(s, path); if (!o){ o = {}; set(s, path, o); } keys.forEach(k => { o[k] = r.r(1); }); },
+      parts(s){
+        const o = get(s, path) || {};
+        return keys.map(k => ({ label: nice(path).replace(/s$/, "") + " " + k, value: o[k] ? "on" : "off" }));
+      } };
   },
   each(path, n, make){                 /* an array of records, each built by make(itemPath) */
     let subs = [];
     for (let i = 0; i < n; i++) subs = subs.concat(make(path + "." + i));
     return { bits: subs.reduce((a, f) => a + f.bits, 0),
       write(w, s){ subs.forEach(f => f.write(w, s)); },
-      read(r, s){ subs.forEach(f => f.read(r, s)); } };
+      read(r, s){ subs.forEach(f => f.read(r, s)); },
+      parts(s){ return subs.reduce((a, f) => a.concat(f.parts(s)), []); } };
   }
 };
 
@@ -213,11 +274,15 @@ function decode(cfg, str, state){
   if (body[0] !== (cfg.v & 255)) return { err: "version" };
   if (body[1] !== hash8(cfg.id)) return { err: "other" };
   const rest = body.slice(2);
+  let draft;
   try {
-    const draft = JSON.parse(JSON.stringify(state)), r = new Reader(rest);
+    draft = JSON.parse(JSON.stringify(state));
+    const r = new Reader(rest);
     cfg.fields.forEach(f => f.read(r, draft));
   } catch(e){ return { err: "damaged" }; }
-  return { ok: true, apply(){ const r = new Reader(rest); cfg.fields.forEach(f => f.read(r, state)); } };
+  /* `draft` is the payload's own state, which is what the change list reads to say what
+     this setting moved away from. */
+  return { ok: true, draft, apply(){ const r = new Reader(rest); cfg.fields.forEach(f => f.read(r, state)); } };
 }
 
 const WHY = {
@@ -293,6 +358,14 @@ function init(cfg){
 
   const btn = wrap.querySelector(".sharebtn"), pop = wrap.querySelector(".sharepop");
 
+  /* The bar sits under the brandline it belongs to, in the header rather than on the
+     page. It is empty and hidden until the reader is on a preset. */
+  const brandline = anchor.closest(".brandline");
+  const bar = document.createElement("div");
+  bar.className = "presetbar";
+  bar.hidden = true;
+  brandline.parentNode.insertBefore(bar, brandline.nextSibling);
+
   const linkFor = payload => {
     const u = new URL(location.href);
     u.searchParams.set("s", payload);
@@ -301,14 +374,45 @@ function init(cfg){
 
   let note = "";
   const say = t => {
-    note = t; draw();
-    setTimeout(() => { if (note === t){ note = ""; if (!pop.hidden) draw(); } }, 3200);
+    note = t; paint();
+    setTimeout(() => { if (note === t){ note = ""; paint(); } }, 3200);
   };
+
+  /* The preset the current state came from, if any — loaded from the bank, just saved
+     under a name, or arrived on a link that matches one already saved. Held in memory,
+     so a reload starts from the page's own setting with no lineage. */
+  let from = null;                            /* {n, s} */
+  let expanded = false;                       /* is the change list open */
 
   /* What the popover currently shows, so a sync that changes none of it leaves the
      reader's half-typed name alone. */
   let drawnFor = null;
-  const signature = () => encode(cfg, state) + "|" + bank(cfg.id).length + "|" + note;
+  const signature = () => encode(cfg, state) + "|" + bank(cfg.id).length + "|" + note +
+                          "|" + (from ? from.n + " " + from.s : "") + "|" + expanded;
+
+  /* A preset in the bank whose payload is exactly this state, if there is one. */
+  const savedAs = payload => bank(cfg.id).filter(i => i.s === payload)[0] || null;
+
+  /* What this state moved away from, control by control. The reference is the preset it
+     came from where there is one, and the setting the page opens on where there is not. */
+  const partsOf = s => cfg.fields.reduce((a, f) => a.concat(f.parts ? f.parts(s) : []), []);
+  const against = () => from ? from.s : DEFAULT;
+  function changes(){
+    const d = decode(cfg, against(), state);
+    if (!d.ok) return [];
+    const was = partsOf(d.draft), now = partsOf(state), out = [];
+    for (let i = 0; i < was.length && i < now.length; i++){
+      if (was[i].value !== now[i].value){
+        out.push({ label: was[i].label, was: was[i].value, now: now[i].value });
+      }
+    }
+    return out;
+  }
+  const diffList = diff => '<ul class="sp-diff">' + diff.map(d =>
+      '<li><span class="n">' + esc(d.label) + '</span>' + esc(d.was) + ' → <b>' + esc(d.now) + '</b></li>'
+    ).join("") + '</ul>';
+  const counter = n => '<button class="sp-x" data-act="why" aria-expanded="' + (expanded ? "true" : "false") + '">' +
+    n + (n === 1 ? " change " : " changes ") + (expanded ? "▴" : "▾") + '</button>';
 
   function draw(){
     const items = bank(cfg.id), now = encode(cfg, state);
@@ -327,20 +431,41 @@ function init(cfg){
         }).join("") + '</ul>'
       : '<p class="sp-empty">Nothing saved yet.</p>';
 
+    /* Dirty against its own reference: the preset it came from, or the page's opening
+       setting when it came from nowhere. Saving only means anything while dirty. */
+    const dirty = now !== against();
+    const diff  = dirty ? changes() : [];
+    const short = n => n.length > 20 ? n.slice(0, 19) + "…" : n;
+
+    const status = !from ? '<span class="none">No preset</span>'
+                 : dirty ? 'Changed from <b>' + esc(from.n) + '</b>'
+                         : 'On <b>' + esc(from.n) + '</b>';
+
+    const count = diff.length ? counter(diff.length) : '';
+
+    const undo = dirty
+      ? '<button class="sp-x" data-act="' + (from ? "revert" : "reset") + '">' + (from ? "Revert" : "Reset") + '</button>'
+      : '';
+
+    const list = (expanded && diff.length) ? diffList(diff) : '';
+
     pop.innerHTML =
       '<div class="sec">' +
         '<h3>This setting</h3>' +
+        '<p class="sp-state"><span class="sp-lbl">' + status + '</span>' + count + undo + '</p>' +
+        list +
         '<button class="sp-b go wide" data-act="copylink">Copy link to this setting</button>' +
-        '<div class="sp-row" style="margin-top:8px">' +
-          '<input type="text" placeholder="Name it to save" maxlength="60" aria-label="Name for this setting">' +
-          '<button class="sp-b" data-act="save">Save</button>' +
-        '</div>' +
+        (dirty
+          ? (from ? '<button class="sp-b wide" style="margin-top:7px" data-act="update">Update &ldquo;' +
+                      esc(short(from.n)) + '&rdquo;</button>' : '') +
+            '<div class="sp-row" style="margin-top:7px">' +
+              '<input type="text" placeholder="Name it to save" maxlength="60" aria-label="Name for this setting">' +
+              '<button class="sp-b" data-act="save">' + (from ? "Save as" : "Save") + '</button>' +
+            '</div>'
+          : '') +
         /* Where a page holds something a link cannot carry, it says so here rather than
            letting the reader find out by sending one. */
         (cfg.caveat ? '<p class="sp-note">' + esc(cfg.caveat) + '</p>' : '') +
-        (now === DEFAULT ? ''
-          : '<p class="sp-note">Not the setting the page opens on. ' +
-            '<button class="sp-b" style="padding:1px 7px;font-size:11.5px;vertical-align:1px" data-act="reset">Reset</button></p>') +
       '</div>' +
       '<div class="sec">' +
         '<h3>Saved' + (items.length ? ' · ' + items.length : '') + '</h3>' + rows +
@@ -364,26 +489,71 @@ function init(cfg){
     drawnFor = signature();
   }
 
+  /* The same answer, said in the header instead of inside the popover. It exists only
+     once the reader is on a preset — before that the icon's dot carries it. */
+  function drawBar(){
+    if (!from){ bar.hidden = true; bar.innerHTML = ""; return; }
+    const now = encode(cfg, state), dirty = now !== from.s;
+    const diff = dirty ? changes() : [];
+
+    bar.hidden = false;
+    bar.dataset.dirty = dirty ? "1" : "";
+    bar.innerHTML =
+      '<span class="pb-dot"></span>' +
+      '<span class="pb-txt">' + (dirty ? "Changed from <b>" : "On <b>") + esc(from.n) + '</b></span>' +
+      (diff.length ? counter(diff.length) : '') +
+      '<span class="pb-sp"></span>' +
+      (dirty
+        ? '<button class="sp-x" data-act="revert">Revert</button>' +
+          '<button class="sp-b" style="padding:5px 11px;font-size:12px" data-act="update">Save</button>' +
+          '<button class="sp-x" data-act="saveas">Save as…</button>'
+        : '') +
+      ((expanded && diff.length) ? diffList(diff) : '');
+  }
+
+  const paint = () => { draw(); drawBar(); };
+
   function open(){ draw(); pop.hidden = false; btn.setAttribute("aria-expanded", "true"); }
-  function shut(){ pop.hidden = true; btn.setAttribute("aria-expanded", "false"); note = ""; }
+  function shut(){ pop.hidden = true; btn.setAttribute("aria-expanded", "false"); note = ""; expanded = false; }
+
+  /* Set by the popover's own handler before it redraws. Without it, a click on a button
+     inside the popover reaches the listener below after draw() has replaced the markup,
+     so the clicked element is detached, wrap.contains() is false, and the popover reads
+     its own button as a click outside itself and closes. */
+  let selfClick = false;
 
   btn.addEventListener("click", () => { if (pop.hidden) open(); else shut(); });
-  document.addEventListener("click", e => { if (!pop.hidden && !wrap.contains(e.target)) shut(); });
+  document.addEventListener("click", e => {
+    if (selfClick){ selfClick = false; return; }
+    if (!pop.hidden && !wrap.contains(e.target)) shut();
+  });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !pop.hidden){ shut(); btn.focus(); } });
   pop.addEventListener("keydown", e => {
     if (e.key === "Enter" && e.target.tagName === "INPUT"){ e.preventDefault(); pop.querySelector('[data-act="save"]').click(); }
   });
 
-  pop.addEventListener("click", async e => {
+  /* One handler for both the popover and the header bar — they offer the same actions. */
+  const onAction = async e => {
+    selfClick = true;
     const t = e.target.closest("[data-act],[data-load],[data-copy],[data-del]");
     if (!t) return;
     const items = bank(cfg.id);
+
+    /* The bar has no name field, so naming happens where the field already is. */
+    if (t.dataset.act === "saveas"){
+      if (pop.hidden) open();
+      const i = pop.querySelector("input");
+      if (i) i.focus();
+      return;
+    }
 
     if (t.dataset.act === "copylink"){
       const ok = await copy(linkFor(encode(cfg, state)));
       say(ok ? "Link copied." : "Copy failed — this browser blocked it.");
       return;
     }
+    if (t.dataset.act === "why"){ expanded = !expanded; paint(); return; }
+
     if (t.dataset.act === "save"){
       const input = pop.querySelector("input"), name = input.value.trim();
       if (!name){ input.focus(); return; }
@@ -391,14 +561,37 @@ function init(cfg){
       const entry = { n: name, t: Date.now(), s: encode(cfg, state) };
       if (at >= 0) items[at] = entry; else items.push(entry);
       const ok = keep(cfg.id, items);
-      if (ok) input.value = "";
+      if (ok){ input.value = ""; from = { n: name, s: entry.s }; expanded = false; }
       say(ok ? (at >= 0 ? "Replaced “" + name + "”." : "Saved “" + name + "”.")
              : "Couldn’t save — this browser is blocking storage.");
       return;
     }
+    /* Save over the preset this state came from, rather than making a second copy. */
+    if (t.dataset.act === "update"){
+      if (!from) return;
+      const at = items.findIndex(i => i.n === from.n);
+      if (at < 0){
+        say("“" + from.n + "” is not in the bank any more — name it to save.");
+        from = null; expanded = false; paint();
+        return;
+      }
+      const payload = encode(cfg, state);
+      items[at] = { n: from.n, t: Date.now(), s: payload };
+      if (keep(cfg.id, items)){ from = { n: from.n, s: payload }; expanded = false; say("Updated “" + from.n + "”."); }
+      else say("Couldn’t save — this browser is blocking storage.");
+      return;
+    }
+    /* Back to the preset, as against back to the setting the page opens on. */
+    if (t.dataset.act === "revert"){
+      if (!from) return;
+      const d = decode(cfg, from.s, state);
+      if (d.err){ say(WHY[d.err]); return; }
+      d.apply(); redraw(); expanded = false; sync(); paint();
+      return;
+    }
     if (t.dataset.act === "reset"){
       const d = decode(cfg, DEFAULT, state);
-      if (d.ok){ d.apply(); redraw(); sync(); draw(); }
+      if (d.ok){ d.apply(); redraw(); from = null; expanded = false; sync(); paint(); }
       return;
     }
     if (t.dataset.act === "export"){
@@ -445,9 +638,12 @@ function init(cfg){
       return;
     }
     if (t.dataset.load !== undefined){
-      const d = decode(cfg, items[+t.dataset.load].s, state);
+      const it = items[+t.dataset.load];
+      const d = decode(cfg, it.s, state);
       if (d.err){ say(WHY[d.err]); return; }
-      d.apply(); redraw(); sync(); shut();
+      d.apply(); redraw();
+      from = { n: it.n, s: it.s }; expanded = false;
+      sync(); shut();
       return;
     }
     if (t.dataset.copy !== undefined){
@@ -456,18 +652,28 @@ function init(cfg){
       return;
     }
     if (t.dataset.del !== undefined){
-      items.splice(+t.dataset.del, 1);
+      const gone = items.splice(+t.dataset.del, 1)[0];
       keep(cfg.id, items);
-      draw();
+      /* The state stays where it is, but it no longer descends from anything. */
+      if (from && gone && gone.n === from.n){ from = null; expanded = false; }
+      paint();
       return;
     }
-  });
+  };
+  pop.addEventListener("click", onAction);
+  bar.addEventListener("click", onAction);
 
   /* The URL must never describe a state the page is not in, so the moment the reader
      moves anything away from what arrived, ?s= goes. */
   function sync(){
     const now = encode(cfg, state);
-    btn.dataset.mod = now === DEFAULT ? "" : "1";
+    /* The dot means there is something here you have not kept — measured against the
+       preset this came from, or the page's opening setting when it came from nowhere. */
+    btn.dataset.mod = now === against() ? "" : "1";
+    const label = from ? (from.s === now ? "On “" + from.n + "”" : "Changed from “" + from.n + "”")
+                       : (now === DEFAULT ? "Share this setting" : "No preset · changed");
+    btn.title = label;
+    btn.setAttribute("aria-label", label + ". Share this setting, and saved settings.");
     let u;
     try { u = new URL(location.href); } catch(e){ return; }
     const had = u.searchParams.get("s");
@@ -475,6 +681,7 @@ function init(cfg){
       u.searchParams.delete("s");
       history.replaceState(null, "", u.pathname + u.search + u.hash);
     }
+    drawBar();
     if (!pop.hidden && drawnFor !== signature()) draw();
   }
 
@@ -484,7 +691,12 @@ function init(cfg){
   const later = () => {
     if (queued) return;
     queued = true;
-    requestAnimationFrame(() => { queued = false; sync(); });
+    const go = () => { if (!queued) return; queued = false; sync(); };
+    /* rAF coalesces to one call per frame during a drag, but a browser stops firing it
+       in a background tab — and the URL still has to stop describing a state the page is
+       not in. Whichever of the two arrives first does the work; the other finds it done. */
+    requestAnimationFrame(go);
+    setTimeout(go, 150);
   };
   ["pointerup", "keyup", "change", "click"].forEach(ev => document.addEventListener(ev, later, true));
 
@@ -493,7 +705,12 @@ function init(cfg){
   try { arrived = new URL(location.href).searchParams.get("s"); } catch(e){}
   if (arrived){
     const d = decode(cfg, arrived, state);
-    if (d.ok){ d.apply(); redraw(); }
+    if (d.ok){
+      d.apply(); redraw();
+      /* A link to a setting already in the bank arrives as that preset, named. */
+      const mine = savedAs(arrived);
+      if (mine) from = { n: mine.n, s: mine.s };
+    }
     else {
       try {
         const u = new URL(location.href);
@@ -1069,7 +1286,7 @@ PedalShare.init({
   id:"muffuletta", v:1, state:S, render:render,
   fields:[
     F.keyed("sel", ["civil","russian","pi","triangle","rams","jhs"],
-            i => CIRCUITS[i].id, k => CIRCUITS.findIndex(c => c.id === k)),
+            i => CIRCUITS[i].id, k => CIRCUITS.findIndex(c => c.id === k), "circuit"),
     F.bool("on"), F.unit("vals.vol"), F.unit("vals.tone"), F.unit("vals.sus")
   ]
 });

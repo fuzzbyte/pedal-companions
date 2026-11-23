@@ -865,10 +865,10 @@ footer.end{margin-top:var(--step);padding-top:22px;border-top:1px solid var(--li
 
 <!-- ============ the manual index ============ -->
 <section id="manual">
-  <div class="shead"><h2>Find it in the manual</h2><span class="rule"></span></div>
-  <p class="sdek">These links open the firmware 2.0 manual at the place each topic is covered. The manual
-  prints no page numbers anywhere and lays out one page per sheet, so the numbers below count sheets from the
-  cover; each sheet number is also the PDF page number.</p>
+  <div class="shead"><h2>Find it in the manuals</h2><span class="rule"></span></div>
+  <p class="sdek">These open Walrus Audio's own documents at the place each topic is covered. Not one of them
+  prints a page number, and all lay out one page per sheet, so the numbers count sheets from the cover — each
+  is also the PDF page number.</p>
   <div class="mindex" id="mindex"></div>
 </section>
 
@@ -1630,8 +1630,16 @@ $("#midiBody").innerHTML = MIDI.map(r =>
    Each entry below was checked against the text of the sheet it points at.
    ===================================================================== */
 const MANUAL = "https://cdn.shopify.com/s/files/1/0906/8480/files/M1_manual_2.0_firmware.pdf";
+/* The other three Walrus publish for the M1. The MKII manual documents different
+   hardware and the original one an earlier firmware, so each is its own group rather
+   than mixed into the 2.0 rows. The preset chart is a single image with no text on
+   it, so it gets one row for the whole document. */
+const MKII = "https://cdn.shopify.com/s/files/1/0906/8480/files/M1_MKII_Digital_Manual_f55e15b9-86bd-4deb-a30a-e8067e0969ab.pdf";
+const ORIGINAL = "https://cdn.shopify.com/s/files/1/0906/8480/files/M1_manual_web.pdf";
+const PRESETS = "https://cdn.shopify.com/s/files/1/0906/8480/files/M1_presets_web_de1275c2-324f-400d-834d-97cdc172e11c.pdf";
+
 const MANUAL_INDEX = [
-  ["Sections", [
+  ["Firmware 2.0 manual — sections", MANUAL, [
     ["Overview", 2],
     ["Jacks, MIDI and power", 3],
     ["Rate, Depth, Tweak and the Tweak switch", 4],
@@ -1645,17 +1653,43 @@ const MANUAL_INDEX = [
     ["MIDI CC and program change tables", 13],
     ["Firmware updates", 18]
   ]],
-  ["The programs", [
+  ["Firmware 2.0 manual — the programs", MANUAL, [
     ["Chorus", 14], ["Phaser", 14], ["Tremolo", 14],
     ["Tremolo, continued", 15], ["Vibrato", 15],
     ["Rotary", 16], ["Filter", 17]
-  ]]
+  ]],
+  ["MKII manual", MKII, [
+    ["Overview", 1],
+    ["Rate, Depth and the three encoders", 2],
+    ["Left encoder continued — Lag, BPM", 3],
+    ["Inputs, outputs and USB-C", 4],
+    ["MIDI — in, thru, clock", 5],
+    ["Programs — Chorus onward", 6],
+    ["Programs — Rotary, and momentary skip", 7],
+    ["Bypass modes — relay and buffered", 8],
+    ["Global sound preferences", 9],
+    ["Technical information", 10]
+  ]],
+  ["Original manual", ORIGINAL, [
+    ["Overview", 2],
+    ["Rate, Depth and the Tweak switch", 3],
+    ["Tune switch — Tone, Sym, X", 4],
+    ["The six lo-fi parameters", 5],
+    ["Presets — recalling and saving", 6],
+    ["MIDI — channel, program change", 7],
+    ["Programs — Chorus, Phaser, Tremolo, Vibrato", 8],
+    ["Programs — Rotary, Filter", 9],
+    ["Firmware updates", 10]
+  ]],
+  ["Preset chart", PRESETS, [["Walrus's chart of the nine onboard presets", null, "1 sheet"]]]
 ];
-$("#mindex").innerHTML = MANUAL_INDEX.map(([grp, rows]) =>
+/* A row with no sheet number is the whole document - the third field is what its
+   number slot says instead. */
+$("#mindex").innerHTML = MANUAL_INDEX.map(([grp, doc, rows]) =>
   '<div class="grp lbl">' + grp + '</div>' +
-  rows.map(([t,p]) =>
-    '<a href="' + MANUAL + '#page=' + p + '" target="_blank" rel="noopener">' +
-    '<span class="t">' + t + '</span><span class="n">sheet ' + p + '</span></a>').join("")
+  rows.map(([t,p,whole]) =>
+    '<a href="' + doc + (p ? '#page=' + p : '') + '" target="_blank" rel="noopener">' +
+    '<span class="t">' + t + '</span><span class="n">' + (p ? 'sheet ' + p : whole) + '</span></a>').join("")
 ).join("");
 $("#wlink").href = MANUAL + "#page=6";
 

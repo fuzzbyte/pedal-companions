@@ -513,6 +513,8 @@ table.doc td .sub{display:block;font-size:.78rem;color:var(--ink-3)}
 .mindex a .t{flex:1;font-family:"Archivo",sans-serif;font-size:.9rem;font-weight:600}
 .mindex a .n{font-family:"DM Mono",monospace;font-size:.8rem;color:var(--ink-3);white-space:nowrap}
 .mindex a:hover .n{color:var(--accent-text)}
+.mindex .grp{grid-column:1/-1;margin:12px 0 2px}
+.mindex .grp:first-child{margin-top:0}
 
 footer.end{margin-top:var(--step);padding-top:22px;border-top:1px solid var(--line);color:var(--ink-3);
   font-size:.88rem;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
@@ -790,9 +792,9 @@ details.gloss .gbody .src{display:inline-block;margin-left:6px;font-family:"Arch
 
 <!-- ============ the manual index ============ -->
 <section id="manual">
-  <div class="shead"><h2>Find it in the manual</h2><span class="rule"></span></div>
-  <p class="sdek">The ACS1 manual prints no page numbers, so these count sheets in the order the PDF holds
-  them.</p>
+  <div class="shead"><h2>Find it in the manuals</h2><span class="rule"></span></div>
+  <p class="sdek">Not one of these prints a page number, so the numbers count sheets in the order each PDF
+  holds them.</p>
   <div class="mindex" id="mindex"></div>
 </section>
 
@@ -816,6 +818,11 @@ const ang = v => -150 + v*300;
    sheet's number here is its position in the PDF and #page= takes it directly. */
 const MANUAL = "https://cdn.shopify.com/s/files/1/0906/8480/files/ACS1_2.03_Digital_Manual.pdf";
 const sheetHref = n => MANUAL + "#page=" + n;
+/* The other two Walrus publish for the ACS1. The MKII documents different hardware.
+   The original one is no longer on their site, so it gets a single row for the whole
+   document rather than sheet links that would all land in the same place. */
+const MKII = "https://cdn.shopify.com/s/files/1/0906/8480/files/ACS1_MKII_Digital_Manual.pdf";
+const ORIGINAL = "https://www.walrusaudio.com/pages/manuals";
 
 function clockOf(v){
   /* 7 o'clock fully down, noon centred, 5 o'clock fully up - a standard pot sweep,
@@ -1592,6 +1599,7 @@ function render(){
 
 /* ---------------- the manual index ---------------- */
 const INDEX = [
+  ["Firmware 2.03 manual", MANUAL, [
   ["The three amp models, and how they were built", 1],
   ["Power: isolated 9 V, centre negative, 300 mA", 1],
   ["The six cab IRs \u2014 which cabinet, which microphone", 2],
@@ -1618,10 +1626,32 @@ const INDEX = [
   ["Factory reset", 7],
   ["walrusaudio.io, and uploading your own speaker IRs", 7],
   ["Technical information: response, jacks, size, weight", 8]
+  ]],
+  ["MKII manual", MKII, [
+    ["Overview", 1],
+    ["The amp models", 2],
+    ["Volume, Gain, Room, the encoders and the jacks", 3],
+    ["EQ — Bass, Mid, Treble", 4],
+    ["Running a different amp and cab in each channel", 5],
+    ["Presets and preset banks", 6],
+    ["MIDI — channel, in and thru", 7],
+    ["MIDI CC numbers for every parameter", 8],
+    ["Global preferences and global sound preferences", 9],
+    ["Factory reset, firmware and loading your own IRs", 10],
+    ["Technical information", 11]
+  ]],
+  ["Original manual", ORIGINAL, [
+    ["The pre-2.0 firmware, front and back cab banks", null, "8 sheets"]
+  ]]
 ];
-$("#mindex").innerHTML = INDEX.map(([t,n]) =>
-  '<a href="' + sheetHref(n) + '" target="_blank" rel="noopener">' +
-  '<span class="t">' + t + '</span><span class="n">sheet ' + n + "</span></a>").join("");
+/* A row with no sheet number is the whole document - the third field is what its
+   number slot says instead. */
+$("#mindex").innerHTML = INDEX.map(([grp, doc, rows]) =>
+  '<div class="grp lbl">' + grp + '</div>' +
+  rows.map(([t,n,whole]) =>
+    '<a href="' + doc + (n ? '#page=' + n : '') + '" target="_blank" rel="noopener">' +
+    '<span class="t">' + t + '</span><span class="n">' + (n ? 'sheet ' + n : whole) + "</span></a>").join("")
+).join("");
 
 /* fill in the src links written into the static prose */
 document.querySelectorAll("a.src[data-pg]").forEach(a => {

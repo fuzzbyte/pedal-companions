@@ -1,0 +1,2040 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RC-10R, Switch by Switch</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23D3242A'/><path d='M23.5 12.2A8.4 8.4 0 1 0 24.4 18' fill='none' stroke='%23FFFFFF' stroke-width='3.4' stroke-linecap='round'/><path d='M26.6 6.4 25.4 14.6 17.6 12z' fill='%23FFFFFF'/></svg>">
+<script>
+/* Theme: apply the reader's stored pick before first paint, then wire the header toggle. */
+(function(){
+  var root = document.documentElement, KEY = "pedal-theme";
+  try {
+    var saved = localStorage.getItem(KEY);
+    if (saved === "light" || saved === "dark") root.dataset.theme = saved;
+  } catch(e){}
+  var isDark = function(){
+    return root.dataset.theme ? root.dataset.theme === "dark"
+                              : matchMedia("(prefers-color-scheme: dark)").matches;
+  };
+  addEventListener("DOMContentLoaded", function(){
+    var btn = document.querySelector(".themetoggle");
+    if (!btn) return;
+    var sync = function(){
+      var label = "Switch to the " + (isDark() ? "light" : "dark") + " theme";
+      btn.setAttribute("aria-label", label);
+      btn.title = label;
+    };
+    btn.addEventListener("click", function(){
+      root.dataset.theme = isDark() ? "light" : "dark";
+      try { localStorage.setItem(KEY, root.dataset.theme); } catch(e){}
+      sync();
+    });
+    sync();
+  });
+})();
+</script>
+
+<script>
+/* Share & presets. The settings live in ?s=, and a saved preset is that same payload
+   under a name — one codec, both destinations. Copied into each companion the way the
+   theme script is, since the pages are self-contained. The page supplies its own schema:
+   see the PedalShare.init() call at the foot of the page script. CLAUDE.md, "Every
+   setting has an address". */
+(function(){
+"use strict";
+
+const CSS = [
+".sharewrap{flex:none;position:relative;display:inline-flex}",
+/* This sits beside .themetoggle, which wears the inverted palette and so carries real
+   contrast. Drawn in --line and --ink-3 the button disappeared next to it, so it takes
+   the same weight instead: filled in the page's own ink, which lands on the same side of
+   the palette as --tt-surface in both themes. Those --tt-* values are not defined on
+   every companion, so this uses tokens every page has. */
+".sharebtn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;",
+"  border:1px solid transparent;border-radius:8px;background:var(--ink);color:var(--bg);cursor:pointer;",
+"  transition:opacity .15s}",
+".sharebtn:hover{opacity:.82}",
+".sharebtn svg{display:block;width:15px;height:15px}",
+/* Outside the corner, so the dot sits on --bg and keeps the accent's normal contrast
+   rather than fighting the filled button behind it. */
+".sharebtn[data-mod='1']::after{content:'';position:absolute;top:-3px;right:-3px;width:7px;height:7px;border-radius:50%;",
+"  background:var(--acc-text,var(--accent-text));box-shadow:0 0 0 2px var(--bg)}",
+".sharepop{position:absolute;top:38px;right:0;z-index:60;width:min(330px,calc(100vw - 32px));",
+"  background:var(--surface);border:1px solid var(--line);border-radius:var(--r,12px);box-shadow:var(--shadow);",
+"  padding:14px;font-family:'Archivo',system-ui,sans-serif;font-size:13px;line-height:1.45;color:var(--ink);",
+"  text-align:left;text-transform:none;letter-spacing:0;font-weight:400}",
+".sharepop[hidden]{display:none}",
+".sharepop h3{font-size:9.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);margin:0 0 8px}",
+".sharepop .sec+.sec{margin-top:13px;padding-top:12px;border-top:1px solid var(--line-soft,var(--line))}",
+".sp-b{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 11px;",
+"  border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--ink);",
+"  font:inherit;font-weight:600;cursor:pointer;transition:border-color .14s,color .14s}",
+".sp-b:hover{border-color:var(--ink-3)}",
+".sp-b.wide{width:100%}",
+".sp-b.go{background:var(--acc-text,var(--accent-text));border-color:transparent;color:var(--surface)}",
+".sp-b.go:hover{filter:brightness(1.1)}",
+".sp-row{display:flex;gap:7px;align-items:center}",
+".sp-row input{flex:1;min-width:0;padding:7px 9px;border:1px solid var(--line);border-radius:8px;",
+"  background:var(--bg);color:var(--ink);font:inherit}",
+".sp-row input:focus{outline:none;border-color:var(--ink-3)}",
+".sp-list{list-style:none;margin:0;padding:0;max-height:198px;overflow-y:auto}",
+".sp-list li{display:flex;align-items:center;gap:2px;padding:3px 0;border-bottom:1px solid var(--line-soft,var(--line))}",
+".sp-list li:last-child{border-bottom:0}",
+".sp-name{flex:1;min-width:0;text-align:left;padding:5px 7px;border:0;border-radius:6px;background:none;",
+"  color:var(--ink);font:inherit;font-weight:600;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+".sp-name:hover{background:var(--surface-2)}",
+".sp-name[disabled]{color:var(--ink-3);cursor:default}",
+".sp-name[disabled]:hover{background:none}",
+".sp-name small{display:block;font-weight:400;font-size:10.5px;color:var(--ink-3);white-space:normal}",
+".sp-ico{flex:none;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;padding:0;",
+"  border:0;border-radius:6px;background:none;color:var(--ink-3);cursor:pointer}",
+".sp-ico:hover{background:var(--surface-2);color:var(--ink)}",
+".sp-ico svg{width:13px;height:13px;display:block}",
+/* The label wraps inside its own box rather than truncating or pushing the buttons onto
+   a line of their own: the preset's name is the thing this line exists to say. */
+".sp-state{display:flex;align-items:center;gap:7px;margin:0 0 9px;font-size:12.5px;color:var(--ink-2)}",
+".sp-state .sp-lbl{flex:1 1 auto;min-width:0}",
+".sp-state b{font-weight:600;color:var(--ink)}",
+".sp-state .none{color:var(--ink-3)}",
+".sp-x{flex:none;padding:2px 8px;border:1px solid var(--line);border-radius:6px;",
+"  background:none;color:var(--ink-2);font:inherit;font-size:11.5px;font-weight:600;cursor:pointer}",
+".sp-x:hover{border-color:var(--ink-3);color:var(--ink)}",
+".sp-diff{list-style:none;margin:-1px 0 10px;padding:7px 10px;border:1px solid var(--line-soft,var(--line));",
+"  border-radius:8px;background:var(--bg);font-size:11.5px;max-height:148px;overflow-y:auto}",
+".sp-diff li{display:flex;align-items:baseline;gap:6px;padding:2px 0;color:var(--ink-3)}",
+".sp-diff li .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-2)}",
+".sp-diff li b{font-weight:600;color:var(--ink)}",
+".sp-empty{color:var(--ink-3);font-size:12px;margin:0}",
+".sp-note{margin:9px 0 0;font-size:11.5px;line-height:1.5;color:var(--ink-3)}",
+/* Once the reader has a preset, which one they are on stops being something to go
+   looking for. The bar rides under the brandline and exists only while there is a
+   preset to name, so a page nobody has saved anything on is untouched by it. */
+".presetbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-6px 0 20px;padding:9px 11px;",
+"  border:1px solid var(--line);border-radius:10px;background:var(--surface);",
+"  font-family:'Archivo',system-ui,sans-serif;font-size:12.5px;line-height:1.4;color:var(--ink-2)}",
+".presetbar[hidden]{display:none}",
+".presetbar b{font-weight:600;color:var(--ink)}",
+".presetbar .pb-dot{flex:none;width:7px;height:7px;border-radius:50%;background:var(--ink-3)}",
+".presetbar[data-dirty='1']{border-color:var(--ink-3)}",
+".presetbar[data-dirty='1'] .pb-dot{background:var(--acc-text,var(--accent-text))}",
+".presetbar .pb-txt{flex:0 1 auto;min-width:0}",
+".presetbar .pb-sp{flex:1 1 auto;min-width:0}",
+".presetbar .sp-diff{flex:0 0 100%;margin:1px 0 0}",
+"@media (max-width:560px){.sharepop{right:auto;left:0}.presetbar .pb-sp{display:none}}"
+].join("\n");
+
+/* ---------------- paths ---------------- */
+const get = (o, p) => { const a = p.split("."); for (let i = 0; i < a.length; i++){ if (o == null) return undefined; o = o[a[i]]; } return o; };
+const set = (o, p, v) => { const a = p.split("."); for (let i = 0; i < a.length - 1; i++){ if (o[a[i]] == null) o[a[i]] = {}; o = o[a[i]]; } o[a[a.length - 1]] = v; };
+
+/* ---------------- bits ---------------- */
+function Writer(){ this.b = []; }
+Writer.prototype.w = function(v, n){ for (let i = n - 1; i >= 0; i--) this.b.push((v >> i) & 1); };
+Writer.prototype.bytes = function(){
+  const out = []; let byte = 0, k = 0;
+  for (let i = 0; i < this.b.length; i++){ byte = (byte << 1) | this.b[i]; if (++k === 8){ out.push(byte); byte = 0; k = 0; } }
+  if (k) out.push(byte << (8 - k));
+  return out;
+};
+function Reader(bytes){
+  this.b = [];
+  for (let i = 0; i < bytes.length; i++) for (let j = 7; j >= 0; j--) this.b.push((bytes[i] >> j) & 1);
+  this.i = 0;
+}
+Reader.prototype.r = function(n){
+  if (this.i + n > this.b.length) throw new Error("short");
+  let v = 0;
+  for (let i = 0; i < n; i++) v = (v << 1) | this.b[this.i++];
+  return v;
+};
+
+const bitsFor = n => Math.max(1, Math.ceil(Math.log(n) / Math.LN2));
+const num = v => (typeof v === "number" && isFinite(v)) ? v : 0;
+const pc = v => Math.round(v * 100) + "%";
+
+/* A reader-facing name for a dotted path, so the change list can say "l modify" and
+   "head 1 pan" without every page having to label its own fields. `k` and `vals` are
+   containers on these pages rather than anything the reader sees, so they drop out. */
+function nice(path){
+  const out = [];
+  path.split(".").forEach(s => {
+    if (/^\d+$/.test(s)){
+      out[out.length - 1] = out[out.length - 1].replace(/s$/, "") + " " + (+s + 1);
+    } else if (!/^(k|vals)$/.test(s)) {
+      out.push(s);
+    }
+  });
+  return out.join(" ").replace(/([a-z])([A-Z])/g, "$1 $2");
+}
+
+/* ---------------- field types ----------------
+   Every field declares its own width, so the payload is positional and field names
+   never go on the wire. pick() pins its own value list rather than indexing into the
+   page's render data, which gets reordered for drawing. */
+const F = {
+  unit(path, bits){
+    bits = bits || 8; const max = (1 << bits) - 2;   /* even, so 0, noon and full are all exact */
+    return { bits,
+      write(w, s){ w.w(Math.round(Math.min(1, Math.max(0, num(get(s, path)))) * max), bits); },
+      read(r, s){ set(s, path, r.r(bits) / max); },
+      parts(s){ return [{ label: nice(path), value: pc(num(get(s, path))) }]; } };
+  },
+  bipolar(path, bits){
+    bits = bits || 8; const max = (1 << bits) - 2;   /* even, so 0, noon and full are all exact */
+    return { bits,
+      write(w, s){ w.w(Math.round((Math.min(1, Math.max(-1, num(get(s, path)))) + 1) / 2 * max), bits); },
+      read(r, s){ const v = r.r(bits) / max * 2 - 1; set(s, path, Math.abs(v) < 1.5 / max ? 0 : v); },
+      parts(s){
+        const v = num(get(s, path));
+        return [{ label: nice(path),
+                  value: v === 0 ? "centre" : (v < 0 ? "L " : "R ") + pc(Math.abs(v)) }];
+      } };
+  },
+  bool(path){
+    return { bits: 1,
+      write(w, s){ w.w(get(s, path) ? 1 : 0, 1); },
+      read(r, s){ set(s, path, !!r.r(1)); },
+      parts(s){ return [{ label: nice(path), value: get(s, path) ? "on" : "off" }]; } };
+  },
+  flag(path){                          /* the same switch, stored as 0/1 rather than a boolean */
+    return { bits: 1,
+      write(w, s){ w.w(get(s, path) ? 1 : 0, 1); },
+      read(r, s){ set(s, path, r.r(1)); },
+      parts(s){ return [{ label: nice(path), value: get(s, path) ? "on" : "off" }]; } };
+  },
+  pick(path, vals){
+    const n = bitsFor(vals.length);
+    return { bits: n,
+      write(w, s){ const i = vals.indexOf(get(s, path)); w.w(i < 0 ? 0 : i, n); },
+      read(r, s){ const i = r.r(n); if (i >= vals.length) throw new Error("range"); set(s, path, vals[i]); },
+      parts(s){ return [{ label: nice(path), value: String(get(s, path)) }]; } };
+  },
+  /* An index into page data, carried as a pinned name. `label` names the control in the
+     change list, since the field it lives on is usually called something internal. */
+  keyed(path, keys, toKey, fromKey, label){
+    const n = bitsFor(keys.length);
+    return { bits: n,
+      write(w, s){ const i = keys.indexOf(toKey(get(s, path))); w.w(i < 0 ? 0 : i, n); },
+      read(r, s){
+        const i = r.r(n);
+        if (i >= keys.length) throw new Error("range");
+        const v = fromKey(keys[i]);
+        if (v === undefined || v === -1) throw new Error("range");
+        set(s, path, v);
+      },
+      parts(s){ return [{ label: label || nice(path), value: String(toKey(get(s, path))) }]; } };
+  },
+  flags(path, keys){                   /* an object of 0/1 switches, in the order given */
+    return { bits: keys.length,
+      write(w, s){ const o = get(s, path) || {}; keys.forEach(k => w.w(o[k] ? 1 : 0, 1)); },
+      read(r, s){ let o = get(s, path); if (!o){ o = {}; set(s, path, o); } keys.forEach(k => { o[k] = r.r(1); }); },
+      parts(s){
+        const o = get(s, path) || {};
+        return keys.map(k => ({ label: nice(path).replace(/s$/, "") + " " + k, value: o[k] ? "on" : "off" }));
+      } };
+  },
+  each(path, n, make){                 /* an array of records, each built by make(itemPath) */
+    let subs = [];
+    for (let i = 0; i < n; i++) subs = subs.concat(make(path + "." + i));
+    return { bits: subs.reduce((a, f) => a + f.bits, 0),
+      write(w, s){ subs.forEach(f => f.write(w, s)); },
+      read(r, s){ subs.forEach(f => f.read(r, s)); },
+      parts(s){ return subs.reduce((a, f) => a.concat(f.parts(s)), []); } };
+  }
+};
+
+/* ---------------- payload ----------------
+   [version][id hash][fields…][checksum], base64url. The version refuses a payload
+   written against a different schema, the id hash refuses one meant for another pedal,
+   and the checksum refuses one a mail client has cut in half. */
+const hash8 = s => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 255; return h; };
+const check = b => { let c = 0x5A; for (let i = 0; i < b.length; i++) c = ((((c << 1) | (c >>> 7)) & 255) + b[i]) & 255; return c; };
+const b64 = b => { let s = ""; for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]); return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); };
+const unb64 = str => {
+  let s = String(str).replace(/-/g, "+").replace(/_/g, "/");
+  while (s.length % 4) s += "=";
+  const bin = atob(s), out = [];
+  for (let i = 0; i < bin.length; i++) out.push(bin.charCodeAt(i));
+  return out;
+};
+
+function encode(cfg, state){
+  const w = new Writer();
+  cfg.fields.forEach(f => f.write(w, state));
+  const body = [cfg.v & 255, hash8(cfg.id)].concat(w.bytes());
+  return b64(body.concat([check(body)]));
+}
+
+/* Reads into a throwaway copy first, so a payload that runs out of bits partway cannot
+   leave the page holding half of somebody else's setting. */
+function decode(cfg, str, state){
+  let bytes;
+  try { bytes = unb64(str); } catch(e){ return { err: "unreadable" }; }
+  if (bytes.length < 4) return { err: "unreadable" };
+  const body = bytes.slice(0, bytes.length - 1);
+  if (check(body) !== bytes[bytes.length - 1]) return { err: "damaged" };
+  if (body[0] !== (cfg.v & 255)) return { err: "version" };
+  if (body[1] !== hash8(cfg.id)) return { err: "other" };
+  const rest = body.slice(2);
+  let draft;
+  try {
+    draft = JSON.parse(JSON.stringify(state));
+    const r = new Reader(rest);
+    cfg.fields.forEach(f => f.read(r, draft));
+  } catch(e){ return { err: "damaged" }; }
+  /* `draft` is the payload's own state, which is what the change list reads to say what
+     this setting moved away from. */
+  return { ok: true, draft, apply(){ const r = new Reader(rest); cfg.fields.forEach(f => f.read(r, state)); } };
+}
+
+const WHY = {
+  unreadable: "That link isn’t readable.",
+  damaged:    "That link arrived cut short — copy the whole thing.",
+  version:    "Saved by an older version of this page.",
+  other:      "That link belongs to a different pedal."
+};
+
+/* ---------------- the bank ---------------- */
+const PREFIX = "pedal-presets:";
+function bank(id){
+  try {
+    const raw = localStorage.getItem(PREFIX + id);
+    if (!raw) return [];
+    const o = JSON.parse(raw);
+    return (o && Array.isArray(o.items)) ? o.items : [];
+  } catch(e){ return []; }
+}
+function keep(id, items){
+  try { localStorage.setItem(PREFIX + id, JSON.stringify({ v: 1, items })); return true; } catch(e){ return false; }
+}
+function everything(){
+  const banks = {};
+  try {
+    for (let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if (k && k.indexOf(PREFIX) === 0){
+        const items = bank(k.slice(PREFIX.length));
+        if (items.length) banks[k.slice(PREFIX.length)] = items;
+      }
+    }
+  } catch(e){}
+  return { kind: "pedal-presets", at: new Date().toISOString(), banks };
+}
+
+const LINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.6 13.4a3.7 3.7 0 0 0 5.5.4l2.9-2.9a3.7 3.7 0 0 0-5.2-5.2l-1.7 1.6"/><path d="M14.4 10.6a3.7 3.7 0 0 0-5.5-.4L6 13.1a3.7 3.7 0 0 0 5.2 5.2l1.7-1.6"/></svg>';
+const XMARK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+async function copy(text){
+  try { await navigator.clipboard.writeText(text); return true; } catch(e){}
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.setAttribute("readonly", "");
+    ta.style.cssText = "position:fixed;top:-999px;opacity:0";
+    document.body.appendChild(ta); ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch(e){ return false; }
+}
+
+/* ---------------- mount ---------------- */
+function init(cfg){
+  const state = cfg.state, redraw = cfg.render;
+  const DEFAULT = encode(cfg, state);        /* captured before any link is applied */
+
+  const style = document.createElement("style");
+  style.textContent = CSS;
+  document.head.appendChild(style);
+
+  const anchor = document.querySelector(".brandline .themetoggle");
+  if (!anchor) return;
+  const wrap = document.createElement("span");
+  wrap.className = "sharewrap";
+  wrap.innerHTML =
+    '<button class="sharebtn" type="button" aria-haspopup="dialog" aria-expanded="false" ' +
+      'aria-label="Share this setting, and saved settings" title="Share this setting">' + LINK + '</button>' +
+    '<div class="sharepop" role="dialog" aria-label="Share and saved settings" hidden></div>';
+  anchor.parentNode.insertBefore(wrap, anchor);
+
+  const btn = wrap.querySelector(".sharebtn"), pop = wrap.querySelector(".sharepop");
+
+  /* The bar sits under the brandline it belongs to, in the header rather than on the
+     page. It is empty and hidden until the reader is on a preset. */
+  const brandline = anchor.closest(".brandline");
+  const bar = document.createElement("div");
+  bar.className = "presetbar";
+  bar.hidden = true;
+  brandline.parentNode.insertBefore(bar, brandline.nextSibling);
+
+  const linkFor = payload => {
+    const u = new URL(location.href);
+    u.searchParams.set("s", payload);
+    return u.href;
+  };
+
+  let note = "";
+  const say = t => {
+    note = t; paint();
+    setTimeout(() => { if (note === t){ note = ""; paint(); } }, 3200);
+  };
+
+  /* The preset the current state came from, if any — loaded from the bank, just saved
+     under a name, or arrived on a link that matches one already saved. Held in memory,
+     so a reload starts from the page's own setting with no lineage. */
+  let from = null;                            /* {n, s} */
+  let expanded = false;                       /* is the change list open */
+
+  /* What the popover currently shows, so a sync that changes none of it leaves the
+     reader's half-typed name alone. */
+  let drawnFor = null;
+  const signature = () => encode(cfg, state) + "|" + bank(cfg.id).length + "|" + note +
+                          "|" + (from ? from.n + " " + from.s : "") + "|" + expanded;
+
+  /* A preset in the bank whose payload is exactly this state, if there is one. */
+  const savedAs = payload => bank(cfg.id).filter(i => i.s === payload)[0] || null;
+
+  /* What this state moved away from, control by control. The reference is the preset it
+     came from where there is one, and the setting the page opens on where there is not. */
+  const partsOf = s => cfg.fields.reduce((a, f) => a.concat(f.parts ? f.parts(s) : []), []);
+  const against = () => from ? from.s : DEFAULT;
+  function changes(){
+    const d = decode(cfg, against(), state);
+    if (!d.ok) return [];
+    const was = partsOf(d.draft), now = partsOf(state), out = [];
+    for (let i = 0; i < was.length && i < now.length; i++){
+      if (was[i].value !== now[i].value){
+        out.push({ label: was[i].label, was: was[i].value, now: now[i].value });
+      }
+    }
+    return out;
+  }
+  const diffList = diff => '<ul class="sp-diff">' + diff.map(d =>
+      '<li><span class="n">' + esc(d.label) + '</span>' + esc(d.was) + ' → <b>' + esc(d.now) + '</b></li>'
+    ).join("") + '</ul>';
+  const counter = n => '<button class="sp-x" data-act="why" aria-expanded="' + (expanded ? "true" : "false") + '">' +
+    n + (n === 1 ? " change " : " changes ") + (expanded ? "▴" : "▾") + '</button>';
+
+  function draw(){
+    const items = bank(cfg.id), now = encode(cfg, state);
+    const before = pop.querySelector("input");
+    const carried = before ? before.value : "";
+    const hadFocus = before && document.activeElement === before;
+    const rows = items.length
+      ? '<ul class="sp-list">' + items.map((it, i) => {
+          const bad = decode(cfg, it.s, state).err;
+          const sub = bad ? '<small>' + WHY[bad] + '</small>' : (it.s === now ? '<small>on the pedal now</small>' : '');
+          return '<li>' +
+            '<button class="sp-name" data-load="' + i + '"' + (bad ? ' disabled' : '') + '>' + esc(it.n) + sub + '</button>' +
+            (bad ? '' : '<button class="sp-ico" data-copy="' + i + '" title="Copy link" aria-label="Copy a link to ' + esc(it.n) + '">' + LINK + '</button>') +
+            '<button class="sp-ico" data-del="' + i + '" title="Delete" aria-label="Delete ' + esc(it.n) + '">' + XMARK + '</button>' +
+          '</li>';
+        }).join("") + '</ul>'
+      : '<p class="sp-empty">Nothing saved yet.</p>';
+
+    /* Dirty against its own reference: the preset it came from, or the page's opening
+       setting when it came from nowhere. Saving only means anything while dirty. */
+    const dirty = now !== against();
+    const diff  = dirty ? changes() : [];
+    const short = n => n.length > 20 ? n.slice(0, 19) + "…" : n;
+
+    const status = !from ? '<span class="none">No preset</span>'
+                 : dirty ? 'Changed from <b>' + esc(from.n) + '</b>'
+                         : 'On <b>' + esc(from.n) + '</b>';
+
+    const count = diff.length ? counter(diff.length) : '';
+
+    const undo = dirty
+      ? '<button class="sp-x" data-act="' + (from ? "revert" : "reset") + '">' + (from ? "Revert" : "Reset") + '</button>'
+      : '';
+
+    const list = (expanded && diff.length) ? diffList(diff) : '';
+
+    pop.innerHTML =
+      '<div class="sec">' +
+        '<h3>This setting</h3>' +
+        '<p class="sp-state"><span class="sp-lbl">' + status + '</span>' + count + undo + '</p>' +
+        list +
+        '<button class="sp-b go wide" data-act="copylink">Copy link to this setting</button>' +
+        (dirty
+          ? (from ? '<button class="sp-b wide" style="margin-top:7px" data-act="update">Update &ldquo;' +
+                      esc(short(from.n)) + '&rdquo;</button>' : '') +
+            '<div class="sp-row" style="margin-top:7px">' +
+              '<input type="text" placeholder="Name it to save" maxlength="60" aria-label="Name for this setting">' +
+              '<button class="sp-b" data-act="save">' + (from ? "Save as" : "Save") + '</button>' +
+            '</div>'
+          : '') +
+        /* Where a page holds something a link cannot carry, it says so here rather than
+           letting the reader find out by sending one. */
+        (cfg.caveat ? '<p class="sp-note">' + esc(cfg.caveat) + '</p>' : '') +
+      '</div>' +
+      '<div class="sec">' +
+        '<h3>Saved' + (items.length ? ' · ' + items.length : '') + '</h3>' + rows +
+        '<p class="sp-note">Kept in this browser only. Clearing site data removes them, and ' +
+          'another browser or another machine won’t have them — Export keeps a copy, and a ' +
+          'copied link works anywhere.</p>' +
+      '</div>' +
+      '<div class="sec">' +
+        '<div class="sp-row">' +
+          '<button class="sp-b" data-act="export" style="flex:1">Export all</button>' +
+          '<button class="sp-b" data-act="import" style="flex:1">Import</button>' +
+        '</div>' +
+        (note ? '<p class="sp-note">' + esc(note) + '</p>' : '') +
+      '</div>';
+
+    const after = pop.querySelector("input");
+    if (after && carried){
+      after.value = carried;
+      if (hadFocus){ after.focus(); after.setSelectionRange(carried.length, carried.length); }
+    }
+    drawnFor = signature();
+  }
+
+  /* The same answer, said in the header instead of inside the popover. It exists only
+     once the reader is on a preset — before that the icon's dot carries it. */
+  function drawBar(){
+    if (!from){ bar.hidden = true; bar.innerHTML = ""; return; }
+    const now = encode(cfg, state), dirty = now !== from.s;
+    const diff = dirty ? changes() : [];
+
+    bar.hidden = false;
+    bar.dataset.dirty = dirty ? "1" : "";
+    bar.innerHTML =
+      '<span class="pb-dot"></span>' +
+      '<span class="pb-txt">' + (dirty ? "Changed from <b>" : "On <b>") + esc(from.n) + '</b></span>' +
+      (diff.length ? counter(diff.length) : '') +
+      '<span class="pb-sp"></span>' +
+      (dirty
+        ? '<button class="sp-x" data-act="revert">Revert</button>' +
+          '<button class="sp-b" style="padding:5px 11px;font-size:12px" data-act="update">Save</button>' +
+          '<button class="sp-x" data-act="saveas">Save as…</button>'
+        : '') +
+      ((expanded && diff.length) ? diffList(diff) : '');
+  }
+
+  const paint = () => { draw(); drawBar(); };
+
+  function open(){ draw(); pop.hidden = false; btn.setAttribute("aria-expanded", "true"); }
+  function shut(){ pop.hidden = true; btn.setAttribute("aria-expanded", "false"); note = ""; expanded = false; }
+
+  /* Set by the popover's own handler before it redraws. Without it, a click on a button
+     inside the popover reaches the listener below after draw() has replaced the markup,
+     so the clicked element is detached, wrap.contains() is false, and the popover reads
+     its own button as a click outside itself and closes. */
+  let selfClick = false;
+
+  btn.addEventListener("click", () => { if (pop.hidden) open(); else shut(); });
+  document.addEventListener("click", e => {
+    if (selfClick){ selfClick = false; return; }
+    if (!pop.hidden && !wrap.contains(e.target)) shut();
+  });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !pop.hidden){ shut(); btn.focus(); } });
+  pop.addEventListener("keydown", e => {
+    if (e.key === "Enter" && e.target.tagName === "INPUT"){ e.preventDefault(); pop.querySelector('[data-act="save"]').click(); }
+  });
+
+  /* One handler for both the popover and the header bar — they offer the same actions. */
+  const onAction = async e => {
+    selfClick = true;
+    const t = e.target.closest("[data-act],[data-load],[data-copy],[data-del]");
+    if (!t) return;
+    const items = bank(cfg.id);
+
+    /* The bar has no name field, so naming happens where the field already is. */
+    if (t.dataset.act === "saveas"){
+      if (pop.hidden) open();
+      const i = pop.querySelector("input");
+      if (i) i.focus();
+      return;
+    }
+
+    if (t.dataset.act === "copylink"){
+      const ok = await copy(linkFor(encode(cfg, state)));
+      say(ok ? "Link copied." : "Copy failed — this browser blocked it.");
+      return;
+    }
+    if (t.dataset.act === "why"){ expanded = !expanded; paint(); return; }
+
+    if (t.dataset.act === "save"){
+      const input = pop.querySelector("input"), name = input.value.trim();
+      if (!name){ input.focus(); return; }
+      const at = items.findIndex(i => i.n.toLowerCase() === name.toLowerCase());
+      const entry = { n: name, t: Date.now(), s: encode(cfg, state) };
+      if (at >= 0) items[at] = entry; else items.push(entry);
+      const ok = keep(cfg.id, items);
+      if (ok){ input.value = ""; from = { n: name, s: entry.s }; expanded = false; }
+      say(ok ? (at >= 0 ? "Replaced “" + name + "”." : "Saved “" + name + "”.")
+             : "Couldn’t save — this browser is blocking storage.");
+      return;
+    }
+    /* Save over the preset this state came from, rather than making a second copy. */
+    if (t.dataset.act === "update"){
+      if (!from) return;
+      const at = items.findIndex(i => i.n === from.n);
+      if (at < 0){
+        say("“" + from.n + "” is not in the bank any more — name it to save.");
+        from = null; expanded = false; paint();
+        return;
+      }
+      const payload = encode(cfg, state);
+      items[at] = { n: from.n, t: Date.now(), s: payload };
+      if (keep(cfg.id, items)){ from = { n: from.n, s: payload }; expanded = false; say("Updated “" + from.n + "”."); }
+      else say("Couldn’t save — this browser is blocking storage.");
+      return;
+    }
+    /* Back to the preset, as against back to the setting the page opens on. */
+    if (t.dataset.act === "revert"){
+      if (!from) return;
+      const d = decode(cfg, from.s, state);
+      if (d.err){ say(WHY[d.err]); return; }
+      d.apply(); redraw(); expanded = false; sync(); paint();
+      return;
+    }
+    if (t.dataset.act === "reset"){
+      const d = decode(cfg, DEFAULT, state);
+      if (d.ok){ d.apply(); redraw(); from = null; expanded = false; sync(); paint(); }
+      return;
+    }
+    if (t.dataset.act === "export"){
+      const url = URL.createObjectURL(new Blob([JSON.stringify(everything(), null, 2)], { type: "application/json" }));
+      const a = document.createElement("a");
+      a.href = url; a.download = "pedal-presets.json";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      say("Exported every pedal’s saved settings.");
+      return;
+    }
+    if (t.dataset.act === "import"){
+      const f = document.createElement("input");
+      f.type = "file"; f.accept = "application/json,.json";
+      f.addEventListener("change", () => {
+        const file = f.files && f.files[0];
+        if (!file) return;
+        const rd = new FileReader();
+        rd.onload = () => {
+          let o;
+          try { o = JSON.parse(rd.result); } catch(err){ say("That file isn’t readable."); return; }
+          if (!o || o.kind !== "pedal-presets" || !o.banks){ say("That isn’t a preset export."); return; }
+          let added = 0, mine = 0;
+          Object.keys(o.banks).forEach(id => {
+            const incoming = o.banks[id];
+            if (!Array.isArray(incoming)) return;
+            const have = bank(id);
+            incoming.forEach(it => {
+              if (!it || typeof it.n !== "string" || typeof it.s !== "string") return;
+              const at = have.findIndex(x => x.n.toLowerCase() === it.n.toLowerCase());
+              const entry = { n: it.n.slice(0, 60), t: Number(it.t) || Date.now(), s: it.s };
+              if (at >= 0) have[at] = entry; else have.push(entry);
+              added++; if (id === cfg.id) mine++;
+            });
+            keep(id, have);
+          });
+          say(added
+            ? "Imported " + added + " setting" + (added === 1 ? "" : "s") + " · " + (mine ? mine + " for this pedal" : "none for this pedal")
+            : "Nothing in that file to import.");
+        };
+        rd.readAsText(file);
+      });
+      f.click();
+      return;
+    }
+    if (t.dataset.load !== undefined){
+      const it = items[+t.dataset.load];
+      const d = decode(cfg, it.s, state);
+      if (d.err){ say(WHY[d.err]); return; }
+      d.apply(); redraw();
+      from = { n: it.n, s: it.s }; expanded = false;
+      sync(); shut();
+      return;
+    }
+    if (t.dataset.copy !== undefined){
+      const ok = await copy(linkFor(items[+t.dataset.copy].s));
+      say(ok ? "Link copied." : "Copy failed — this browser blocked it.");
+      return;
+    }
+    if (t.dataset.del !== undefined){
+      const gone = items.splice(+t.dataset.del, 1)[0];
+      keep(cfg.id, items);
+      /* The state stays where it is, but it no longer descends from anything. */
+      if (from && gone && gone.n === from.n){ from = null; expanded = false; }
+      paint();
+      return;
+    }
+  };
+  pop.addEventListener("click", onAction);
+  bar.addEventListener("click", onAction);
+
+  /* The URL must never describe a state the page is not in, so the moment the reader
+     moves anything away from what arrived, ?s= goes. */
+  function sync(){
+    const now = encode(cfg, state);
+    /* The dot means there is something here you have not kept — measured against the
+       preset this came from, or the page's opening setting when it came from nowhere. */
+    btn.dataset.mod = now === against() ? "" : "1";
+    const label = from ? (from.s === now ? "On “" + from.n + "”" : "Changed from “" + from.n + "”")
+                       : (now === DEFAULT ? "Share this setting" : "No preset · changed");
+    btn.title = label;
+    btn.setAttribute("aria-label", label + ". Share this setting, and saved settings.");
+    let u;
+    try { u = new URL(location.href); } catch(e){ return; }
+    const had = u.searchParams.get("s");
+    if (had && had !== now){
+      u.searchParams.delete("s");
+      history.replaceState(null, "", u.pathname + u.search + u.hash);
+    }
+    drawBar();
+    if (!pop.hidden && drawnFor !== signature()) draw();
+  }
+
+  /* Any interaction can move the pedal, whichever handler owns it — so watch the page
+     rather than instrumenting every control. */
+  let queued = false;
+  const later = () => {
+    if (queued) return;
+    queued = true;
+    const go = () => { if (!queued) return; queued = false; sync(); };
+    /* rAF coalesces to one call per frame during a drag, but a browser stops firing it
+       in a background tab — and the URL still has to stop describing a state the page is
+       not in. Whichever of the two arrives first does the work; the other finds it done. */
+    requestAnimationFrame(go);
+    setTimeout(go, 150);
+  };
+  ["pointerup", "keyup", "change", "click"].forEach(ev => document.addEventListener(ev, later, true));
+
+  /* Arriving on a link. */
+  let arrived = null;
+  try { arrived = new URL(location.href).searchParams.get("s"); } catch(e){}
+  if (arrived){
+    const d = decode(cfg, arrived, state);
+    if (d.ok){
+      d.apply(); redraw();
+      /* A link to a setting already in the bank arrives as that preset, named. */
+      const mine = savedAs(arrived);
+      if (mine) from = { n: mine.n, s: mine.s };
+    }
+    else {
+      try {
+        const u = new URL(location.href);
+        u.searchParams.delete("s");
+        history.replaceState(null, "", u.pathname + u.search + u.hash);
+      } catch(e){}
+      setTimeout(() => { open(); say(WHY[d.err] + " Showing the page’s own setting instead."); }, 80);
+    }
+  }
+  sync();
+}
+
+window.PedalShare = { init, F, encode, decode };
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=DM+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap">
+
+<style>
+/* ---------- tokens: light is the bare :root, dark redefines ---------- */
+:root{
+  --bg:#F2EEEA;
+  --surface:#FBF8F5;
+  --surface-2:#EAE3DD;
+  --line:#DAD0C8;
+  --line-soft:#E6DDD6;
+  --ink:#1D1918;
+  --ink-2:#5A504C;
+  --ink-3:#8A7E78;
+  --tint:#0F0B0A;
+  --shadow:0 1px 0 rgba(29,25,24,.04), 0 12px 32px -20px rgba(29,25,24,.45);
+
+  /* the enclosure's own colours, sampled from Boss's product shot. They belong to the
+     object, so they do not move with the light/dark theme. */
+  --panel:#D4242A;
+  --panel-hi:#DE2C31;
+  --panel-low:#BC1A1F;
+  --panel-edge:#821E24;
+  --panel-ink:#FFFFFF;
+  --panel-ink-2:rgba(255,255,255,.86);
+  --screen:#242228;
+  --screen-ink:#F1F1F3;
+  --well:#18171D;
+  --seg-off:#2E2C33;
+  --chrome:#C9CCD0;
+  --chrome-dark:#7D8186;
+
+  /* the indicator colours Boss name, pg. 10 and pg. 14 */
+  --c-green:#01EB84;
+  --c-red:#FF2B33;
+  --c-orange:#FF9A1F;
+  --c-blue:#5ED6FF;
+
+  --acc:#B71E24;
+  --acc-text:color-mix(in oklab, var(--acc) 86%, var(--tint));
+  --r:14px;
+  --step:clamp(2.6rem, 5vw, 4.4rem);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141211; --surface:#1C1918; --surface-2:#25201E;
+    --line:#352D2A; --line-soft:#2A2422;
+    --ink:#F0E8E3; --ink-2:#AFA19A; --ink-3:#7E716B;
+    --tint:#FFF6F1;
+    --shadow:0 1px 0 rgba(255,255,255,.02), 0 16px 40px -24px rgba(0,0,0,.9);
+    --acc:#F2646A;
+    --acc-text:color-mix(in oklab, var(--acc) 88%, var(--tint));
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141211; --surface:#1C1918; --surface-2:#25201E;
+  --line:#352D2A; --line-soft:#2A2422;
+  --ink:#F0E8E3; --ink-2:#AFA19A; --ink-3:#7E716B;
+  --tint:#FFF6F1;
+  --shadow:0 1px 0 rgba(255,255,255,.02), 0 16px 40px -24px rgba(0,0,0,.9);
+  --acc:#F2646A;
+  --acc-text:color-mix(in oklab, var(--acc) 88%, var(--tint));
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Newsreader",Georgia,"Times New Roman",serif;
+  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
+#app{max-width:1440px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 84px}
+h1,h2,h3,h4,.lbl,.mono,button,th{font-family:"Archivo",system-ui,-apple-system,"Helvetica Neue",sans-serif}
+h1,h2,h3{text-wrap:balance;margin:0}
+.mono,code{font-family:"DM Mono","SFMono-Regular",Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+a{color:var(--acc-text)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:3px;border-radius:4px}
+.lbl{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- work in progress ---------- */
+:root{--wip-bg:#FBF1D9;--wip-line:#E7D4A4;--wip-edge:#A0700F;--wip-ink:#5A4520}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--wip-bg:#231C11;--wip-line:#3C3120;--wip-edge:#D9A441;--wip-ink:#CDBB9A}
+}
+:root[data-theme="dark"]{--wip-bg:#231C11;--wip-line:#3C3120;--wip-edge:#D9A441;--wip-ink:#CDBB9A}
+.wipbar{
+  display:flex;align-items:baseline;gap:6px 14px;flex-wrap:wrap;
+  margin:18px 0 0;padding:14px 18px;
+  background:var(--wip-bg);color:var(--wip-ink);
+  border:1px solid var(--wip-line);border-left:5px solid var(--wip-edge);
+  border-radius:10px;
+}
+.wipbar b{
+  font-family:"Archivo",system-ui,sans-serif;font-weight:700;font-size:12px;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--wip-edge);
+}
+.wipbar p{margin:0;flex:1 1 24ch;font-size:.95rem;line-height:1.55}
+.wipbar a{color:var(--wip-edge)}
+
+/* ---------- header ---------- */
+header.top{padding:clamp(26px,4vw,46px) 0 clamp(18px,2.4vw,28px)}
+.backlink{flex:none;display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);text-decoration:none;padding-right:12px;border-right:1px solid var(--line)}
+.backlink:hover{color:var(--ink)}
+.backlink .bk-arrow{font-size:13px;letter-spacing:0;transition:transform .14s ease}
+.backlink:hover .bk-arrow{transform:translateX(-3px)}
+@media (max-width:560px){.brandline{flex-wrap:wrap}.backlink{flex-basis:100%;border-right:0;padding-right:0;margin-bottom:2px}}
+:root{color-scheme:light;--tt-surface:#1C1918;--tt-line:#352D2A;--tt-ink:#F0E8E3;--tt-ink-3:#7E716B}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;--tt-surface:#FBF8F5;--tt-line:#DAD0C8;--tt-ink:#1D1918;--tt-ink-3:#8A7E78}}
+:root[data-theme="dark"]{color-scheme:dark;--tt-surface:#FBF8F5;--tt-line:#DAD0C8;--tt-ink:#1D1918;--tt-ink-3:#8A7E78}
+.themetoggle{flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;
+  border:1px solid var(--tt-line);border-radius:8px;background:var(--tt-surface);color:var(--tt-ink-3);cursor:pointer;
+  transition:color .15s,border-color .15s}
+.themetoggle:hover{color:var(--tt-ink);border-color:var(--tt-ink-3)}
+.themetoggle svg{display:block;width:15px;height:15px}
+.themetoggle .i-sun{display:none}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .themetoggle .i-moon{display:none}
+  :root:not([data-theme="light"]) .themetoggle .i-sun{display:block}
+}
+:root[data-theme="dark"] .themetoggle .i-moon{display:none}
+:root[data-theme="dark"] .themetoggle .i-sun{display:block}
+.brandline{display:flex;align-items:center;gap:12px;margin-bottom:22px;flex-wrap:wrap}
+.brandline .unoff{font-weight:700;color:var(--acc-text)}
+.brandline .rule{flex:1;min-width:24px;height:1px;background:var(--line)}
+h1{font-size:clamp(2.7rem,8vw,5.4rem);font-weight:700;letter-spacing:-.045em;line-height:.86;text-transform:uppercase}
+p.thin{margin:14px 0 0;font-family:"Archivo",sans-serif;font-weight:500;font-size:clamp(.78rem,1.5vw,1rem);
+  letter-spacing:.2em;color:var(--ink-3);text-transform:uppercase}
+.titlerow{display:flex;align-items:flex-end;justify-content:space-between;gap:clamp(18px,4vw,52px);flex-wrap:wrap}
+.titlerow h1{flex:0 1 auto}
+.getmanual{
+  display:flex;align-items:center;gap:16px;flex:0 1 34ch;margin-bottom:8px;
+  padding:15px 19px;border:1px solid var(--acc);border-radius:var(--r);
+  background:color-mix(in oklab, var(--acc) 9%, var(--surface));
+  text-decoration:none;color:var(--ink);box-shadow:var(--shadow);
+  transition:background .15s,transform .15s}
+.getmanual:hover{background:color-mix(in oklab, var(--acc) 18%, var(--surface));transform:translateY(-1px)}
+.getmanual .gm-txt{flex:1;min-width:0}
+.getmanual b{display:block;font-family:"Archivo",sans-serif;font-size:1.02rem;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+.getmanual small{display:block;margin-top:3px;font-size:.86rem;color:var(--ink-2)}
+.getmanual .gm-arrow{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+  background:var(--acc);color:var(--surface);font-size:1.05rem;font-weight:700}
+
+/* ---------- console: LOOP switch on the left, RHYTHM on the right, as on the pedal ---------- */
+.console{display:grid;grid-template-columns:minmax(0,1fr) clamp(270px,27vw,370px) minmax(0,1fr);
+  gap:clamp(16px,2.4vw,34px);align-items:start}
+.console > *{min-width:0}
+.pedal-col{display:flex;flex-direction:column;gap:14px}
+@media (max-width:980px){
+  .console{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .pedal-col{grid-column:1/-1;order:-1;max-width:380px;width:100%;margin-inline:auto}
+}
+@media (max-width:640px){
+  .console{grid-template-columns:minmax(0,1fr)}
+}
+
+/* ---------- the pedal, measured off Boss's product shot ---------- */
+.pedal{position:relative;width:100%;aspect-ratio:768/1021;border-radius:1.6cqw;container-type:inline-size;
+  background:linear-gradient(180deg,var(--panel-hi) 0%,var(--panel) 40%,var(--panel) 61%,var(--panel-low) 61.2%,var(--panel-low) 99%,var(--panel-edge) 100%);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.18), inset 0 2px 0 rgba(255,255,255,.18), 0 20px 40px -22px rgba(60,0,0,.65);
+  color:var(--panel-ink);user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.pedal > *{position:absolute}
+.pedal .jack{top:-2.4%;width:7.5%;height:2.6%;border-radius:1.2cqw 1.2cqw 0 0;
+  background:linear-gradient(90deg,#8E9298,#E2E4E7 45%,#9FA3A8);transform:translateX(-50%)}
+.silk{font-family:"Archivo",sans-serif;font-weight:700;letter-spacing:.02em;color:var(--panel-ink);
+  transform:translate(-50%,-50%);white-space:nowrap;line-height:1;pointer-events:none}
+
+.screen{left:6.5%;top:6.3%;width:57.6%;height:17.2%;border-radius:1cqw;background:#121115;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);padding:0;border:0;cursor:pointer}
+.screen .lcd{position:absolute;inset:16% 7%;background:var(--screen);border-radius:.4cqw;
+  font-family:"DM Mono",monospace;font-weight:500;color:var(--screen-ink);font-size:5.4cqw;line-height:1.18;
+  display:flex;flex-direction:column;justify-content:center;padding:0 4%;letter-spacing:.02em}
+.lcd .row{display:flex;justify-content:space-between;white-space:pre}
+.lcd .blink{animation:blink .7s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+.value{left:73.6%;top:13.6%;width:13.2cqw;height:13.2cqw;transform:translate(-50%,-50%);border-radius:50%;
+  border:0;padding:0;cursor:ns-resize;touch-action:none;
+  background:radial-gradient(circle at 42% 34%,#FFFFFF 0%,#D9DCDF 30%,#9DA1A6 66%,#5F6368 100%);
+  box-shadow:0 0 0 .9cqw #3B3C40, 0 0 0 1.3cqw #9CA0A5, 0 1.6cqw 2.4cqw -.6cqw rgba(0,0,0,.6)}
+.value .tick{position:absolute;left:50%;top:9%;width:1.1cqw;height:1.1cqw;border-radius:50%;background:#55585D;
+  transform:translateX(-50%)}
+.value.pushed{box-shadow:0 0 0 .9cqw #3B3C40, 0 0 0 1.3cqw #9CA0A5, 0 .6cqw 1cqw -.4cqw rgba(0,0,0,.6)}
+
+.mbtn{left:87.9%;width:7.8cqw;height:3.9cqw;transform:translate(-50%,-50%);border-radius:.8cqw;border:0;padding:0;cursor:pointer;
+  background:linear-gradient(180deg,#3A383E,#1D1C21);box-shadow:0 .5cqw .9cqw -.3cqw rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.12)}
+.mbtn.on{background:linear-gradient(180deg,#2A282D,#141317)}
+.mline{left:87.9%;top:12.2%;width:.35cqw;height:5.5%;background:var(--panel-ink);transform:translateX(-50%);opacity:.9}
+
+.ring{width:31.5cqw;height:31.5cqw;transform:translate(-50%,-50%);border:0;padding:0;background:none;cursor:pointer}
+.ring svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.ring .mid{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;
+  align-items:center;gap:.5cqw;font-family:"Archivo",sans-serif;font-weight:700;font-size:2.55cqw;letter-spacing:.06em;line-height:1}
+.ring .mid span{color:rgba(255,255,255,.13);transition:color .15s}
+.ring .mid span.on{color:#FFFFFF}
+
+.lknob{left:49.9%;width:9.4cqw;height:9.4cqw;transform:translate(-50%,-50%);border-radius:50%;border:0;padding:0;cursor:pointer;
+  background:radial-gradient(circle at 44% 36%,#FFFFFF 0%,#D6D9DC 30%,#959A9F 68%,#55595E 100%);
+  box-shadow:0 0 0 .7cqw #3B3C40, 0 0 0 1cqw #9CA0A5, 0 1.2cqw 2cqw -.5cqw rgba(0,0,0,.6)}
+.lknob::after{content:"";position:absolute;left:50%;top:10%;width:1cqw;height:1cqw;border-radius:50%;background:#FFFFFF;
+  box-shadow:0 0 0 .25cqw rgba(0,0,0,.25);transform:translateX(-50%)}
+.dot{width:.9cqw;height:.9cqw;border-radius:50%;background:var(--panel-ink-2);transform:translate(-50%,-50%)}
+
+.traces{left:0;top:0;width:100%;height:100%;pointer-events:none}
+
+.fsw{width:13cqw;height:13cqw;transform:translate(-50%,-50%);border-radius:50%;border:0;padding:0;cursor:pointer;touch-action:none;
+  background:radial-gradient(circle at 50% 50%,#5E6268 0 44%,#E1E3E6 47%,#A4A8AD 62%,#6E7277 76%,#C9CCD0 88%,#7B7F84 100%);
+  box-shadow:0 1.4cqw 2.4cqw -.6cqw rgba(0,0,0,.65)}
+.fsw::before{content:"";position:absolute;inset:22%;border-radius:50%;
+  background:radial-gradient(circle at 46% 38%,#7A7E84,#4A4D52 60%,#2E3034)}
+.fsw.down::before{inset:24%;filter:brightness(.9)}
+.fsw svg{position:absolute;inset:-14%;width:128%;height:128%;pointer-events:none;overflow:visible}
+.fsw svg circle{fill:none;stroke:#FFFFFF;stroke-width:5;stroke-linecap:round;
+  transform:rotate(-90deg);transform-origin:50% 50%;opacity:.95}
+
+[data-part]{transition:filter .15s}
+.pedal [data-part].focus{filter:drop-shadow(0 0 1.4cqw rgba(255,255,255,.75))}
+
+/* ---------- switch cards ---------- */
+.swcard{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
+.swhead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:16px 18px 12px}
+.swhead h2{font-size:1.18rem;font-weight:700;letter-spacing:-.01em}
+.swhead .now{margin-left:auto;font-family:"DM Mono",monospace;font-size:.82rem;color:var(--ink-2);
+  display:inline-flex;align-items:center;gap:7px}
+.swhead .now i{width:9px;height:9px;border-radius:50%;background:var(--seg-off);box-shadow:0 0 0 1px rgba(0,0,0,.2)}
+.g{display:grid;grid-template-columns:7.2em minmax(0,1fr);gap:4px 14px;padding:13px 18px 14px;border-top:1px solid var(--line-soft)}
+.g .do{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;align-self:start;
+  padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);cursor:pointer;
+  transition:border-color .15s,background .15s,color .15s;text-align:center}
+.g .do:hover:not(:disabled){border-color:var(--acc);color:var(--acc-text)}
+.g .do:disabled{cursor:default;color:var(--ink-3);background:transparent;border-style:dashed}
+.g .to{font-family:"Archivo",sans-serif;font-weight:600;font-size:.92rem;line-height:1.35;color:var(--ink)}
+.g .to .arrow{color:var(--acc-text)}
+.g .q{grid-column:2;margin:2px 0 0;font-size:.98rem;line-height:1.5;color:var(--ink-2)}
+.g .q .pg{margin-left:8px}
+.g.none .to{color:var(--ink-3);font-weight:500}
+.pg{font-family:"DM Mono",monospace;font-size:.74rem;white-space:nowrap;letter-spacing:0;text-decoration:none;
+  border-bottom:1px solid color-mix(in oklab,var(--acc) 40%,transparent)}
+.pg:hover{border-bottom-color:var(--acc)}
+.pg.pgd{white-space:normal}
+.ours{display:block;margin-top:6px;font-family:"Archivo",sans-serif;font-size:.82rem;line-height:1.45;color:var(--ink-2)}
+.ours::before{content:"This page";display:inline-block;margin-right:7px;padding:1px 6px;border-radius:4px;
+  font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);border:1px solid var(--line)}
+
+/* ---------- under the pedal ---------- */
+.key{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center;font-family:"Archivo",sans-serif;font-size:.8rem;color:var(--ink-3)}
+.key .chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 8px 3px 6px;border-radius:999px;border:1px solid var(--line-soft);
+  background:var(--surface);color:var(--ink-3);transition:border-color .15s,color .15s,background .15s;white-space:nowrap}
+.chip i{width:9px;height:9px;border-radius:50%;flex:none}
+.chip.on{border-color:var(--ink-3);color:var(--ink);background:var(--surface-2)}
+.key .src{grid-column:2;font-size:.74rem;display:flex;gap:10px}
+
+.panel{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:14px 16px;box-shadow:var(--shadow)}
+.panel h3{font-size:.98rem;font-weight:700;margin-bottom:4px;display:flex;gap:10px;align-items:baseline}
+.panel h3 .pg{margin-left:auto}
+.panel p{margin:0;color:var(--ink-2);font-size:.96rem;line-height:1.5}
+.panel p + p{margin-top:8px}
+.panel[hidden]{display:none}
+
+/* ---------- what is on the pedal right now, and what just happened ---------- */
+.state{margin-top:clamp(18px,2.4vw,28px);display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:clamp(14px,2vw,24px)}
+@media (max-width:820px){.state{grid-template-columns:minmax(0,1fr)}}
+.box{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:16px 18px;box-shadow:var(--shadow)}
+.box > .lbl{display:block;margin-bottom:8px}
+.facts{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 16px;font-size:.96rem}
+.facts dt{font-family:"Archivo",sans-serif;font-weight:600;font-size:.84rem;color:var(--ink-3);padding-top:2px}
+.facts dd{margin:0;color:var(--ink)}
+.facts dd .mono{font-size:.9rem}
+.facts dd small{display:block;color:var(--ink-2);font-size:.92rem;line-height:1.45;margin-top:3px}
+.just .q{margin:0;font-size:1.06rem;line-height:1.5;color:var(--ink)}
+.just .q .pg{margin-left:8px}
+.just .empty{margin:0;color:var(--ink-3);font-family:"Archivo",sans-serif;font-size:.9rem}
+.resetsim{margin-top:12px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:7px 11px;border-radius:7px;
+  border:1px solid var(--line);background:var(--surface-2);color:var(--ink-2);cursor:pointer}
+.resetsim:hover{border-color:var(--acc);color:var(--acc-text)}
+
+/* ---------- dial-in guides ---------- */
+.guides{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 clamp(14px,2vw,20px)}
+.guides .lbl{margin-right:4px}
+.guides button{font-family:"Archivo",sans-serif;font-size:.9rem;font-weight:600;padding:7px 14px;border-radius:999px;
+  border:1px solid var(--line);background:var(--surface);color:var(--ink-2);cursor:pointer}
+.guides button:hover{border-color:var(--acc);color:var(--acc-text)}
+.guides button[aria-pressed="true"]{border-color:var(--acc);background:color-mix(in oklab,var(--acc) 12%,var(--surface));color:var(--ink)}
+.guide{margin-top:clamp(18px,2.4vw,28px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:clamp(14px,2vw,24px)}
+.guide[hidden]{display:none}
+@media (max-width:820px){.guide{grid-template-columns:minmax(0,1fr)}}
+.guide h3{margin:0 0 4px;font-size:1.2rem;font-weight:700;letter-spacing:-.01em}
+.guide .what{margin:0 0 14px;color:var(--ink-2);line-height:1.5}
+.gset{margin:0;padding:0;list-style:none;display:grid;gap:9px}
+.gset li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;font-size:.92rem}
+.gset .nm{font-family:"Archivo",sans-serif;font-weight:600;color:var(--ink)}
+.gset .vl{font-family:"DM Mono",monospace;font-size:.84rem;color:var(--ink);text-align:right}
+.gset .vl.off{color:var(--acc-text)}
+.gset .why{grid-column:1/-1;color:var(--ink-2);font-size:.86rem;line-height:1.4}
+.gapply{margin-top:14px}
+.gsteps{margin:0;padding:0;list-style:none;counter-reset:st;display:grid;gap:6px}
+.gsteps li{counter-increment:st;display:grid;grid-template-columns:1.9em minmax(0,1fr);gap:10px;padding:9px 11px;border-radius:9px;
+  border:1px solid transparent;color:var(--ink-2);line-height:1.45;transition:background .15s,border-color .15s,color .15s}
+.gsteps li::before{content:counter(st);font-family:"DM Mono",monospace;font-size:.8rem;width:1.9em;height:1.9em;border-radius:50%;
+  display:grid;place-items:center;border:1px solid var(--line);color:var(--ink-3)}
+.gsteps li.now{border-color:var(--acc);background:color-mix(in oklab,var(--acc) 8%,var(--surface));color:var(--ink)}
+.gsteps li.now::before{background:var(--acc);border-color:var(--acc);color:var(--surface)}
+.gsteps li small{display:block;margin-top:3px;font-size:.86rem;color:var(--ink-2)}
+.gsteps .pg{margin-left:6px}
+
+/* ---------- MENU > RHYTHM & LOOP ---------- */
+.menubox{grid-column:1/-1}
+.menuset{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px 26px}
+.menuset .row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;align-content:start}
+.menuset label{font-family:"Archivo",sans-serif;font-weight:600;font-size:.86rem;color:var(--ink)}
+.menuset select{font-family:"DM Mono",monospace;font-size:.82rem;padding:5px 8px;border-radius:7px;border:1px solid var(--line);
+  background:var(--surface-2);color:var(--ink);max-width:100%}
+.menuset .row p{grid-column:1/-1;margin:0;font-size:.88rem;line-height:1.45;color:var(--ink-2)}
+.menuset .row p .pg{margin-left:6px}
+.menubox > .ours{margin-top:12px}
+
+/* ---------- the manual index ---------- */
+section{margin-top:var(--step)}
+.shead{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.shead h2{font-size:clamp(1.3rem,2.4vw,1.7rem);font-weight:700;letter-spacing:-.02em}
+.shead .rule{flex:1;height:1px;background:var(--line)}
+.mindex{display:grid;grid-template-columns:repeat(auto-fit,minmax(266px,1fr));gap:10px 22px}
+.mindex a{display:flex;align-items:baseline;gap:10px;text-decoration:none;color:var(--ink-2);
+  padding:7px 11px;border:1px solid var(--line-soft);border-radius:9px;background:var(--surface);
+  transition:border-color .15s,color .15s,background .15s}
+.mindex a:hover{border-color:var(--acc);color:var(--ink);background:var(--surface-2)}
+.mindex a .t{flex:1;font-family:"Archivo",sans-serif;font-size:.9rem;font-weight:600}
+.mindex a .n{font-family:"DM Mono",monospace;font-size:.8rem;color:var(--ink-3);white-space:nowrap}
+.mindex a:hover .n{color:var(--acc-text)}
+.mindex .grp{grid-column:1/-1;margin:12px 0 2px}
+.mindex .grp:first-child{margin-top:0}
+
+footer.end{margin-top:var(--step);padding-top:22px;border-top:1px solid var(--line);color:var(--ink-3);
+  font-size:.88rem;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+}
+</style>
+
+<div id="app">
+<div class="wipbar" role="note">
+  <b>Work in progress</b>
+  <p>This page is unfinished and has not been checked against <a href="https://static.roland.com/assets/media/pdf/RC-10R_eng02_W.pdf" target="_blank" rel="noopener">Boss's manual</a>. Some of what it says may be wrong; where the two differ, the manual is right.</p>
+</div>
+
+<header class="top">
+  <div class="brandline">
+    <a class="backlink" href="index.html"><span class="bk-arrow" aria-hidden="true">&#8592;</span>All manuals</a>
+    <span class="lbl">Boss</span>
+    <span class="rule"></span>
+    <span class="lbl unoff">Unofficial companion to the manual · not affiliated with Boss or Roland</span>
+    <button class="themetoggle" type="button" aria-label="Switch theme"><svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg><svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2M12 19.4v2M4.6 4.6 6 6M18 18l1.4 1.4M2.6 12h2M19.4 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg></button>
+  </div>
+  <div class="titlerow">
+    <h1>RC-10R</h1>
+    <a class="getmanual" href="https://static.roland.com/assets/media/pdf/RC-10R_eng02_W.pdf" target="_blank" rel="noopener">
+      <span class="gm-txt">
+        <b>Read the official manual</b>
+        <small>RC-10R Owner’s Manual · 26 pages · PDF, 2.1&nbsp;MB</small>
+      </span>
+      <span class="gm-arrow" aria-hidden="true">&#8595;</span>
+    </a>
+  </div>
+  <p class="thin">Rhythm Loop Station · two footswitches, three gestures each</p>
+</header>
+
+<div class="guides" id="guides" role="group" aria-label="Dial-in guides"></div>
+
+<div class="console">
+  <div class="swcard" id="card-loop"></div>
+
+  <div class="pedal-col">
+    <div class="pedal" id="pedal">
+      <i class="jack" style="left:11%"></i><i class="jack" style="left:36%"></i><i class="jack" style="left:56%"></i>
+      <i class="jack" style="left:72%"></i><i class="jack" style="left:89%"></i>
+
+      <svg class="traces" viewBox="0 0 768 1021" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M222 514 L292 452 L338 452" fill="none" stroke="#FFFFFF" stroke-width="4.5" stroke-linejoin="round"/>
+        <path d="M428 346 L458 358 L506 300" fill="none" stroke="#FFFFFF" stroke-width="4.5" stroke-linejoin="round"/>
+      </svg>
+
+      <button class="screen" type="button" data-part="display" aria-label="Display"><span class="lcd" id="lcd"></span></button>
+
+      <span class="silk" style="left:73.6%;top:6.4%;font-size:3.5cqw">VALUE</span>
+      <button class="value" id="value" type="button" data-part="value" aria-label="VALUE knob: arrow keys turn it, Enter pushes it"><i class="tick"></i></button>
+      <span class="silk" style="left:73.6%;top:23.8%;font-size:2.4cqw">(ENTER: PUSH)</span>
+
+      <span class="silk" style="left:87.9%;top:6.4%;font-size:3.3cqw">MENU</span>
+      <button class="mbtn" id="menu" type="button" data-part="menu" style="top:9.8%" aria-label="MENU button"></button>
+      <span class="silk" style="left:87.9%;top:15.1%;font-size:3.3cqw">WRITE</span>
+      <button class="mbtn" id="exit" type="button" data-part="exit" style="top:20.3%" aria-label="EXIT button"></button>
+      <span class="silk" style="left:87.9%;top:24%;font-size:3.3cqw">EXIT</span>
+
+      <button class="ring" id="ring-loop" type="button" data-part="loopind" style="left:23.4%;top:38.6%" aria-label="LOOP indicator">
+        <svg viewBox="0 0 100 100" aria-hidden="true"></svg>
+        <span class="mid"><span data-trk="1">TRK 1</span><span data-trk="2">TRK 2</span></span>
+      </button>
+      <button class="ring" id="ring-rhy" type="button" data-part="rhyind" style="left:76.8%;top:38.6%" aria-label="RHYTHM indicator">
+        <svg viewBox="0 0 100 100" aria-hidden="true"></svg>
+        <span class="mid"><span data-div="intro">INTRO</span><span data-div="1">PTN 1</span><span data-div="2">PTN 2</span><span data-div="ending">ENDING</span></span>
+      </button>
+
+      <button class="lknob" type="button" data-part="rhylvl" style="top:31.2%" aria-label="LEVEL knob, rhythm"></button>
+      <i class="dot" style="left:46.4%;top:36.3%"></i><i class="dot" style="left:53.4%;top:36.3%"></i>
+      <span class="silk" style="left:49.9%;top:39.6%;font-size:3.3cqw">LEVEL</span>
+      <button class="lknob" type="button" data-part="looplvl" style="top:45.4%" aria-label="LEVEL knob, loop"></button>
+      <i class="dot" style="left:46.4%;top:50.6%"></i><i class="dot" style="left:53.4%;top:50.6%"></i>
+
+      <span class="silk" style="left:23.4%;top:52.4%;font-size:3.6cqw">LOOP</span>
+      <span class="silk" style="left:76.8%;top:52.4%;font-size:3.6cqw">RHYTHM</span>
+
+      <span class="silk" style="left:17.6%;top:57.3%;font-size:5.6cqw;font-weight:800;letter-spacing:-.01em">&#9645;&#8202;BOSS</span>
+      <span class="silk" style="left:48.6%;top:57.3%;font-size:2.7cqw;font-weight:800;line-height:.95;text-align:right">
+        <span style="display:block;padding-left:10.5cqw">RHYTHM</span><span style="display:block">LOOP STATION</span></span>
+      <span class="silk" style="left:79.4%;top:57.3%;font-size:6.6cqw;font-weight:800;letter-spacing:-.01em">RC-10R</span>
+
+      <span class="silk" style="left:17.6%;top:73.2%;font-size:3.9cqw">LOOP</span>
+      <span class="silk" style="left:82.7%;top:73.2%;font-size:3.9cqw">RHYTHM</span>
+
+      <span class="silk" style="left:33.8%;top:85.6%;font-size:1.95cqw;line-height:1.25;text-align:left;transform:translate(-50%,-50%)">UNDO/REDO:<br>HOLD<br><br>STOP:<br>PRESS TWICE</span>
+      <span class="silk" style="left:66.2%;top:85.6%;font-size:1.95cqw;line-height:1.25;text-align:right">PTN 1/PTN 2:<br>HOLD<br><br>STOP:<br>PRESS TWICE</span>
+
+      <button class="fsw" id="fsw-loop" type="button" data-sw="loop" style="left:17.3%;top:86.6%" aria-label="LOOP footswitch: press, press twice, or hold for two seconds">
+        <svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47" pathLength="100" stroke-dasharray="0 100"/></svg>
+      </button>
+      <button class="fsw" id="fsw-rhy" type="button" data-sw="rhythm" style="left:82.4%;top:86.6%" aria-label="RHYTHM footswitch: press, press twice, or hold for two seconds">
+        <svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47" pathLength="100" stroke-dasharray="0 100"/></svg>
+      </button>
+    </div>
+
+    <div class="key" id="key"></div>
+    <div class="panel" id="part" hidden></div>
+  </div>
+
+  <div class="swcard" id="card-rhythm"></div>
+</div>
+
+<div class="guide" id="guide" hidden></div>
+
+<div class="state">
+  <div class="box"><span class="lbl">On the pedal now</span><dl class="facts" id="facts"></dl></div>
+  <div class="box just"><span class="lbl">What just happened</span><div id="just"></div>
+    <button class="resetsim" id="resetsim" type="button">Stop everything and empty the phrase</button></div>
+  <div class="box menubox"><span class="lbl">MENU › RHYTHM &amp; LOOP</span><div class="menuset" id="menuset"></div></div>
+</div>
+<p class="sr" id="status" aria-live="polite"></p>
+
+<section id="manual">
+  <div class="shead"><h2>Find it in the manual</h2><span class="rule"></span></div>
+  <div class="mindex" id="mindex"></div>
+</section>
+
+<footer class="end">
+  <span><a href="https://www.boss.info/global/products/rc-10r/" target="_blank" rel="noopener">boss.info/products/rc-10r</a></span>
+  <span>RC-10R Owner’s Manual and Parameter Guide · © 2019 Roland Corporation</span>
+</footer>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const clamp = (v,a,b) => Math.min(b, Math.max(a, v));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* Printed page numbers match PDF pages one for one in this manual. */
+const MAN = "https://static.roland.com/assets/media/pdf/RC-10R_eng02_W.pdf";
+/* The menu settings are in the separate Parameter Guide (d:1); its pages also match one for one. */
+const PGUIDE = "https://static.roland.com/assets/media/pdf/RC-10R_parameter_eng01_W.pdf";
+const pg = (p, d) => '<a class="pg' + (d ? ' pgd' : '') + '" href="' + (d ? PGUIDE : MAN) + '#page=' + p + '" target="_blank" rel="noopener">' +
+  (d ? "Parameter Guide p.&nbsp;" : "pg. ") + p + '</a>';
+const quote = o => '“' + esc(o.q) + '”' + pg(o.p, o.d);
+const ours = t => t ? '<span class="ours">' + t + '</span>' : "";
+
+/* ---------------- Boss's sentences, keyed by what they describe ---------------- */
+const Q = {
+  rec:      {q:"Select a phrase memory that does not contain recorded data, and press the [LOOP] switch to start recording.", p:14},
+  playData: {q:"During overdubbing, or if a phrase memory containing recorded data is selected, you can press the [LOOP] switch to start loop playback.", p:14},
+  recToDub: {q:"By pressing the [LOOP] switch during recording or loop playback, you can record another layer (overdub) onto the currently-playing phrase.", p:14},
+  syncLen:  {q:"The length of the TRK 1 is determined, and the looper switches to the overdubbing state.", p:16},
+  syncLen2: {q:"In the same way as when recording the TRK 1, you can also switch the TRK 2 between overdubbing and playback.", p:17},
+  dubToPlay:{q:"If you press the [LOOP] switch during overdubbing, you’ll switch to loop playback.", p:14},
+  playToDub:{q:"If you press the [LOOP] switch during loop playback, you’ll switch to overdubbing.", p:14},
+  stop:     {q:"To stop, press the [LOOP] switch twice in succession.", p:14},
+  undo:     {q:"You can cancel the recording or the most recent overdub by holding down the [LOOP] switch for two seconds or longer during playback or overdubbing.", p:15},
+  redo:     {q:"If you want to bring back the cancelled sound, once again hold down the [LOOP] switch for two seconds or longer during playback. Redo is possible only for overdubbing.", p:15},
+  clear:    {q:"While phrase playback is stopped, you can hold down the [LOOP] switch for two seconds or longer to clear the phrase (this Clear operation is temporary; the phrase saved in phrase memory is not lost).", p:15},
+
+  rStart:   {q:"Press the switch to play the rhythm.", p:3},
+  introPlay:{q:"A short intro suitable for the pattern will play.", p:9},
+  syncStart:{q:"After the intro plays, the rhythm’s PTN 1 plays. At the same time, the looper’s TRK 1 starts being recorded.", p:16},
+  sync:     {q:"Hold down the switch for two seconds or longer to turn SYNC on/off.", p:3},
+  syncCol:  {q:"When SYNC is on, the RHYTHM indicator changes color.", p:10},
+  fill:     {q:"A fill-in appropriate to the rhythm pattern is inserted.", p:12},
+  ptn:      {q:"A fill-in is inserted, and then the division that plays is switched.", p:12},
+  trk2:     {q:"The rhythm switches to playing the PTN 2, and at the same time the looper switches to recording the TRK 2.", p:17},
+  trkFollow:{q:"When you switch between PTN 1 and PTN 2 in the Rhythm section, these tracks also switch automatically for the looper section.", p:9},
+  rStop:    {q:"A fill-in is inserted, the ending plays, and then the rhythm stops.", p:12},
+  syncStop: {q:"Playback continues to the end of the measure, the ending plays, and then playback stops.", p:17},
+  notRec:   {q:"The rhythm is not recorded on the looper.", p:16},
+  quant:    {q:"Even if the timing is slightly inaccurate, the phrase length will automatically be adjusted to the precise measure interval.", p:16},
+
+  lost:     {q:"If you record or overdub, or make rhythm settings, and then select another phrase memory or turn off the power, your phrase settings will be lost.", p:17},
+  shift:    {q:"During phrase playback, if you move the cursor to the phrase number and turn the [VALUE] knob, the phrase memory number blinks, allowing you to select the next phrase (memory shift).", p:14},
+  tempo:    {q:"Turn the [VALUE] knob to adjust the tempo.", p:13},
+  toTempo:  {q:"Press the [VALUE] knob to move the cursor to the tempo.", p:13},
+  toPhrase: {q:"Press the [VALUE] knob to move the cursor to the phrase number.", p:13},
+  pickPhr:  {q:"Turn the [VALUE] knob to select a phrase memory (1–99).", p:13},
+  menu:     {q:"While stopped, hold down the [MENU] button and press the [EXIT] button. The MENU screen appears.", p:17},
+  wDest:    {q:"Turn the [VALUE] knob to select the write-destination phrase memory.", p:18},
+  saved:    {q:"Press the [VALUE] knob. The phrase is saved.", p:18},
+  cDest:    {q:"Turn the [VALUE] knob to select the phrase memory that you want to delete, and then press the [VALUE] knob to confirm.", p:19},
+  cYes:     {q:"Turn the [VALUE] knob to select “YES,” and then press the [VALUE] knob.", p:19},
+  deleted:  {q:"The phrase is deleted.", p:19},
+  cancel:   {q:"If you decide to cancel, press the [EXIT] button.", p:18},
+
+  /* the Parameter Guide */
+  oneShot:  {q:"Play only once from the beginning of the phrase to the end, and automatically stop.", p:5, d:1},
+  oneNoDub: {q:"Overdubbing is not possible if “ONE SHOT” is specified.", p:5, d:1},
+  rpd:      {q:"Switch in the order of recording→playback→overdubbing.", p:4, d:1},
+  intro:    {q:"Specifies whether the rhythm plays with an intro (ON) or without an intro (OFF).", p:3, d:1},
+  single:   {q:"Use only TRK1.", p:4, d:1},
+  loopEndOff:{q:"If SYNC SWITCH (p. 3) is “OFF,” the operation will be the same as MEAS END and MEAS END+ENDING respectively.", p:5, d:1},
+  clrPlays: {q:"Since you press the [LOOP] switch in order to clear the phrase, the phrase will play.", p:16, d:1},
+  clrQuiet: {q:"By holding down the [RHYTHM] switch and then holding down the [LOOP] switch for two seconds or longer, you can clear the phrase without playing it.", p:16, d:1},
+  tap:      {q:"Operates as tap tempo.", p:6, d:1},
+};
+
+/* STOP MODE, in the guide's order, each with its own sentence (Parameter Guide p. 4). */
+const STOPS = {
+  "IMMEDIATE":       "Stops immediately.",
+  "MEASURE END":     "Plays to the end of the measure and stops.",
+  "LOOP END":        "Plays to the end of the loop and stops.",
+  "MEAS END+ENDING": "Plays to the end of the measure, adds an ending, and stops.",
+  "LOOP END+ENDING": "Plays to the end of the loop, adds an ending, and stops.",
+  "FADE OUT":        "Fades out.",
+};
+const STOP_VALS = Object.keys(STOPS);
+const REC_VALS = ["REC→DUB→PLAY", "REC→PLAY→DUB"], TMODE_VALS = ["SINGLE", "SERIES"], PLAY_VALS = ["LOOP", "ONE SHOT"];
+
+/* MENU > RHYTHM & LOOP: the settings this page runs. Value sentences are the guide's. */
+const SET = [
+  { k:"sync", name:"SYNC SWITCH", p:3, vals:[[false, "OFF"], [true, "ON"]],
+    q:"Specifies whether the looper and the rhythm operate in synchronization (ON) or independently (OFF)." },
+  { k:"intro", name:"RHYTHM INTRO", p:3, vals:[[true, "ON"], [false, "OFF"]],
+    q:"Specifies whether the rhythm plays with an intro (ON) or without an intro (OFF)." },
+  { k:"stop", name:"STOP MODE", p:4, vals:STOP_VALS.map(v => [v, v, STOPS[v]]) },
+  { k:"recmode", name:"LOOP REC MODE", p:4, vals:[
+    ["REC→DUB→PLAY", "REC→DUB→PLAY", "Switch in the order of recording→overdubbing→playback."],
+    ["REC→PLAY→DUB", "REC→PLAY→DUB", "Switch in the order of recording→playback→overdubbing."]] },
+  { k:"tmode", name:"LOOP TRACK MODE", p:4, vals:[["SINGLE", "SINGLE", "Use only TRK1."], ["SERIES", "SERIES", "Switch between TRK1 and TRK2."]],
+    note:"PARALLEL, which lets both tracks play at once, is not on this page." },
+  { k:"play", name:"LOOP TRK1/TRK2 PLAY", p:5, vals:[["LOOP", "LOOP", "Conventional loop playback."],
+    ["ONE SHOT", "ONE SHOT", "Play only once from the beginning of the phrase to the end, and automatically stop."]],
+    note:"The guide sets each track on its own; this page sets both at once." },
+];
+
+/* What each part of the enclosure is, for the parts that are not footswitches. */
+const PARTS = {
+  display:{name:"Display", q:{q:"Shows the number of the current phrase memory, and various other information.", p:2}},
+  value:  {name:"VALUE knob", q:{q:"Selects the parameter that’s shown in the display, or edits the value.", p:2},
+           more:{q:"You can’t change the time signature of the rhythm patterns. Select a rhythm pattern of the time signature that you want to play.", p:11},
+           note:"Drag it up or down, scroll over it, or use the arrow keys to turn it; click it or press Enter to push it. The page carries Boss’s pictured Pop / 8Beat1 only, since the pattern list is in the separate Parameter Guide."},
+  menu:   {name:"MENU button", q:{q:"Accesses various parameters.", p:2},
+           more:{q:"By pressing the [MENU] button and [EXIT] button simultaneously, you can save the phrase.", p:2},
+           note:"A single click on MENU stands in for the two-button press here."},
+  exit:   {name:"EXIT button", q:{q:"Used to navigate through the menu shown in the display.", p:2}},
+  loopind:{name:"LOOP indicator", q:{q:"The indicators around the edge light according to the status of recording, overdubbing, or playback.", p:2},
+           more:{q:"The center of the indicator shows the division (TRK 1, TRK 2) of the loop that’s playing.", p:2}},
+  rhyind: {name:"RHYTHM indicator", q:{q:"The indicators around the edge light according to the rhythm playback status.", p:3},
+           more:{q:"The center of the indicator shows the division (INTRO, PTN 1, PTN 2, ENDING) of the rhythm that’s playing.", p:3}},
+  looplvl:{name:"LEVEL (LOOP)", q:{q:"Adjusts the volume of the phrase loop.", p:3},
+           note:"This is the lower of the two LEVEL knobs: the line printed on the enclosure runs from it to the LOOP ring."},
+  rhylvl: {name:"LEVEL (RHYTHM)", q:{q:"Adjusts the volume of the rhythm.", p:3},
+           note:"This is the upper of the two LEVEL knobs: the line printed on the enclosure runs from it to the RHYTHM ring."},
+};
+
+/* ---------------- settings, and the running machine ---------------- */
+const TEMPO_MIN = 40, TEMPO_MAX = 250;
+const TEMPI = []; for (let t = TEMPO_MIN; t <= TEMPO_MAX; t++) TEMPI.push(t);
+const PHRASES = []; for (let n = 1; n <= 99; n++) PHRASES.push(n);
+const BEATS = 4;                                 /* Pop / 8Beat1, the pattern Boss photograph */
+
+const DEF = () => ({ sync:false, tempo:120, phrase:1, intro:true, stop:"MEAS END+ENDING", recmode:"REC→DUB→PLAY", tmode:"SERIES", play:"LOOP" });
+const S = DEF();
+
+const blank = () => ({ len:null, layers:0, undone:false, meas:null, raw:null });
+const fresh = () => ({ 1:blank(), 2:blank() });
+const clone = o => JSON.parse(JSON.stringify(o));
+
+const M = {
+  L:{ state:"stop", trk:1, pos:0 },
+  R:{ state:"stop", ptn:1, pos:0, pend:null, stopAfter:false, syncRec:false, stopAt:null, endWith:false, fade:0 },
+  tr:fresh(), at:1, mem:{}, dirty:false,
+  flash:0, last:null, cursor:"phrase", menu:null, shift:null, focus:null,
+  hold:null,                                      /* {sw, t0} while a footswitch is down */
+  guide:null
+};
+
+const bar = () => BEATS * 60 / S.tempo;
+const trk = () => M.tr[M.L.trk];
+const hasData = n => M.tr[n].len != null;
+const loopView = () => M.L.state !== "stop" ? M.L.state : (hasData(M.L.trk) ? "stop" : "empty");
+const rhythmOn = () => M.R.state !== "stop";
+const patternRunning = () => M.R.state === "ptn" || M.R.state === "fill";
+const quantizing = () => S.sync && patternRunning();
+const looperRunning = () => M.L.state !== "stop";
+const oneShot = () => S.play === "ONE SHOT";
+const series = () => S.tmode === "SERIES";
+const secs = s => s.toFixed(2) + " s";
+const two = n => String(n).padStart(2, "0");
+
+function say(o, note){ M.last = o ? Object.assign({}, o, { note: note || "" }) : null; }
+
+/* ---------------- the looper ---------------- */
+function startRec(){
+  Object.assign(trk(), blank());
+  M.L.state = "rec"; M.L.pos = 0; M.dirty = true;
+}
+function closeRec(){
+  const t = trk(), raw = Math.max(.05, M.L.pos);
+  if (quantizing()){
+    const n = Math.max(1, Math.round(raw / bar()));
+    t.len = n * bar(); t.meas = n;
+  } else { t.len = raw; t.meas = null; }
+  t.raw = raw; t.layers = 1; t.undone = false;
+  M.L.pos = raw >= t.len ? raw - t.len : raw;
+  M.dirty = true;
+}
+function overdub(){ const t = trk(); t.layers++; t.undone = false; M.dirty = true; }
+function switchTrk(n){
+  if (M.L.state === "rec") closeRec();
+  M.L.trk = n;
+  if (!hasData(n)) startRec(); else { M.L.state = "play"; M.L.pos = 0; }
+}
+function load(n, keepPlaying){
+  M.tr = M.mem[n] ? clone(M.mem[n]) : fresh();
+  M.at = n; S.phrase = n; M.dirty = false; M.shift = null;
+  M.L.trk = 1; M.L.pos = 0;
+  M.L.state = keepPlaying && hasData(1) ? "play" : "stop";
+}
+
+/* ---------------- the three gestures, per switch, for the state the pedal is in ---------------- */
+function gestures(sw){
+  if (sw === "loop"){
+    const v = loopView(), t = trk();
+    const q = quantizing() ? "sets the length to whole measures, then " : "closes the loop and ";
+    const press =
+      v === "empty" ? { to:"starts recording", o:Q.rec, go(){ startRec(); } } :
+      v === "stop"  ? (oneShot()
+                        ? { to:"plays it once", o:Q.oneShot, go(){ M.L.state = "play"; M.L.pos = 0; } }
+                        : { to:"starts loop playback", o:Q.playData, go(){ M.L.state = "play"; M.L.pos = 0; } }) :
+      v === "rec"   ? (oneShot()
+                        ? { to:q + "plays it once", o:Q.oneShot, go(){ closeRec(); M.L.state = "play"; } }
+                      : S.recmode === "REC→PLAY→DUB"
+                        ? { to:q + "plays it back", o:Q.rpd, go(){ closeRec(); M.L.state = "play"; } }
+                      : quantizing()
+                        ? { to:q + "overdubs", o:M.L.trk === 1 ? Q.syncLen : Q.syncLen2,
+                            go(){ closeRec(); M.L.state = "dub"; overdub(); } }
+                        : { to:q + "overdubs", o:Q.recToDub,
+                            go(){ closeRec(); M.L.state = "dub"; overdub(); } }) :
+      v === "dub"   ? { to:"switches to loop playback", o:Q.dubToPlay, go(){ M.L.state = "play"; } } :
+      oneShot()     ? { to:"no overdub in ONE SHOT", o:Q.oneNoDub,
+                        note:"Boss do not say what a press does during ONE SHOT playback; this page ignores it.", go(){} } :
+                      { to:"switches to overdubbing", o:Q.playToDub, go(){ M.L.state = "dub"; overdub(); } };
+    const twice = (v === "rec" || v === "dub" || v === "play")
+      ? { to:"stops the looper", o:Q.stop, go(){ if (M.L.state === "rec") closeRec(); M.L.state = "stop"; M.L.pos = 0; } }
+      : null;
+    let hold = null;
+    if (v === "play" || v === "dub"){
+      if (t.undone) hold = { to:"redo: brings the last overdub back", o:Q.redo, go(){ t.layers++; t.undone = false; M.flash = .7; } };
+      else if (t.layers > 1) hold = { to:"undo: cancels the most recent overdub", o:Q.undo, go(){ t.layers--; t.undone = true; M.flash = .7; M.dirty = true; } };
+      else hold = { to:"undo: cancels the recording", o:Q.undo,
+                    note:"Redo only brings back an overdub, so the recording cannot come back. Boss do not say what the looper does next; this page stops it.",
+                    go(){ Object.assign(t, blank()); M.L.state = "stop"; M.L.pos = 0; M.flash = .7; } };
+    } else if (v === "stop"){
+      hold = { to:"clears the phrase", o:Q.clear, after:Q.clrQuiet,
+               note:"On the pedal the press starts the phrase playing before the hold clears it; this page goes straight to the clear.",
+               go(){ M.tr = fresh(); M.L.trk = 1; M.L.pos = 0; M.dirty = !!M.mem[S.phrase]; } };
+    }
+    return { press, twice, hold };
+  }
+
+  const R = M.R, other = R.ptn === 1 ? 2 : 1;
+  let press = null, twice = null, hold = null;
+  if (R.state === "stop"){
+    const synced = S.sync && !looperRunning();
+    const introNote = "The intro runs one measure on this page; on the pedal its length is the pattern’s.";
+    const begin = rec => { R.ptn = 1; R.pos = 0; R.stopAt = null; R.fade = 0;
+      if (S.intro){ R.state = "intro"; R.syncRec = rec; } else { R.state = "ptn"; R.syncRec = rec; syncIn(); } };
+    press = !S.intro
+      ? { to:synced ? "PTN 1 at once, with TRK 1 recording" : "PTN 1 at once, no intro", o:Q.intro,
+          after:synced ? Q.notRec : null, go(){ begin(synced); } }
+      : synced
+      ? { to:"intro, then PTN 1 with TRK 1 recording", o:Q.syncStart, after:Q.notRec, note:introNote, go(){ begin(true); } }
+      : { to:"intro, then PTN 1", o:Q.rStart, after:Q.introPlay, note:introNote, go(){ begin(false); } };
+    hold = { to:"turns SYNC " + (S.sync ? "off" : "on"), o:Q.sync, after:Q.syncCol, go(){ S.sync = !S.sync; } };
+  } else if (patternRunning()){
+    press = { to:"inserts a fill-in", o:Q.fill, go(){ R.state = "fill"; } };
+    const both = S.sync && looperRunning();
+    twice = stopGesture(both);
+    if (both && series()){
+      const empty = !hasData(other);
+      hold = { to:"fill-in, then PTN " + other + " with TRK " + other + (empty ? " recording" : " playing"),
+               o:other === 2 && empty ? Q.trk2 : Q.trkFollow,
+               go(){ R.state = "fill"; R.pend = other; R.stopAfter = false; } };
+    } else {
+      hold = { to:"fill-in, then PTN " + other, o:Q.ptn, after: both ? Q.single : null,
+               note: both ? "LOOP TRACK MODE is SINGLE, so the looper stays on TRK 1 while the pattern switches."
+                   : looperRunning() ? "With SYNC off, this page leaves the looper on TRK " + M.L.trk + ". Boss describe the tracks following the patterns in the section on using the two together, with SYNC on (pg. 17)." : "",
+               go(){ R.state = "fill"; R.pend = other; R.stopAfter = false; } };
+    }
+  }
+  return { press, twice, hold };
+}
+
+/* Press RHYTHM twice: what it does depends on STOP MODE (Parameter Guide p. 4). */
+const FADE_BARS = 2;
+function stopGesture(both){
+  const R = M.R, mode = S.stop, tail = both ? "; the looper stops with it" : "";
+  const o = { q:STOPS[mode], p:4, d:1 };
+  const byLoop = mode.startsWith("LOOP END");
+  const loopOk = S.sync && looperRunning() && M.L.state !== "rec";
+  const ending = mode.endsWith("ENDING");
+  if (mode === "IMMEDIATE")
+    return { to:"stops at once" + tail, o, go(){ finishRhythm(false); } };
+  if (mode === "FADE OUT")
+    return { to:"fades out" + tail, o,
+             note:"FADE OUT TIME runs 1–100 with no unit given; this page fades over " + FADE_BARS + " measures.",
+             go(){ R.fade = 1; R.stopAt = "fade"; } };
+  if (byLoop && loopOk)
+    return { to:"plays to the end of the loop, " + (ending ? "adds an ending, " : "") + "stops" + tail, o,
+             note: oneShot() ? "With ONE SHOT, this page takes the end of the take as the end of the loop." : "",
+             go(){ R.stopAt = "loop"; R.endWith = ending; R.pend = null; } };
+  const fallback = byLoop ? (S.sync ? "No loop is playing, so this page stops at the end of the measure." : "") : "";
+  if (ending)    /* the owner's manual: a fill-in, then the ending */
+    return { to:"fill-in, ending at the end of the measure, stop" + tail, o: both ? Q.syncStop : (byLoop && !S.sync ? Q.loopEndOff : Q.rStop),
+             after: both || (byLoop && !S.sync) ? o : null, note:fallback,
+             go(){ R.state = "fill"; R.stopAfter = true; R.pend = null; } };
+  return { to:"plays to the end of the measure, stops" + tail, o: byLoop && !S.sync ? Q.loopEndOff : o, note:fallback,
+           go(){ R.stopAt = "bar"; R.endWith = false; R.pend = null; } };
+}
+/* The rhythm stops (or goes into its ending); with SYNC on, the looper stops with it. */
+function finishRhythm(withEnding){
+  const R = M.R, L = M.L;
+  if (S.sync && L.state !== "stop"){ if (L.state === "rec") closeRec(); L.state = "stop"; L.pos = 0; }
+  R.stopAt = null; R.fade = 0; R.pend = null; R.stopAfter = false;
+  if (withEnding) R.state = "ending";
+  else { R.state = "stop"; R.pos = 0; R.ptn = 1; }
+}
+/* PTN 1 has begun: with SYNC on, TRK 1 starts with it. */
+function syncIn(){
+  const R = M.R, L = M.L;
+  if (!R.syncRec) return;
+  R.syncRec = false; L.trk = 1;
+  if (!hasData(1)) startRec(); else { L.state = "play"; L.pos = 0; }
+}
+
+function act(sw, g){
+  const x = gestures(sw)[g];
+  if (!x) return;
+  x.go();
+  say(x.o, x.note);
+  if (x.after) M.last.after = x.after;
+  render();
+}
+
+/* ---------------- the clock ---------------- */
+function onBar(){
+  const R = M.R, L = M.L;
+  if (R.state === "intro"){
+    R.state = "ptn";
+    syncIn();
+  } else if (R.stopAt === "bar"){
+    finishRhythm(false);
+  } else if (R.state === "fill"){
+    if (R.stopAfter){
+      finishRhythm(true);
+    } else {
+      if (R.pend){
+        R.ptn = R.pend; R.pend = null;
+        if (S.sync && series() && L.state !== "stop") switchTrk(R.ptn);
+      }
+      R.state = "ptn";
+    }
+  } else if (R.state === "ending"){
+    R.state = "stop"; R.pos = 0; R.ptn = 1;
+  }
+}
+
+function step(dt){
+  const R = M.R, L = M.L;
+  let changed = false;
+  if (R.state !== "stop"){
+    R.pos += dt / bar();
+    if (R.pos >= 1){ R.pos -= Math.floor(R.pos); onBar(); changed = true; }
+  }
+  if (R.stopAt === "fade"){
+    R.fade -= dt / (FADE_BARS * bar());
+    if (R.fade <= 0){ finishRhythm(false); changed = true; }
+  }
+  if (L.state === "rec") L.pos += dt;
+  else if (L.state === "dub" || L.state === "play"){
+    const t = trk();
+    L.pos += dt;
+    if (L.pos >= t.len){
+      L.pos %= t.len;
+      changed = true;
+      if (oneShot() && L.state === "play"){ L.state = "stop"; L.pos = 0; }
+      if (R.stopAt === "loop") finishRhythm(R.endWith);
+      else if (M.shift != null) load(M.shift, oneShot() ? false : true);
+    }
+  }
+  if (M.flash > 0){ M.flash -= dt; if (M.flash <= 0) changed = true; }
+  if (M.hold && performance.now() - M.hold.t0 >= 2000 && !M.hold.fired){
+    M.hold.fired = true; act(M.hold.sw, "hold");
+  }
+  if (changed) render();
+}
+
+/* ---------------- the rings ---------------- */
+const SEG = 16, A0 = -150, SPAN = 300;
+function buildRing(svg){
+  let h = '<circle cx="50" cy="50" r="48" fill="var(--well)"/>' +
+          '<circle cx="50" cy="50" r="48" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="1"/>';
+  const r = 37, w = SPAN / SEG, gap = 3.2;
+  for (let i = 0; i < SEG; i++){
+    const a = (A0 + i * w + gap / 2) * Math.PI / 180, b = (A0 + (i + 1) * w - gap / 2) * Math.PI / 180;
+    const p = (ang, rr) => (50 + rr * Math.sin(ang)).toFixed(2) + " " + (50 - rr * Math.cos(ang)).toFixed(2);
+    h += '<path d="M' + p(a, r) + ' A' + r + ' ' + r + ' 0 0 1 ' + p(b, r) + '" stroke="var(--seg-off)" stroke-width="7.5" fill="none"/>';
+  }
+  svg.innerHTML = h;
+  return Array.from(svg.querySelectorAll("path"));
+}
+const segLoop = buildRing($("#ring-loop svg")), segRhy = buildRing($("#ring-rhy svg"));
+
+const COL = { green:"var(--c-green)", red:"var(--c-red)", orange:"var(--c-orange)", blue:"var(--c-blue)" };
+function loopColour(){
+  if (M.flash > 0) return "blue";
+  const v = loopView();
+  return v === "rec" ? "red" : v === "dub" ? "orange" : v === "empty" ? null : "green";
+}
+function drawLive(){
+  const v = loopView(), c = loopColour();
+  let lit = 0;
+  if (M.flash > 0 || v === "stop") lit = SEG;
+  else if (v === "rec") lit = Math.floor((M.L.pos % bar()) / bar() * SEG) + 1;
+  else if (v === "dub" || v === "play") lit = Math.floor(M.L.pos / trk().len * SEG) + 1;
+  segLoop.forEach((s, i) => s.setAttribute("stroke", c && i < lit ? COL[c] : "var(--seg-off)"));
+
+  const second = S.sync ? COL.blue : COL.green;
+  const on = rhythmOn(), rl = on ? Math.floor(M.R.pos * SEG) + 1 : SEG;
+  segRhy.forEach((s, i) => {
+    s.setAttribute("stroke", i < rl ? (i % 4 === 0 ? COL.red : second) : "var(--seg-off)");
+    s.setAttribute("stroke-opacity", on ? (M.R.stopAt === "fade" ? Math.max(.15, M.R.fade) : 1) : .42);
+  });
+
+  [["loop", "#fsw-loop"], ["rhythm", "#fsw-rhy"]].forEach(([sw, sel]) => {
+    const el = $(sel), circ = el.querySelector("circle");
+    const p = M.hold && M.hold.sw === sw ? clamp((performance.now() - M.hold.t0) / 2000, 0, 1) * 100 : 0;
+    circ.setAttribute("stroke-dasharray", p + " 100");
+    el.classList.toggle("down", !!(M.hold && M.hold.sw === sw));
+  });
+}
+
+let lastT = performance.now();
+function frame(now){
+  step(Math.min(.1, (now - lastT) / 1000)); lastT = now;
+  drawLive();
+  requestAnimationFrame(frame);
+}
+
+/* ---------------- the display ---------------- */
+const MENU_ITEMS = ["WRITE", "CLEAR"];
+function lcd(){
+  const m = M.menu;
+  if (m){
+    if (m.stage === "item") return ["MENU", "▶" + MENU_ITEMS[m.item]];
+    if (m.stage === "dest") return [MENU_ITEMS[m.item], (m.item === 0 ? "TO " : "") + "▶" + two(m.dest)];
+    return ["CLEAR " + two(m.dest) + "?", m.yes ? "▶YES" : "▶NO"];
+  }
+  const ph = M.shift != null ? '<span class="blink">' + two(M.shift) + '</span>' : two(S.phrase);
+  const cur = k => M.cursor === k ? "▶" : " ";
+  return [cur("phrase") + ph + ":", cur("tempo") + "♩=" + S.tempo, "Pop", "8Beat1"];
+}
+function drawLcd(){
+  const r = lcd();
+  $("#lcd").innerHTML = r.length === 2
+    ? '<span class="row">' + r[0] + '</span><span class="row">' + r[1] + '</span>'
+    : '<span class="row"><span>' + r[0] + '</span><span>' + r[1] + '</span></span>' +
+      '<span class="row"><span> ' + r[2] + '</span><span>' + r[3] + '</span></span>';
+}
+
+/* ---------------- VALUE, MENU, EXIT ---------------- */
+function turn(d){
+  const m = M.menu;
+  if (m){
+    if (m.stage === "item") m.item = (m.item + MENU_ITEMS.length + d) % MENU_ITEMS.length;
+    else if (m.stage === "dest") m.dest = clamp(m.dest + d, 1, 99);
+    else m.yes = !m.yes;
+  } else if (M.cursor === "tempo"){
+    S.tempo = clamp(S.tempo + d, TEMPO_MIN, TEMPO_MAX);
+    say(Q.tempo, "Boss’s owner’s manual gives no tempo range; this page stops at " + TEMPO_MIN + " and " + TEMPO_MAX + ".");
+  } else {
+    const n = clamp((M.shift != null ? M.shift : S.phrase) + d, 1, 99);
+    if (looperRunning()){
+      M.shift = n === M.at ? null : n;
+      say(Q.shift, "Boss do not say when the switch happens; this page makes it at the end of the loop.");
+    } else {
+      const lose = M.dirty;
+      load(n, false);
+      say(lose ? Q.lost : Q.pickPhr);
+    }
+  }
+  render();
+}
+function push(){
+  const m = M.menu;
+  if (m){
+    if (m.stage === "item"){ m.stage = "dest"; m.dest = S.phrase; say(m.item === 0 ? Q.wDest : Q.cDest); }
+    else if (m.stage === "dest" && m.item === 0){
+      M.mem[m.dest] = clone(M.tr); M.at = m.dest; S.phrase = m.dest; M.dirty = false; M.menu = null; say(Q.saved);
+    }
+    else if (m.stage === "dest"){ m.stage = "yes"; m.yes = false; say(Q.cYes); }
+    else {
+      if (m.yes){
+        delete M.mem[m.dest];
+        if (m.dest === S.phrase){ M.tr = fresh(); M.L.trk = 1; M.dirty = false; }
+        say(Q.deleted);
+      } else say(Q.cancel);
+      M.menu = null;
+    }
+  } else {
+    M.cursor = M.cursor === "phrase" ? "tempo" : "phrase";
+    say(M.cursor === "tempo" ? Q.toTempo : Q.toPhrase);
+  }
+  render();
+}
+function menuBtn(){
+  M.focus = "menu";
+  if (!looperRunning() && !rhythmOn()){ M.menu = { stage:"item", item:0, dest:S.phrase, yes:false }; say(Q.menu); }
+  else say(Q.menu, "The pedal is running, so the menu stays shut.");
+  render();
+}
+function exitBtn(){
+  M.focus = "exit";
+  const m = M.menu;
+  if (m){
+    if (m.stage === "yes") m.stage = "dest";
+    else if (m.stage === "dest") m.stage = "item";
+    else M.menu = null;
+    say(Q.cancel);
+  }
+  render();
+}
+
+/* ---------------- dial-in guides ----------------
+   Every setting and every step is something Boss document; which settings to pick for a
+   use case, and the order the steps are put in, are this page's. now() says which step
+   the pedal is on, read off the running machine. */
+const GUIDES = [
+  { id:"woodshed", name:"Woodshed",
+    what:"Record a phrase over the drums, hear it back once, clear it and go again, nudging the tempo between takes.",
+    set:{ sync:true, intro:true, play:"ONE SHOT", stop:"LOOP END", tmode:"SINGLE" },
+    why:{ sync:"The drums start the recording, and the take is rounded to whole measures.",
+          intro:"The intro is your count-in.",
+          play:"Each take plays back once and stops by itself.",
+          stop:"Press RHYTHM twice during playback and the drums stop when the take does.",
+          tmode:"Holding RHYTHM changes the groove without starting a second track." },
+    steps:[
+      { t:"Set the tempo: push VALUE until ▶ points at ♩=, then turn it.", q:Q.tap,
+        more:"For your feet, a footswitch on the CTL 1 or CTL 2/EXP jack can be set to TAP TEMPO." },
+      { t:"Press RHYTHM. The intro counts you in, and recording starts on the first beat of PTN 1.", q:Q.syncStart },
+      { t:"Play the phrase, then press LOOP on the first beat after it. The take is rounded to whole measures and plays back once.", q:Q.oneShot },
+      { t:"While it plays, press RHYTHM twice. The drums stop when the take ends.", q:{ q:STOPS["LOOP END"], p:4, d:1 } },
+      { t:"Hold LOOP for 2 s to clear the take, then go back to step 1.", q:Q.clrQuiet },
+    ],
+    now(){
+      if (M.L.state === "rec") return 2;
+      if (M.R.state === "intro") return 1;
+      if (looperRunning() || rhythmOn()) return 3;
+      if (hasData(1)) return 4;
+      return M.cursor === "tempo" ? 1 : 0;
+    } },
+  { id:"backing", name:"Song backing",
+    what:"Boss’s own walk-through: a verse loop over PTN 1 and a chorus loop over PTN 2, switched from one footswitch.",
+    set:{ sync:true, intro:true, play:"LOOP", stop:"MEAS END+ENDING", recmode:"REC→DUB→PLAY", tmode:"SERIES" },
+    why:{ sync:"Rhythm and looper start, switch and stop together.",
+          intro:"The song opens with the intro.",
+          play:"Both parts loop.",
+          stop:"Stopping ends the song with a fill-in and an ending.",
+          recmode:"Closing a part goes straight into a second layer, as in Boss’s steps.",
+          tmode:"PTN 1 carries TRK 1, and PTN 2 carries TRK 2." },
+    steps:[
+      { t:"Press RHYTHM. After the intro, TRK 1 records over PTN 1.", q:Q.syncStart },
+      { t:"Play the verse, then press LOOP. Its length is set to whole measures, and you are overdubbing.", q:Q.syncLen },
+      { t:"Press LOOP to play the verse back.", q:Q.dubToPlay },
+      { t:"Hold RHYTHM for 2 s. PTN 2 starts and TRK 2 records the chorus; press LOOP, then LOOP again, as for the verse.", q:Q.trk2 },
+      { t:"Hold RHYTHM to move between verse and chorus. Press it twice to end the song.", q:Q.syncStop },
+      { t:"Write the phrase before you change to another: MENU, then push VALUE twice.", q:Q.lost },
+    ],
+    now(){
+      const L = M.L;
+      if (M.R.state === "intro") return 0;
+      if (!rhythmOn() && !looperRunning()) return M.dirty ? 5 : 0;
+      if (L.trk === 2 && (L.state === "rec" || L.state === "dub")) return 3;
+      if (hasData(2)) return 4;
+      if (L.state === "rec") return 1;
+      if (L.state === "dub") return 2;
+      if (L.state === "play") return 3;
+      return 4;
+    } },
+  { id:"free", name:"Loop without drums",
+    what:"The looper on its own: a loop as long as you hold it open, with layers on top.",
+    set:{ sync:false, play:"LOOP", recmode:"REC→PLAY→DUB", tmode:"SINGLE" },
+    why:{ sync:"The rhythm stays out of it, so the loop is as long as you make it.",
+          play:"It loops.",
+          recmode:"Closing the loop plays it back first; you choose when to add a layer.",
+          tmode:"One track." },
+    steps:[
+      { t:"Press LOOP and play.", q:Q.rec },
+      { t:"Press LOOP where the phrase should repeat. It plays straight back.", q:Q.rpd },
+      { t:"Press LOOP to add a layer and again to stop adding. Hold it 2 s to take the last layer off; press it twice to stop.", q:Q.playToDub },
+      { t:"Stopped: press LOOP to play it again, or hold it 2 s to clear.", q:Q.clear },
+    ],
+    now(){
+      const L = M.L;
+      if (L.state === "rec") return 1;
+      if (L.state === "play" || L.state === "dub") return 2;
+      return hasData(1) ? 3 : 0;
+    } },
+];
+const valName = k => { const set = SET.find(x => x.k === k); const v = set.vals.find(x => x[0] === S[k]); return v ? v[1] : String(S[k]); };
+const valOf = (k, val) => SET.find(x => x.k === k).vals.find(x => x[0] === val)[1];
+
+function renderGuides(){
+  $("#guides").innerHTML = '<span class="lbl">Dial in for</span>' + GUIDES.map(g =>
+    '<button type="button" data-guide="' + g.id + '" aria-pressed="' + (M.guide === g.id) + '">' + esc(g.name) + '</button>').join("");
+  const g = GUIDES.find(x => x.id === M.guide), box = $("#guide");
+  box.hidden = !g;
+  if (!g) return;
+  let off = false;
+  const rows = SET.filter(x => x.k in g.set).map(x => {
+    const want = valOf(x.k, g.set[x.k]), same = S[x.k] === g.set[x.k];
+    if (!same) off = true;
+    return '<li><span class="nm">' + x.name + '</span><span class="vl' + (same ? '' : ' off') + '">' + esc(want) +
+      (same ? '' : ' · now ' + esc(valName(x.k))) + '</span><span class="why">' + esc(g.why[x.k] || "") + '</span></li>';
+  }).join("");
+  const n = g.now();
+  const steps = g.steps.map((st, i) => '<li' + (i === n ? ' class="now"' : '') + '><span>' + esc(st.t) +
+    (i === n && st.q ? '<small>' + (st.more ? esc(st.more) + ' ' : '') + quote(st.q) + '</small>' : '') + '</span></li>').join("");
+  box.innerHTML =
+    '<div class="box"><h3>' + esc(g.name) + '</h3><p class="what">' + esc(g.what) + '</p>' +
+      '<span class="lbl">MENU › RHYTHM &amp; LOOP</span><ul class="gset" style="margin-top:8px">' + rows + '</ul>' +
+      (off ? '<button class="resetsim gapply" type="button">Set these again</button>' : '') +
+      ours("A dial-in from this page: the settings and the steps are Boss’s, the choice of them for this use is ours.") + '</div>' +
+    '<div class="box"><span class="lbl">Steps</span><ol class="gsteps">' + steps + '</ol></div>';
+}
+
+function renderMenu(){
+  $("#menuset").innerHTML = SET.map(x => {
+    const i = x.vals.findIndex(v => v[0] === S[x.k]), cur = x.vals[i];
+    const words = cur[2] || x.q;
+    let extra = "";
+    if (x.k === "stop" && S.stop.startsWith("LOOP END") && !S.sync) extra = ' ' + quote(Q.loopEndOff);
+    if (x.k === "play" && oneShot()) extra = ' ' + quote(Q.oneNoDub);
+    return '<div class="row"><label for="set-' + x.k + '">' + x.name + '</label>' +
+      '<select id="set-' + x.k + '" data-k="' + x.k + '">' +
+        x.vals.map((v, j) => '<option value="' + j + '"' + (j === i ? ' selected' : '') + '>' + esc(v[1]) + '</option>').join("") +
+      '</select><p>' + quote({ q:words, p:x.p, d:1 }) + extra + (x.note ? ours(x.note) : '') + '</p></div>';
+  }).join("") ;
+}
+
+/* ---------------- render ---------------- */
+const STATE_WORD = { empty:"empty", stop:"stopped", rec:"recording", dub:"overdubbing", play:"playing" };
+const R_WORD = { stop:"stopped", intro:"intro", ptn:"PTN", fill:"fill-in", ending:"ending" };
+
+function card(sw){
+  const g = gestures(sw);
+  const v = loopView();
+  const head = sw === "loop"
+    ? '<span class="now"><i style="background:' + (loopColour() ? COL[loopColour()] : "var(--seg-off)") + '"></i>TRK ' + M.L.trk + ' · ' + STATE_WORD[v] + '</span>'
+    : '<span class="now"><i style="background:' + (rhythmOn() ? COL.red : "var(--seg-off)") + '"></i>' +
+        (M.R.state === "ptn" || M.R.state === "fill" ? "PTN " + M.R.ptn + (M.R.state === "fill" ? " · fill-in" : "") : R_WORD[M.R.state]) +
+        ' · SYNC ' + (S.sync ? "on" : "off") + '</span>';
+  const row = (k, label) => {
+    const x = g[k];
+    if (!x) return '<div class="g none"><button class="do" disabled>' + label + '</button><span class="to">Nothing, in this state</span></div>';
+    return '<div class="g"><button class="do" type="button" data-sw="' + sw + '" data-g="' + k + '">' + label + '</button>' +
+      '<span class="to"><span class="arrow">→</span> ' + esc(x.to) + '</span>' +
+      '<p class="q">' + quote(x.o) + ours(x.note) + '</p></div>';
+  };
+  return '<div class="swhead"><h2>' + (sw === "loop" ? "LOOP" : "RHYTHM") + ' switch</h2>' + head + '</div>' +
+    row("press", "Press") + row("twice", "Press twice") + row("hold", "Hold 2 s");
+}
+
+function trackLine(n){
+  const t = M.tr[n], live = M.L.trk === n && M.L.state === "rec";
+  if (live) return '<span class="mono">recording · ' + secs(M.L.pos) + ' so far</span>';
+  if (t.len == null) return '<span class="mono">empty</span>';
+  const once = oneShot() ? " · plays once" : "";
+  const layers = t.layers <= 1 ? "recording only" : "recording + " + (t.layers - 1) + " overdub" + (t.layers > 2 ? "s" : "");
+  let h = '<span class="mono">' + secs(t.len) + (t.meas ? " · " + t.meas + " measure" + (t.meas > 1 ? "s" : "") : "") +
+          ' · ' + layers + (t.undone ? " · one undone" : "") + once + '</span>';
+  if (t.meas){
+    h += '<small>' + quote(Q.quant) + ours("You closed it at " + secs(t.raw) + "; the page rounds to the nearest whole measure of " +
+         BEATS + "/4 at the tempo it was recorded at. Boss do not say which way it rounds.") + '</small>';
+  }
+  return h;
+}
+
+function render(){
+  if (S.phrase !== M.at) load(S.phrase, false);      /* a preset or a link moved the phrase */
+
+  drawLcd();
+  $("#card-loop").innerHTML = card("loop");
+  $("#card-rhythm").innerHTML = card("rhythm");
+
+  $$("#ring-loop [data-trk]").forEach(e => e.classList.toggle("on", +e.dataset.trk === M.L.trk));
+  const div = M.R.state === "intro" ? "intro" : M.R.state === "ending" ? "ending" : rhythmOn() ? String(M.R.ptn) : "";
+  $$("#ring-rhy [data-div]").forEach(e => e.classList.toggle("on", e.dataset.div === div));
+  $("#menu").classList.toggle("on", !!M.menu);
+
+  /* the colour key, with the colour that is lit now picked out */
+  const lc = loopColour(), v = loopView();
+  const chip = (on, col, txt) => '<span class="chip' + (on ? " on" : "") + '"><i style="background:' + col + '"></i>' + txt + '</span>';
+  $("#key").innerHTML =
+    '<span>LOOP</span><span class="chips">' +
+      chip(v === "empty" && !M.flash, "var(--seg-off)", "unlit · no data") +
+      chip(lc === "green", COL.green, v === "stop" ? "green · data, stopped" : "green · playing") +
+      chip(lc === "red", COL.red, "red · recording") +
+      chip(lc === "orange", COL.orange, "orange · overdubbing") +
+      chip(lc === "blue", COL.blue, "light blue · undo / redo") +
+    '</span><span class="src">' + pg(13) + ' ' + pg(14) + '</span>' +
+    '<span>RHYTHM</span><span class="chips">' +
+      chip(!S.sync, "linear-gradient(90deg,var(--c-red) 50%,var(--c-green) 50%)", "red and green · SYNC off") +
+      chip(S.sync, "linear-gradient(90deg,var(--c-red) 50%,var(--c-blue) 50%)", "red and light blue · SYNC on") +
+    '</span><span class="src">' + pg(10) + '</span>';
+
+  /* the part last touched */
+  const part = PARTS[M.focus];
+  $$(".pedal [data-part]").forEach(e => e.classList.toggle("focus", e.dataset.part === M.focus));
+  const box = $("#part");
+  box.hidden = !part;
+  if (part){
+    box.innerHTML = '<h3>' + esc(part.name) + '</h3><p>' + quote(part.q) + '</p>' +
+      (part.more ? '<p>' + quote(part.more) + '</p>' : '') + (part.note ? ours(part.note) : '');
+  }
+
+  /* on the pedal now */
+  const f = [];
+  f.push(['Phrase', '<span class="mono">' + two(S.phrase) + '</span> · ' +
+    (M.mem[S.phrase] ? "written to memory" : "nothing written here yet") +
+    (M.dirty ? '<small><b>Not written since the last change.</b> ' + quote(Q.lost) + '</small>' : '') +
+    (M.shift != null ? '<small>Phrase ' + two(M.shift) + ' is next (blinking).</small>' : '')]);
+  f.push(['TRK 1', trackLine(1)]);
+  if (hasData(2) || M.L.trk === 2) f.push(['TRK 2', trackLine(2)]);
+  f.push(['Rhythm', '<span class="mono">♩=' + S.tempo + ' · 1 measure = ' + secs(bar()) + '</span>' +
+    ours("Measure length assumes " + BEATS + "/4, the time signature of the Pop / 8Beat1 pattern shown.")]);
+  f.push(['SYNC', S.sync
+    ? '<span class="mono">on</span><small>Rhythm and looper start, switch and stop together, and a loop recorded over the pattern is rounded to whole measures.</small>'
+    : '<span class="mono">off</span><small>Rhythm and looper run separately; a loop is as long as you hold it open.</small>']);
+  $("#facts").innerHTML = f.map(([k, v2]) => '<dt>' + k + '</dt><dd>' + v2 + '</dd>').join("");
+
+  const L = M.last;
+  $("#just").innerHTML = L
+    ? '<p class="q">' + quote(L) + '</p>' + (L.after ? '<p class="q" style="margin-top:8px">' + quote(L.after) + '</p>' : '') + ours(L.note)
+    : '<p class="empty">Nothing yet. Press, press twice or hold either footswitch.</p>';
+  $("#status").textContent = "Looper " + STATE_WORD[loopView()] + ", rhythm " + R_WORD[M.R.state] + ", SYNC " + (S.sync ? "on" : "off");
+
+  renderGuides();
+  if (!$("#menuset").contains(document.activeElement)) renderMenu();
+}
+
+/* ---------------- input ---------------- */
+document.addEventListener("click", e => {
+  const b = e.target.closest(".do[data-g]");
+  if (b) act(b.dataset.sw, b.dataset.g);
+});
+
+/* The drawn footswitches take real timing: a tap, two taps inside 400 ms, or a hold of
+   two seconds. A tap waits for a possible second only when the second would mean
+   something. */
+const TAP_GAP = 400;
+const taps = { loop:null, rhythm:null };
+function down(sw){
+  if (M.hold) return;
+  M.hold = { sw, t0:performance.now(), fired:false };
+}
+function up(sw){
+  const h = M.hold;
+  if (!h || h.sw !== sw) return;
+  M.hold = null;
+  if (h.fired) return;
+  if (taps[sw]){ clearTimeout(taps[sw]); taps[sw] = null; act(sw, "twice"); return; }
+  if (!gestures(sw).twice){ act(sw, "press"); return; }
+  taps[sw] = setTimeout(() => { taps[sw] = null; act(sw, "press"); }, TAP_GAP);
+}
+$$(".fsw").forEach(el => {
+  const sw = el.dataset.sw;
+  el.addEventListener("pointerdown", e => { e.preventDefault(); el.setPointerCapture(e.pointerId); down(sw); });
+  el.addEventListener("pointerup", () => up(sw));
+  el.addEventListener("pointercancel", () => { M.hold = null; });
+  el.addEventListener("keydown", e => { if ((e.key === " " || e.key === "Enter") && !e.repeat){ e.preventDefault(); down(sw); } });
+  el.addEventListener("keyup", e => { if (e.key === " " || e.key === "Enter"){ e.preventDefault(); up(sw); } });
+});
+
+/* VALUE: drag or scroll to turn, click to push. */
+const val = $("#value");
+let drag = null;
+val.addEventListener("pointerdown", e => { e.preventDefault(); val.setPointerCapture(e.pointerId); drag = { y:e.clientY, acc:0, moved:false }; M.focus = "value"; });
+val.addEventListener("pointermove", e => {
+  if (!drag) return;
+  drag.acc += drag.y - e.clientY; drag.y = e.clientY;
+  while (Math.abs(drag.acc) >= 12){ const d = Math.sign(drag.acc); drag.acc -= d * 12; drag.moved = true; turn(d); }
+});
+val.addEventListener("pointerup", () => {
+  if (drag && !drag.moved){ val.classList.add("pushed"); setTimeout(() => val.classList.remove("pushed"), 120); push(); }
+  else render();
+  drag = null;
+});
+val.addEventListener("wheel", e => { e.preventDefault(); M.focus = "value"; turn(e.deltaY < 0 ? 1 : -1); val.dispatchEvent(new Event("change", { bubbles:true })); }, { passive:false });
+val.addEventListener("keydown", e => {
+  const k = e.key;
+  if (k === "ArrowUp" || k === "ArrowRight"){ e.preventDefault(); M.focus = "value"; turn(1); }
+  else if (k === "ArrowDown" || k === "ArrowLeft"){ e.preventDefault(); M.focus = "value"; turn(-1); }
+  else if (k === "Enter" || k === " "){ e.preventDefault(); M.focus = "value"; push(); }
+});
+val.addEventListener("click", e => e.preventDefault());
+
+$("#menu").addEventListener("click", menuBtn);
+$("#exit").addEventListener("click", exitBtn);
+$$(".pedal [data-part]").forEach(el => {
+  if (el.id === "value" || el.id === "menu" || el.id === "exit") return;
+  el.addEventListener("click", () => { M.focus = M.focus === el.dataset.part ? null : el.dataset.part; render(); });
+});
+
+function resetSim(){
+  M.L.state = "stop"; M.L.pos = 0; M.L.trk = 1;
+  Object.assign(M.R, { state:"stop", ptn:1, pos:0, pend:null, stopAfter:false, syncRec:false, stopAt:null, endWith:false, fade:0 });
+  M.tr = fresh(); M.dirty = false; M.menu = null; M.shift = null; M.flash = 0; M.last = null;
+}
+$("#resetsim").addEventListener("click", () => { resetSim(); render(); });
+
+/* MENU > RHYTHM & LOOP, as selects. */
+$("#menuset").addEventListener("change", e => {
+  const sel = e.target.closest("select[data-k]");
+  if (!sel) return;
+  const set = SET.find(x => x.k === sel.dataset.k);
+  S[set.k] = set.vals[+sel.value][0];
+  if (set.k === "tmode" && !series() && M.L.trk === 2){ M.L.trk = 1; if (M.L.state !== "stop") M.L.state = hasData(1) ? "play" : "stop"; }
+  if (set.k === "play" && oneShot() && M.L.state === "dub") M.L.state = "play";
+  render(); renderMenu();
+  const again = $("#set-" + set.k); if (again) again.focus();
+});
+
+/* Dial-in guides: pick one and the page sets the menu for it and empties the phrase. */
+$("#guides").addEventListener("click", e => {
+  const b = e.target.closest("button[data-guide]");
+  if (!b) return;
+  const g = GUIDES.find(x => x.id === b.dataset.guide);
+  if (M.guide === g.id){ M.guide = null; render(); return; }
+  Object.assign(S, g.set); resetSim(); M.guide = g.id;
+  render();
+});
+$("#guide").addEventListener("click", e => {
+  if (!e.target.closest(".gapply")) return;
+  const g = GUIDES.find(x => x.id === M.guide);
+  Object.assign(S, g.set); render();
+});
+
+/* ---------------- the manual index ---------------- */
+const INDEX = [
+  ["On the pedal", [["Display", 2], ["VALUE knob", 2], ["MENU and EXIT buttons", 2], ["LOOP indicator", 2],
+    ["LEVEL knobs, loop and rhythm", 3], ["RHYTHM indicator", 3], ["LOOP switch, every gesture", 3], ["RHYTHM switch, every gesture", 3]]],
+  ["Connections and power", [["INPUT and OUTPUT, stereo and mono", 4], ["Power-up and power-down order", 4], ["AUTO OFF", 5],
+    ["CTL 1, 2/EXP jacks", 5], ["MIDI jack", 6], ["USB port", 6]]],
+  ["How it is organised", [["Phrase memory: rhythm plus two tracks", 7], ["Recording vs overdubbing", 7], ["Workflow chart", 8],
+    ["Intro, PTN 1, PTN 2, fill-in, ending", 9], ["SYNC on and off", 10], ["Looper operation chart", 10]]],
+  ["Rhythm", [["Selecting a genre and pattern", 11], ["Time signatures", 11], ["Playing the rhythm", 12], ["Switching PTN 1 / PTN 2", 12],
+    ["Stopping, with an ending", 12], ["Inserting a fill-in", 12], ["Rhythm volume", 13], ["Tempo", 13]]],
+  ["Looper", [["Selecting a phrase memory", 13], ["LOOP indicator: unlit or green", 13], ["Recording", 14], ["Indicator colours", 14],
+    ["Overdubbing", 14], ["Loop playback", 14], ["Memory shift", 14], ["Stopping", 14], ["Undo, redo and clear", 15]]],
+  ["Rhythm and looper together", [["Recording a backing with SYNC", 15], ["Loop quantize", 16], ["Recording TRK 2", 17], ["Stopping both", 17]]],
+  ["Memory", [["Saving a phrase (WRITE)", 17], ["Maximum recording time, MEMORY FULL!", 18], ["Deleting a phrase", 18], ["Factory reset", 20]]],
+  ["Parameter Guide: the menu", [["SYNC SWITCH, RHYTHM INTRO", 3, 1], ["Rhythm kit, reverb, RHY PLAY MODE", 3, 1], ["STOP MODE, fade-out time", 4, 1],
+    ["LOOP REC MODE", 4, 1], ["LOOP TRACK MODE: single, series, parallel", 4, 1], ["ONE SHOT playback", 5, 1],
+    ["RHYTHM switch functions", 6, 1], ["Footswitch functions, TAP TEMPO", 6, 1], ["Expression pedal", 7, 1], ["MIDI channels and CC numbers", 9, 1],
+    ["MIDI clock sync", 10, 1], ["Tempo per pattern or fixed", 12, 1], ["Output filter for amp or PA", 12, 1], ["Stereo, or loop and rhythm split", 13, 1],
+    ["LEVEL KNOB LOCK", 14, 1], ["Switching the loop tracks", 15, 1], ["Clearing without playing", 16, 1], ["USB backup", 17, 1],
+    ["Rhythm pattern list", 20, 1]]],
+  ["Appendix", [["Rubber feet", 21], ["Getting the Parameter Guide", 21], ["Specifications", 22], ["Using the unit safely", 23],
+    ["Important notes", 24], ["Intellectual property", 25]]],
+];
+$("#mindex").innerHTML = INDEX.map(([g, rows]) =>
+  '<div class="grp lbl">' + g + '</div>' + rows.map(([t, p, d]) =>
+    '<a href="' + (d ? PGUIDE : MAN) + '#page=' + p + '" target="_blank" rel="noopener"><span class="t">' + esc(t) + '</span><span class="n">pg. ' + p + '</span></a>'
+  ).join("")).join("");
+
+/* ---------------- share & presets ---------------- */
+const F = PedalShare.F;
+PedalShare.init({
+  id:"rc10r", v:1, state:S, render:render,
+  fields:[ F.bool("sync"), F.pick("tempo", TEMPI), F.pick("phrase", PHRASES), F.bool("intro"),
+            F.pick("stop", STOP_VALS), F.pick("recmode", REC_VALS), F.pick("tmode", TMODE_VALS), F.pick("play", PLAY_VALS) ]
+});
+
+render();
+requestAnimationFrame(frame);
+})();
+</script>
